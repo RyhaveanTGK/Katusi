@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qaliblər – Birloto</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
+:root{--bg-purple:#3d0d62;--primary-yellow:#f5c518;--secondary-purple:#5c2491;--panel-border:rgba(255,255,255,.1);}
+body{background:var(--bg-purple);color:#fff;font-family:'Inter',sans-serif;min-height:100vh;}
+.wrap{max-width:414px;margin:0 auto;padding:80px 14px 100px;}
+.page-title{font-size:22px;font-weight:900;margin-bottom:4px;}
+.page-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;}
+.tab-row{display:flex;gap:0;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.15);margin-bottom:20px;}
+.tab-btn{flex:1;padding:11px;font-size:13px;font-weight:700;border:none;cursor:pointer;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);transition:background .2s,color .2s;}
+.tab-btn.active{background:#5c2491;color:#fff;}
+.rank-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,255,255,.05);border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.08);position:relative;}
+.rank-medal{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3d2200;border:2px solid rgba(255,255,255,.55);}
+.rank-1{background:linear-gradient(135deg,#ffd700,#f0a800);}
+.rank-2{background:linear-gradient(135deg,#c0c0c0,#a0a0a0);}
+.rank-3{background:linear-gradient(135deg,#cd7f32,#a0522d);}
+.rank-other{background:rgba(255,255,255,.15);color:#fff;}
+.rank-info{flex:1;}
+.rank-name{font-size:15px;font-weight:800;}
+.rank-stats{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;}
+.rank-prize{font-size:16px;font-weight:900;color:var(--primary-yellow);}
+.recent-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(255,255,255,.05);border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.08);}
+.ri-icon{font-size:24px;}
+.ri-info{flex:1;}
+.ri-name{font-size:14px;font-weight:800;}
+.ri-room{font-size:12px;color:rgba(255,255,255,.5);}
+.ri-prize{font-size:15px;font-weight:900;color:#1cb85d;}
+.ri-date{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+.empty-state{text-align:center;padding:40px 20px;color:rgba(255,255,255,.4);}
+.empty-state .icon{font-size:48px;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+
+<div class="wrap">
+  <div class="page-title">🏆 Qaliblər</div>
+  <div class="page-sub">Ən çox qazanan oyunçular</div>
+
+  <div class="tab-row" id="tabRow">
+    <button class="tab-btn active" onclick="showTab('top')">Liderboard</button>
+    <button class="tab-btn" onclick="showTab('recent')">Son qaliblər</button>
+  </div>
+
+  <!-- Top winners -->
+  <div id="tab-top">
+    <% if (topWinners.length === 0) { %>
+    <div class="empty-state"><div class="icon">🏅</div><div>Hələ qalib yoxdur</div></div>
+    <% } %>
+    <% topWinners.forEach(function(w, i) { %>
+    <div class="rank-row">
+      <div class="rank-medal <%= i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other' %>">
+        <%= i < 3 ? (i+1) : (i+1) %>
+      </div>
+      <div class="rank-info">
+        <div class="rank-name"><%= w.username %></div>
+        <div class="rank-stats"><%= w.gamesWon %> qalibiyyət • <%= w.gamesPlayed %> oyun</div>
+      </div>
+      <div class="rank-prize"><%= w.totalWon.toFixed(2) %> ₼</div>
+    </div>
+    <% }); %>
+  </div>
+
+  <!-- Recent games -->
+  <div id="tab-recent" style="display:none;">
+    <% if (recentGames.length === 0) { %>
+    <div class="empty-state"><div class="icon">🎯</div><div>Hələ heç bir oyun bitməyib</div></div>
+    <% } %>
+    <% recentGames.forEach(function(g) { %>
+    <div class="recent-item">
+      <div class="ri-icon">🎊</div>
+      <div class="ri-info">
+        <div class="ri-name"><%= g.userId ? g.userId.username : 'İstifadəçi' %></div>
+        <div class="ri-room"><%= g.roomId ? g.roomId.name : 'Otaq' %></div>
+        <div class="ri-date"><%= new Date(g.playedAt).toLocaleDateString('az-AZ',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) %></div>
+      </div>
+      <div class="ri-prize">+<%= g.prize.toFixed(2) %> ₼</div>
+    </div>
+    <% }); %>
+  </div>
+</div>
+
+<%- include('partials/footer', { activePage: 'winners' }) %>
+
+<script>
+function showTab(tab){
+  document.getElementById('tab-top').style.display=tab==='top'?'block':'none';
+  document.getElementById('tab-recent').style.display=tab==='recent'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('active',(tab==='top'&&i===0)||(tab==='recent'&&i===1));});
+}
+</script>
+</body>
+</html>

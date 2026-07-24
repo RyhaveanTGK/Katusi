@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dəvət – Birloto</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
+body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;}
+.wrap{max-width:414px;margin:0 auto;padding:80px 16px 100px;}
+.hero-section{background:linear-gradient(135deg,#5c2491 0%,#3d0d62 100%);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:20px;border:1px solid rgba(255,255,255,.1);}
+.hero-icon{font-size:52px;margin-bottom:14px;}
+.hero-title{font-size:22px;font-weight:900;margin-bottom:6px;}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.6);line-height:1.5;}
+.bonus-pill{display:inline-block;background:linear-gradient(90deg,#f5c518,#f59200);color:#3d2200;font-size:14px;font-weight:900;border-radius:20px;padding:6px 18px;margin-top:14px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.stat-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:16px;text-align:center;}
+.stat-val{font-size:28px;font-weight:900;color:#f5c518;}
+.stat-lbl{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px;text-transform:uppercase;letter-spacing:.4px;}
+.link-section{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;margin-bottom:16px;}
+.link-label{font-size:12px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.link-box{display:flex;gap:10px;align-items:center;}
+.link-input{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:12px;outline:none;font-family:monospace;}
+.copy-btn{background:#5c2491;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.code-section{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;margin-bottom:20px;}
+.code-box{background:rgba(255,255,255,.1);border-radius:10px;padding:14px;text-align:center;font-size:24px;font-weight:900;font-family:monospace;letter-spacing:6px;color:#f5c518;margin-top:10px;}
+.how-section{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;}
+.how-title{font-size:14px;font-weight:800;margin-bottom:14px;}
+.how-step{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.how-step:last-child{margin-bottom:0;}
+.step-num{width:28px;height:28px;border-radius:50%;background:#5c2491;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;}
+.step-text{font-size:13px;color:rgba(255,255,255,.8);line-height:1.4;}
+.step-bold{font-weight:700;color:#fff;}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+
+<div class="wrap">
+  <div class="hero-section">
+    <div class="hero-icon">🎁</div>
+    <div class="hero-title">Dostları dəvət et, qazanc əldə et!</div>
+    <div class="hero-sub">Hər dəvət etdiyiniz dostun qeydiyyatdan keçməsi ilə bonus balans qazanırsınız.</div>
+    <div class="bonus-pill">Her qeydiyyatdan 0.50 ₼ bonus</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-box">
+      <div class="stat-val"><%= referralCount %></div>
+      <div class="stat-lbl">Dəvət edilənlər</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val"><%= (referralCount * 0.5).toFixed(2) %> ₼</div>
+      <div class="stat-lbl">Qazanılan bonus</div>
+    </div>
+  </div>
+
+  <div class="link-section">
+    <div class="link-label">Referral linkiniз</div>
+    <div class="link-box">
+      <input class="link-input" id="refLink" value="<%= referralLink %>" readonly>
+      <button class="copy-btn" onclick="copyLink()">Kopyala</button>
+    </div>
+  </div>
+
+  <div class="code-section">
+    <div class="link-label">Referral kodunuz</div>
+    <div class="code-box"><%= user.referralCode %></div>
+  </div>
+
+  <div class="how-section">
+    <div class="how-title">Necə işləyir?</div>
+    <div class="how-step">
+      <div class="step-num">1</div>
+      <div class="step-text"><span class="step-bold">Linki paylaşın</span> — dostlarınıza referral linkinizi göndərin</div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">2</div>
+      <div class="step-text"><span class="step-bold">Dost qeydiyyatdan keçir</span> — dostunuz linki açıb qeydiyyatdan keçir</div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">3</div>
+      <div class="step-text"><span class="step-bold">Bonus alırsınız</span> — 0.50 ₼ bonus balansınıza avtomatik əlavə edilir</div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer', { activePage: 'referral' }) %>
+
+<script>
+function copyLink(){
+  var input=document.getElementById('refLink');
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(input.value).then(function(){showCopied();});
+  } else {
+    input.select();try{document.execCommand('copy');}catch(e){}showCopied();
+  }
+}
+function showCopied(){
+  var btn=document.querySelector('.copy-btn');
+  var orig=btn.textContent;btn.textContent='✓ Kopyalandı';btn.style.background='#1f9b3b';
+  setTimeout(function(){btn.textContent=orig;btn.style.background='';},1500);
+}
+</script>
+</body>
+</html>

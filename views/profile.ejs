@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 Line Loto – Profil</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg-purple:#3d0d62;--primary-yellow:#f5c518;--secondary-purple:#5c2491;--panel-border:rgba(255,255,255,.1);--text-gray:rgba(255,255,255,.6);}
+*{box-sizing:border-box;margin:0;padding:0;}::-webkit-scrollbar{display:none;}
+body{margin:0;color:#fff;min-height:100vh;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow-x:hidden;background-color:#3d0d62;}
+.profile-wrap{position:relative;z-index:1;max-width:414px;margin:0 auto;padding:80px 16px 100px;display:flex;flex-direction:column;gap:16px;}
+.avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);border:3px solid var(--primary-yellow);display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+.glass-panel{background:rgba(255,255,255,.05);border:1px solid var(--panel-border);border-radius:14px;}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+.info-row:last-child{border-bottom:none;}
+.info-label{font-size:13px;color:var(--text-gray);}
+.info-value{font-size:14px;font-weight:700;color:#fff;text-align:right;}
+.balance-card{background:linear-gradient(135deg,#5c2491 0%,#3d0d62 100%);border:1px solid var(--primary-yellow);border-radius:16px;padding:18px 20px;text-align:center;}
+.balance-label{font-size:12px;color:var(--text-gray);text-transform:uppercase;letter-spacing:.5px;}
+.balance-value{font-size:34px;font-weight:900;color:var(--primary-yellow);line-height:1.1;margin-top:4px;}
+.man{font-family:"Segoe UI",Tahoma,Arial,sans-serif;}
+.action-link{display:flex;align-items:center;gap:12px;padding:15px 16px;text-decoration:none;color:#fff;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;position:relative;overflow:hidden;transition:background .25s ease,padding-left .22s ease;}
+.action-link:last-child{border-bottom:none;}
+.action-link::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 3px 3px 0;background:var(--primary-yellow);transform:scaleY(0);transform-origin:center;transition:transform .25s ease;}
+.action-link:hover{background:linear-gradient(90deg,rgba(245,197,24,.14) 0%,rgba(245,197,24,0) 70%);padding-left:22px;}
+.action-link:hover::before{transform:scaleY(1);}
+.action-link .icon{width:22px;height:22px;color:var(--primary-yellow);flex-shrink:0;transition:transform .25s ease;}
+.action-link:hover .icon{transform:scale(1.12);}
+.action-link .label{flex-grow:1;font-size:14px;font-weight:600;}
+.action-link .chevron{color:var(--text-gray);transition:transform .25s ease;}
+.action-link:hover .chevron{transform:translateX(4px);color:var(--primary-yellow);}
+.btn-logout{width:100%;background:linear-gradient(180deg,#e0556a 0%,#c02a40 100%);color:#fff;font-size:15px;font-weight:800;border:none;border-radius:14px;padding:14px;cursor:pointer;font-family:inherit;}
+.section-title{font-size:12px;font-weight:700;color:var(--text-gray);text-transform:uppercase;letter-spacing:.5px;padding:0 4px;}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+
+<div class="profile-wrap">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+    <div class="avatar"><%= user.username.charAt(0).toUpperCase() %></div>
+    <div>
+      <div style="font-size:20px;font-weight:900;text-align:center;"><%= user.username %></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);text-align:center;margin-top:3px;"><%= user.email %></div>
+    </div>
+  </div>
+
+  <div class="balance-card">
+    <div class="balance-label">Balansınız</div>
+    <div class="balance-value"><%= user.balance.toFixed(2) %> <span class="man">₼</span></div>
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">
+      <a href="/wallet" style="background:linear-gradient(180deg,#ffd060 0%,#f59200 100%);color:#fff;font-size:13px;font-weight:800;border-radius:12px;padding:8px 20px;text-decoration:none;">Yüklə</a>
+      <a href="/wallet" style="background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:800;border-radius:12px;padding:8px 20px;text-decoration:none;">Çıxar</a>
+    </div>
+  </div>
+
+  <div class="glass-panel">
+    <div class="info-row"><span class="info-label">Oynanılan oyunlar</span><span class="info-value"><%= user.gamesPlayed %></span></div>
+    <div class="info-row"><span class="info-label">Qazanılan oyunlar</span><span class="info-value"><%= user.gamesWon %></span></div>
+    <div class="info-row"><span class="info-label">Ümumi qazanc</span><span class="info-value"><%= user.totalWon.toFixed(2) %> ₼</span></div>
+    <div class="info-row"><span class="info-label">Referral kodu</span><span class="info-value" style="font-family:monospace;font-size:12px;"><%= user.referralCode %></span></div>
+  </div>
+
+  <div class="glass-panel">
+    <a href="/profile/setting" class="action-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="label">Parametrlər</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    <a href="/profile/changepass" class="action-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span class="label">Şifrəni dəyiş</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    <a href="/profile/referral" class="action-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="label">Dostları dəvət et</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    <a href="/profile/games-played" class="action-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span class="label">Oyun tarixçəsi</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+  </div>
+
+  <% if (user.isAdmin) { %>
+  <div class="glass-panel">
+    <a href="/admin/rooms" class="action-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="label">Admin – Otaqlar</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    <a href="/admin/transactions" class="action-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span class="label">Admin – Əməliyyatlar</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+  </div>
+  <% } %>
+
+  <form action="/logout" method="GET">
+    <button type="submit" class="btn-logout">Çıxış</button>
+  </form>
+</div>
+
+<%- include('partials/footer', { activePage: 'profile' }) %>
+</body>
+</html>

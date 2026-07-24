@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oyun – Birloto</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#3d0d62;color:#fff;font-family:'Rubik',sans-serif;min-height:100vh}.wrap{max-width:430px;margin:0 auto;padding:12px 10px 120px}.gamebar{position:sticky;top:72px;z-index:9;background:linear-gradient(180deg,#7a2db0 0%,#6a25a0 55%,#5d1f90 100%);padding:10px 0 14px;box-shadow:0 4px 18px rgba(0,0,0,.35);border-radius:0 0 20px 20px}.statbar{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}.stat-pill{background:rgba(0,0,0,.28);border-radius:18px;padding:5px 12px;display:flex;align-items:center;gap:11px}.bet{position:relative;background:linear-gradient(180deg,#e6c44e,#caa130);color:#fff;font-weight:800;font-size:13px;border-radius:13px;padding:3px 12px}.bet .x4{position:absolute;top:-9px;right:-6px;background:#e80000;color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:1px 5px;border:2px solid #6a25a0}.item{color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;gap:5px}.item .material-symbols-outlined{font-size:18px}.sep{width:1px;height:22px;background:rgba(255,255,255,.22)}.sound,.auto{border:none;cursor:pointer;flex:0 0 auto}.sound{width:32px;height:32px;border-radius:50%;background:#f5c518;color:#fff;display:flex;align-items:center;justify-content:center}.auto{background:linear-gradient(180deg,#4fe06e,#14bb29);color:#fff;font-weight:800;font-size:12px;border-radius:14px;padding:6px 14px;display:flex;align-items:center;gap:5px}.auto.off{background:linear-gradient(180deg,#8395a7,#576574)}
+.panel{margin-top:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:14px}.panel-title{font-size:12px;color:rgba(255,255,255,.65);font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}.current-ball-wrap{display:flex;align-items:center;justify-content:space-between;gap:14px}.ball{width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6cf 0%,#f5c518 44%,#c8960c 100%);box-shadow:inset 0 -8px 12px rgba(0,0,0,.22), inset 0 4px 8px rgba(255,255,255,.48),0 8px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;color:#5a3000;font-size:28px;font-weight:900;position:relative}.ball:before{content:'';position:absolute;top:8%;left:16%;width:28%;height:20%;background:rgba(255,255,255,.36);border-radius:50%;transform:rotate(-20deg)}.timer{font-size:28px;font-weight:900;color:#fff}.status-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:99px;padding:7px 12px;font-size:12px;font-weight:700}.status-dot{width:8px;height:8px;border-radius:50%;background:#f5c518;animation:blink 1.2s infinite}@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.draw-list{display:flex;flex-wrap:wrap;gap:6px}.draw-item{width:30px;height:30px;border-radius:50%;background:#5c2491;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900}.draw-item.latest{background:#f5c518;color:#5a3000}.ticket{background:#fff;border:3px solid #1d0b33;border-radius:16px;padding:10px;color:#191919}.ticket-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.ticket-title{font-size:14px;font-weight:900}.help{font-size:11px;color:#666}.grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;background:#9a9a9a;border:1px solid #9a9a9a;border-radius:11px;overflow:hidden}.cell{aspect-ratio:1/1.12;border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#161616;cursor:default;user-select:none}.cell.empty{background:#cecece;color:transparent}.cell.drawn{background:#e6f7ea}.cell.marked{background:linear-gradient(180deg,#4fe06e,#15a62d);color:#fff;box-shadow:inset 0 -2px 4px rgba(0,0,0,.2)}.cell.clickable{cursor:pointer}.cell.pending{outline:2px solid #f5c518;outline-offset:-2px}.actions{display:flex;gap:10px;margin-top:14px}.btn{flex:1;border:none;border-radius:14px;padding:13px 14px;font-size:14px;font-weight:900;font-family:'Rubik',sans-serif;cursor:pointer}.btn-primary{background:linear-gradient(180deg,#4d86e8,#3f6fd4);color:#fff}.btn-secondary{background:rgba(255,255,255,.12);color:#fff}.winner-box{background:rgba(21,166,45,.18);border:1px solid rgba(79,224,110,.35);border-radius:16px;padding:12px 14px;margin-top:14px}.warn{color:#ffdb7d;font-size:12px;margin-top:10px}.meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.meta-card{background:rgba(255,255,255,.06);border-radius:14px;padding:12px}.meta-key{font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;font-weight:700}.meta-val{font-size:18px;font-weight:900;margin-top:4px}.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:rgba(16,12,24,.92);color:#fff;padding:11px 14px;border-radius:14px;font-size:13px;font-weight:700;box-shadow:0 10px 26px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .18s ease}.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+<div class="gamebar">
+  <div class="statbar">
+    <div class="stat-pill">
+      <div class="bet"><%= Number(room.entryFee || 0).toFixed(2) %> ₼<span class="x4"><%= room.prizeMultiplier || 'x2' %></span></div>
+      <div class="item"><span class="material-symbols-outlined">person</span><span id="playerCount"><%= room.players.length %></span></div>
+      <div class="sep"></div>
+      <div class="item"><span class="material-symbols-outlined">emoji_events</span><span id="roomPrize"><%= Number(room.prize || 0).toFixed(2) %> ₼</span></div>
+    </div>
+    <button class="sound" type="button" title="Səs"><span class="material-symbols-outlined">volume_up</span></button>
+    <button class="auto <%= card && card.autoDaub ? '' : 'off' %>" id="autoBtn" type="button"><span class="material-symbols-outlined">bolt</span><span id="autoText"><%= card && card.autoDaub ? 'avto açıq' : 'avto bağlı' %></span></button>
+  </div>
+</div>
+<div class="wrap">
+  <div class="panel">
+    <div class="panel-title">Canlı oyun</div>
+    <div class="current-ball-wrap">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="status-pill"><span class="status-dot"></span><span id="statusText"><%= displayStatus === 'started' ? 'Oyun başladı' : displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir' %></span></div>
+        <div class="timer" id="timer" data-secs="<%= secsLeft %>">00:00</div>
+      </div>
+      <div class="ball" id="currentBall"><%= room.currentNumber || '?' %></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Çıxan daşlar (<span id="drawnCount"><%= (room.drawnNumbers || []).length %></span>)</div>
+    <div class="draw-list" id="drawList">
+      <% (room.drawnNumbers || []).forEach(function(n, i){ %><div class="draw-item <%= i === room.drawnNumbers.length - 1 ? 'latest' : '' %>"><%= n %></div><% }) %>
+    </div>
+  </div>
+
+  <div class="ticket">
+    <div class="ticket-head">
+      <div>
+        <div class="ticket-title"><%= room.ticketLabel || 'TAM BİLET' %></div>
+        <div class="help">Daşı manual vur və ya avto rejimi aktiv et</div>
+      </div>
+      <div class="help" id="markHelp">Hazır daşları vur</div>
+    </div>
+    <div class="grid" id="cardGrid">
+      <% if (card) { const drawn = room.drawnNumbers || []; const marked = new Set(card.markedNumbers || []); %>
+        <% card.numbers.forEach(function(row){ row.forEach(function(n){ %>
+          <div class="cell <%= !n ? 'empty' : '' %> <%= n && drawn.includes(n) ? 'drawn clickable' : '' %> <%= n && marked.has(n) ? 'marked' : '' %> <%= n && drawn.includes(n) && !marked.has(n) ? 'pending' : '' %>" data-number="<%= n || '' %>"><%= n || '' %></div>
+        <% }) }) %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="claimBtn" type="button">Bingo et</button>
+    <a class="btn btn-secondary" href="/">Ana səhifə</a>
+  </div>
+  <div class="warn">Manual rejimdə qalib olmaq üçün çıxan bütün daşları kartda işarələməlisiniz.</div>
+
+  <div class="panel">
+    <div class="panel-title">Otaq məlumatları</div>
+    <div class="meta-grid">
+      <div class="meta-card"><div class="meta-key">Jackpot</div><div class="meta-val" id="jackpotVal"><%= room.jackpotEnabled ? Number(room.jackpot || 0).toFixed(2) + ' ₼' : 'OFF' %></div></div>
+      <div class="meta-card"><div class="meta-key">Bonus</div><div class="meta-val"><%= room.prizeMultiplier || 'x2' %></div></div>
+      <div class="meta-card"><div class="meta-key">Ulduz</div><div class="meta-val"><%= room.starPrize || 0 %></div></div>
+      <div class="meta-card"><div class="meta-key">Çəkilən daş</div><div class="meta-val" id="currentNumberText"><%= room.currentNumber || '-' %></div></div>
+    </div>
+  </div>
+
+  <div class="winner-box" id="winnerBox" style="display:none"></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const ROOM_ID = '<%= room._id %>';
+let currentCard = <%- JSON.stringify(card ? { numbers: card.numbers, markedNumbers: card.markedNumbers || [], autoDaub: !!card.autoDaub } : null) %>;
+let drawnNumbers = <%- JSON.stringify(room.drawnNumbers || []) %>;
+function fmtTime(s){s=Math.max(0,parseInt(s||0,10));var m=Math.floor(s/60),ss=s%60;return(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
+function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(function(){el.classList.remove('show');},1800);}
+function statusLabel(s){return s==='started'?'Oyun başladı':s==='starting'?'Başlayır':'Gözləyir';}
+function renderTimer(){var t=document.getElementById('timer');var v=parseInt(t.dataset.secs||'0',10);t.textContent=fmtTime(v);if(v>0)t.dataset.secs=v-1;}setInterval(renderTimer,1000);renderTimer();
+function buildCell(n, markedSet){var div=document.createElement('div');var isDrawn=drawnNumbers.includes(n);var isMarked=markedSet.has(n);div.className='cell'+(n?'' :' empty')+(n&&isDrawn?' drawn clickable':'')+(n&&isMarked?' marked':'')+(n&&isDrawn&&!isMarked?' pending':'');div.dataset.number=n||'';div.textContent=n||'';return div;}
+function renderCard(){if(!currentCard)return;var wrap=document.getElementById('cardGrid');wrap.innerHTML='';var marked=new Set((currentCard.markedNumbers||[]).map(Number));currentCard.numbers.forEach(function(row){row.forEach(function(n){wrap.appendChild(buildCell(n, marked));});});}
+function syncState(data){if(data.card) currentCard={numbers:data.card.numbers,markedNumbers:data.card.marked_numbers||[],autoDaub:!!data.card.auto_daub}; drawnNumbers=data.drawn_numbers||drawnNumbers; document.getElementById('playerCount').textContent=data.player_count; document.getElementById('roomPrize').textContent=(parseFloat(data.prize||0)).toFixed(2)+' ₼'; document.getElementById('statusText').textContent=statusLabel(data.status); document.getElementById('timer').dataset.secs=data.secs_left||0; document.getElementById('currentBall').textContent=data.current_number||'?'; document.getElementById('currentNumberText').textContent=data.current_number||'-'; document.getElementById('drawnCount').textContent=drawnNumbers.length; document.getElementById('jackpotVal').textContent=data.jackpot===null?'OFF':(parseFloat(data.jackpot||0)).toFixed(2)+' ₼'; var list=document.getElementById('drawList'); list.innerHTML=''; drawnNumbers.forEach(function(n,i){var d=document.createElement('div');d.className='draw-item'+(i===drawnNumbers.length-1?' latest':'');d.textContent=n;list.appendChild(d);}); var autoBtn=document.getElementById('autoBtn'); autoBtn.classList.toggle('off', !(data.card && data.card.auto_daub)); document.getElementById('autoText').textContent=data.card && data.card.auto_daub ? 'avto açıq' : 'avto bağlı'; renderCard(); if(data.card && data.card.is_complete){document.getElementById('winnerBox').style.display='block'; document.getElementById('winnerBox').textContent='Kart tamamlandı. “Bingo et” düyməsi ilə qalibiyyəti təsdiqlə.';} else {document.getElementById('winnerBox').style.display='none';}}
+function post(url, body){return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})}).then(r=>r.json());}
+document.getElementById('cardGrid').addEventListener('click',function(e){var cell=e.target.closest('.cell.clickable'); if(!cell||!cell.dataset.number)return; post('/api/card/'+ROOM_ID+'/toggle',{number:Number(cell.dataset.number)}).then(function(res){if(res.error)return toast(res.error); if(res.won) toast('Bingo qazandınız!'); if(res.card){currentCard.markedNumbers=res.card.marked_numbers||[]; renderCard();}}).catch(function(){toast('Xəta baş verdi');});});
+document.getElementById('autoBtn').addEventListener('click',function(){var next=!(currentCard&&currentCard.autoDaub); post('/api/card/'+ROOM_ID+'/auto',{enabled:next}).then(function(res){if(res.error)return toast(res.error); if(currentCard) currentCard.autoDaub=next; if(res.card){currentCard.markedNumbers=res.card.marked_numbers||[]; currentCard.autoDaub=res.card.auto_daub;} document.getElementById('autoBtn').classList.toggle('off', !next); document.getElementById('autoText').textContent=next?'avto açıq':'avto bağlı'; renderCard(); if(res.won) toast('Bingo qazandınız!');}).catch(function(){toast('Xəta baş verdi');});});
+document.getElementById('claimBtn').addEventListener('click',function(){post('/api/room/'+ROOM_ID+'/claim-win',{}).then(function(res){toast(res.won?'Bingo təsdiqləndi!':'Hələ tamam deyil');}).catch(function(){toast('Xəta baş verdi');});});
+function poll(){fetch('/api/room/'+ROOM_ID).then(r=>r.json()).then(syncState).catch(function(){});}renderCard();poll();setInterval(poll,2500);
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parametrlər – Birloto</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
+body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;}
+.wrap{max-width:414px;margin:0 auto;padding:80px 16px 100px;}
+.back-btn{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.7);font-size:14px;font-weight:600;text-decoration:none;margin-bottom:20px;}
+.page-title{font-size:22px;font-weight:900;margin-bottom:20px;}
+.form-section{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;margin-bottom:16px;}
+.form-group{margin-bottom:16px;}
+.form-group:last-child{margin-bottom:0;}
+.form-label{display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.form-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:#f5c518;}
+.form-input::placeholder{color:rgba(255,255,255,.35);}
+.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:14px;text-align:center;}
+.success-msg{background:rgba(0,200,100,.15);border:1px solid rgba(0,200,100,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#60e0a0;margin-bottom:14px;text-align:center;}
+.btn-save{width:100%;padding:14px;background:linear-gradient(180deg,#f5c518 0%,#c8960c 100%);color:#3d2200;font-size:15px;font-weight:900;border:none;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;}
+.user-id-box{background:rgba(255,255,255,.07);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+.uid-lbl{font-size:12px;color:rgba(255,255,255,.5);}
+.uid-val{font-size:13px;font-weight:700;font-family:monospace;color:#f5c518;}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+
+<div class="wrap">
+  <a href="/profile" class="back-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Profilə qayıt
+  </a>
+  <div class="page-title">Parametrlər</div>
+
+  <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
+  <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
+
+  <div class="form-section">
+    <div class="user-id-box" style="margin-bottom:16px;">
+      <span class="uid-lbl">İstifadəçi ID</span>
+      <span class="uid-val" id="userIdSpan">#<%= user._id.toString().slice(-6).toUpperCase() %></span>
+    </div>
+    <form method="POST" action="/profile/setting">
+      <div class="form-group">
+        <label class="form-label">İstifadəçi adı</label>
+        <input class="form-input" type="text" name="username" value="<%= user.username %>" required minlength="3">
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-poçt</label>
+        <input class="form-input" type="email" name="email" value="<%= user.email %>" required>
+      </div>
+      <button type="submit" class="btn-save">Yadda saxla</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

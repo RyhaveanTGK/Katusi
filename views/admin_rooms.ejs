@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Otaqlar</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;} body{background:#1a0a2e;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;}
+.topbar{background:#300b51;border-bottom:1px solid rgba(255,255,255,.15);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.tb-title{font-size:18px;font-weight:900;}.tb-user{font-size:13px;color:rgba(255,255,255,.6);}
+.wrap{max-width:800px;margin:0 auto;padding:24px 20px 40px;}
+.section-title{font-size:16px;font-weight:800;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1);}
+.create-form{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;margin-bottom:28px;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px;}
+.form-group{} .form-label{display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:5px;text-transform:uppercase;}
+.form-input,.form-select{width:100%;padding:10px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;outline:none;}
+.form-select option{background:#2a0848;color:#fff;}
+.btn{padding:10px 18px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-create{background:linear-gradient(180deg,#1cb85d 0%,#0d8c3e 100%);color:#fff;}
+.btn-delete{background:rgba(220,50,50,.8);color:#fff;}
+.btn-toggle{background:rgba(100,80,200,.8);color:#fff;}
+.btn-jackpot{background:rgba(245,197,24,.8);color:#3d2200;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.rooms-table{width:100%;border-collapse:separate;border-spacing:0 6px;}
+.rooms-table th{font-size:11px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:0 12px 6px;}
+.rooms-table td{padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
+.rooms-table td:first-child{border-radius:10px 0 0 10px;}
+.rooms-table td:last-child{border-radius:0 10px 10px 0;}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;}
+.s-waiting{background:rgba(245,197,24,.2);color:#f5c518;}
+.s-started{background:rgba(28,184,93,.2);color:#1cb85d;}
+.s-ended{background:rgba(200,50,50,.2);color:#ff8080;}
+.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:14px;}
+.success-msg{background:rgba(0,200,100,.15);border:1px solid rgba(0,200,100,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#60e0a0;margin-bottom:14px;}
+.nav-links{display:flex;gap:12px;margin-bottom:20px;}
+.nav-link{color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);}
+.nav-link:hover,.nav-link.active{background:rgba(255,255,255,.1);color:#fff;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-title">🎰 Admin Panel</div>
+  <div class="tb-user"><%= user.username %> | <a href="/" style="color:#f5c518;text-decoration:none;">Sayta qayıt</a></div>
+</div>
+<div class="wrap">
+  <div class="nav-links">
+    <a href="/admin/rooms" class="nav-link active">Otaqlar</a>
+    <a href="/admin/transactions" class="nav-link">Əməliyyatlar</a>
+  </div>
+
+  <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
+  <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
+
+  <div class="create-form">
+    <div class="section-title">Yeni Otaq Yarat</div>
+    <form method="POST" action="/admin/rooms/create">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Otaq adı</label>
+          <input class="form-input" type="text" name="name" placeholder="məs. Klassik 1₼" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Növ</label>
+          <select class="form-select" name="type">
+            <option value="classic">Klassik (₼)</option>
+            <option value="stars">Ulduz (⭐)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Giriş haqqı</label>
+          <input class="form-input" type="number" name="entryFee" value="1" min="0.1" step="0.1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Maks. oyunçu</label>
+          <input class="form-input" type="number" name="maxPlayers" value="50" min="2" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sıralama</label>
+          <input class="form-input" type="number" name="sortOrder" value="0">
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" name="jackpotEnabled" checked style="width:16px;height:16px;">
+            <span style="font-size:13px;">Jackpot aktiv</span>
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-create">Otaq yarat</button>
+    </form>
+  </div>
+
+  <div class="section-title">Mövcud Otaqlar (<%= rooms.length %>)</div>
+  <% if (rooms.length === 0) { %>
+  <div style="text-align:center;padding:30px;color:rgba(255,255,255,.4);">Hələ heç bir otaq yoxdur</div>
+  <% } else { %>
+  <table class="rooms-table">
+    <thead>
+      <tr>
+        <th>Ad</th><th>Növ</th><th>Giriş</th><th>Bank</th><th>Oyunçu</th><th>Status</th><th>Jackpot</th><th>Əməliyyatlar</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rooms.forEach(function(r) { %>
+      <tr>
+        <td><strong><%= r.name %></strong></td>
+        <td><%= r.type === 'classic' ? '💰 Klassik' : '⭐ Ulduz' %></td>
+        <td><%= r.entryFee.toFixed(2) %> <%= r.type === 'classic' ? '₼' : '⭐' %></td>
+        <td><strong><%= r.prize.toFixed(2) %></strong> ₼</td>
+        <td><%= r.players.length %> / <%= r.maxPlayers %></td>
+        <td>
+          <span class="status-badge s-<%= r.status %>">
+            <%= r.status === 'waiting' ? 'Gözlənilir' : r.status === 'started' ? 'Oyun gedişdə' : 'Bitdi' %>
+          </span>
+        </td>
+        <td><%= r.jackpotEnabled ? r.jackpot : 'Off' %></td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <form method="POST" action="/admin/rooms/toggle-status/<%= r._id %>" style="display:inline;">
+              <button type="submit" class="btn btn-toggle btn-sm">Status dəyiş</button>
+            </form>
+            <% if (r.jackpotEnabled) { %>
+            <form method="POST" action="/admin/rooms/reset-jackpot/<%= r._id %>" style="display:inline;">
+              <button type="submit" class="btn btn-jackpot btn-sm">Jackpot sıfırla</button>
+            </form>
+            <% } %>
+            <form method="POST" action="/admin/rooms/delete/<%= r._id %>" style="display:inline;" onsubmit="return confirm('Silmək istədiyinizə əminsiniz?')">
+              <button type="submit" class="btn btn-delete btn-sm">Sil</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+</body>
+</html>

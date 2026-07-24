@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balans – Birloto</title>
+<link rel="stylesheet" href="/assets/wallet/chunk.css">
+<link rel="stylesheet" href="/assets/wallet/main.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg-purple:#3d0d62;--primary-yellow:#f5c518;--text-gray:rgba(255,255,255,.6);}
+body{background:#fff;color:#3d0d62;font-family:'Inter',ui-sans-serif,system-ui,sans-serif;min-height:100vh;}
+.wallet-wrap{max-width:414px;margin:0 auto;padding:16px 14px 100px;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 0 14px;}
+.back-btn{display:flex;align-items:center;gap:6px;color:#883AB7;font-size:14px;font-weight:500;text-decoration:none;cursor:pointer;}
+.page-title{font-size:22px;font-weight:700;color:#3d0d62;}
+.divider{height:3px;border-radius:2px;background:linear-gradient(90deg,#6b2fa8,#9b4dd4,#6b2fa8);margin-bottom:18px;}
+.balance-box{background:linear-gradient(135deg,#6b2fa8 0%,#3d0d62 100%);border-radius:20px;padding:22px;text-align:center;margin-bottom:20px;color:#fff;}
+.balance-lbl{font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.5px;text-transform:uppercase;}
+.balance-val{font-size:40px;font-weight:900;color:#f5c518;margin-top:4px;}
+.tab-row{display:flex;gap:0;border-radius:12px;overflow:hidden;border:1px solid #e0d0f0;margin-bottom:18px;}
+.tab-btn{flex:1;padding:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:#f5f0ff;color:#883AB7;transition:background .2s,color .2s;}
+.tab-btn.active{background:#6b2fa8;color:#fff;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:12px;font-weight:700;color:#6b2fa8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.form-input{width:100%;padding:13px 16px;background:#f5f0ff;border:1.5px solid #d0b8f0;border-radius:12px;color:#3d0d62;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:#6b2fa8;}
+.btn-action{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;margin-top:4px;}
+.btn-deposit{background:linear-gradient(180deg,#1cb85d 0%,#0d8c3e 100%);color:#fff;}
+.btn-withdraw{background:linear-gradient(180deg,#9b4dd4 0%,#6b2fa8 100%);color:#fff;}
+.error-msg{background:#fff0f0;border:1px solid #ffcccc;border-radius:10px;padding:10px 14px;font-size:13px;color:#cc0000;margin-bottom:14px;text-align:center;}
+.success-msg{background:#f0fff4;border:1px solid #b2f5cc;border-radius:10px;padding:10px 14px;font-size:13px;color:#0d8c3e;margin-bottom:14px;text-align:center;}
+.txn-list{margin-top:20px;}
+.txn-title{font-size:13px;font-weight:700;color:#6b2fa8;margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;}
+.txn-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#f9f5ff;border-radius:10px;margin-bottom:8px;border-left:4px solid #9b4dd4;}
+.txn-item.deposit{border-left-color:#0d8c3e;}
+.txn-item.withdraw{border-left-color:#cc1010;}
+.txn-item.win{border-left-color:#f5c518;}
+.txn-item.pending{opacity:.7;}
+.txn-type{font-size:13px;font-weight:700;color:#3d0d62;}
+.txn-date{font-size:11px;color:#888;margin-top:2px;}
+.txn-amount{font-size:15px;font-weight:900;}
+.txn-amount.pos{color:#0d8c3e;}
+.txn-amount.neg{color:#cc1010;}
+.txn-badge{font-size:10px;font-weight:700;border-radius:6px;padding:2px 7px;margin-top:2px;display:inline-block;}
+.badge-pending{background:#fff3cd;color:#856404;}
+.badge-completed{background:#d4edda;color:#155724;}
+.badge-rejected{background:#f8d7da;color:#721c24;}
+.empty-state{text-align:center;padding:30px;color:#9b4dd4;}
+</style>
+</head>
+<body>
+<div class="wallet-wrap">
+  <div class="top-bar">
+    <a href="/" class="back-btn">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M6.29 9.29C6.199 9.385 6.128 9.497 6.08 9.62c-.1.243-.1.516 0 .76.048.123.119.235.21.32L9.29 13.71c.188.188.444.294.71.294s.522-.106.71-.294c.188-.188.294-.444.294-.71s-.106-.522-.294-.71L9.41 11H13c.265 0 .52-.105.707-.293C13.895 10.52 14 10.265 14 10c0-.265-.105-.52-.293-.707A1.001 1.001 0 0 0 13 9H9.41l1.3-1.29c.094-.093.168-.204.219-.325.05-.122.077-.252.077-.385s-.027-.263-.077-.385a1.001 1.001 0 0 0-.219-.325 1.001 1.001 0 0 0-1.41 0L6.29 9.29z" fill="#883AB7"/></svg>
+      <span>Geri</span>
+    </a>
+    <span class="page-title">Balans</span>
+  </div>
+  <div class="divider"></div>
+
+  <div class="balance-box">
+    <div class="balance-lbl">Cari balansınız</div>
+    <div class="balance-val"><%= user.balance.toFixed(2) %> ₼</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:6px;">
+      ⭐ <%= user.stars %> ulduz
+    </div>
+  </div>
+
+  <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
+  <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
+
+  <div class="tab-row" id="tabRow">
+    <button class="tab-btn active" onclick="showTab('deposit')">Yüklə</button>
+    <button class="tab-btn" onclick="showTab('withdraw')">Çıxar</button>
+  </div>
+
+  <!-- Deposit form -->
+  <div id="tab-deposit">
+    <form method="POST" action="/wallet/deposit">
+      <div class="form-group">
+        <label class="form-label">Məbləğ (₼)</label>
+        <input class="form-input" type="number" name="amount" placeholder="Minimum 1 ₼" min="1" step="0.01" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kart nömrəsi</label>
+        <input class="form-input" type="text" name="cardNumber" placeholder="XXXX XXXX XXXX XXXX" maxlength="19">
+      </div>
+      <button type="submit" class="btn-action btn-deposit">Yüklə</button>
+    </form>
+  </div>
+
+  <!-- Withdraw form -->
+  <div id="tab-withdraw" style="display:none;">
+    <form method="POST" action="/wallet/withdraw">
+      <div class="form-group">
+        <label class="form-label">Məbləğ (₼)</label>
+        <input class="form-input" type="number" name="amount" placeholder="Minimum 1 ₼" min="1" step="0.01" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kart nömrəsi</label>
+        <input class="form-input" type="text" name="cardNumber" placeholder="XXXX XXXX XXXX XXXX" maxlength="19">
+      </div>
+      <button type="submit" class="btn-action btn-withdraw">Çıxar</button>
+    </form>
+  </div>
+
+  <!-- Transactions -->
+  <div class="txn-list">
+    <div class="txn-title">Əməliyyat tarixçəsi</div>
+    <% if (transactions.length === 0) { %>
+    <div class="empty-state">
+      <div style="font-size:40px;margin-bottom:8px;">📋</div>
+      <div>Hələ heç bir əməliyyat yoxdur</div>
+    </div>
+    <% } %>
+    <% transactions.forEach(function(t) { %>
+    <% const typeLabels = {deposit:'Yükləmə',withdraw:'Çıxarış',win:'Qalib mükafatı',referral:'Referral bonusu',game_join:'Oyuna qoşulma',stars_purchase:'Ulduz alışı'}; %>
+    <% const isPos = t.type === 'win' || t.type === 'deposit' || t.type === 'referral'; %>
+    <div class="txn-item <%= t.type %> <%= t.status %>">
+      <div>
+        <div class="txn-type"><%= typeLabels[t.type] || t.type %></div>
+        <div class="txn-date"><%= new Date(t.createdAt).toLocaleDateString('az-AZ', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) %></div>
+        <span class="txn-badge badge-<%= t.status %>"><%= t.status === 'pending' ? 'Gözləyir' : t.status === 'completed' ? 'Tamamlandı' : 'Rədd edildi' %></span>
+      </div>
+      <div class="txn-amount <%= isPos ? 'pos' : 'neg' %>"><%= isPos ? '+' : '-' %><%= Math.abs(t.amount).toFixed(2) %> ₼</div>
+    </div>
+    <% }); %>
+  </div>
+</div>
+
+<script>
+function showTab(tab){
+  document.getElementById('tab-deposit').style.display=tab==='deposit'?'block':'none';
+  document.getElementById('tab-withdraw').style.display=tab==='withdraw'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('active',(tab==='deposit'&&i===0)||(tab==='withdraw'&&i===1));});
+}
+</script>
+</body>
+</html>

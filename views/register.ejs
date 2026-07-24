@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bir Loto – Qeydiyyat</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Exo+2:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--purple-bg:#3d0d62;--purple-dark:#2a0848;--purple-mid:#5a1a90;--purple-card:#6b2fa8;--gold:#f5c518;--orange-btn:#f5a623;}
+@keyframes float1{0%,100%{transform:translateY(0) rotate(-15deg);}50%{transform:translateY(-8px) rotate(-15deg);}}
+@keyframes float2{0%,100%{transform:translateY(0) rotate(12deg);}50%{transform:translateY(-6px) rotate(12deg);}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+*{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
+html{background:#3d0d62;overflow-x:hidden;}
+body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background-color:#3d0d62;color:#fff;min-height:100vh;overflow-x:hidden;}
+.hero{padding-top:18px;min-height:100vh;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,rgba(120,40,200,.6) 0%,transparent 65%);}
+.bingo-card{position:absolute;background:linear-gradient(135deg,#7b35c4,#5a1a90);border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.bingo-card .grid{display:grid;gap:3px;} .bingo-card .grid.g5{grid-template-columns:repeat(5,1fr);}
+.bc-cell{width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:rgba(255,255,255,.85);}
+.bc-cell.empty{background:rgba(255,255,255,.06);}
+.bc-card-1{top:68px;left:-22px;transform:rotate(-18deg);animation:float1 4s ease-in-out infinite;z-index:2;}
+.bc-card-2{top:55px;right:-18px;transform:rotate(14deg);animation:float2 3.5s ease-in-out infinite;z-index:2;}
+.lball{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3),inset 0 3px 6px rgba(255,255,255,.4),0 4px 10px rgba(0,0,0,.4);z-index:3;}
+.lb-red{background:radial-gradient(circle at 35% 30%,#ff7070,#cc1010);}
+.lb-blue{background:radial-gradient(circle at 35% 30%,#60a0ff,#1a3fbf);}
+.content-wrap{position:relative;z-index:10;max-width:414px;margin:0 auto;padding:80px 20px 40px;}
+.logo-center{text-align:center;margin-bottom:28px;animation:fadeInUp .6s ease;}
+.logo-main{font-family:'Exo 2','Nunito',Helvetica,Arial,sans-serif;font-size:38px;font-weight:900;letter-spacing:-1px;line-height:1;}
+.logo-main .red{color:#e8001a;} .logo-main .white{color:#fff;}
+.logo-ball{display:inline-block;width:16px;height:16px;border-radius:50%;background:#fff;margin:0 1px 2px 1px;vertical-align:baseline;}
+.form-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:28px 22px;backdrop-filter:blur(12px);animation:fadeInUp .7s ease;}
+.form-title{font-size:22px;font-weight:900;text-align:center;margin-bottom:20px;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:12px;font-weight:800;color:rgba(255,255,255,.7);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;}
+.form-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:#f5c518;} .form-input::placeholder{color:rgba(255,255,255,.35);}
+.pwd-wrap{position:relative;} .pwd-wrap .form-input{padding-right:48px;}
+.eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);display:flex;align-items:center;}
+.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:14px;text-align:center;}
+.success-msg{background:rgba(0,200,100,.15);border:1px solid rgba(0,200,100,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#60e0a0;margin-bottom:14px;text-align:center;}
+.btn-register{width:100%;padding:15px;background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);color:#fff;font-size:16px;font-weight:900;border:none;border-radius:16px;cursor:pointer;box-shadow:0 4px 14px rgba(107,31,168,.45);transition:transform .15s;font-family:'Nunito',sans-serif;margin-top:4px;}
+.btn-register:active{transform:scale(.97);}
+.login-note{text-align:center;font-size:13px;color:rgba(255,255,255,.5);margin-top:18px;}
+.login-note a{color:#f5c518;font-weight:800;text-decoration:none;}
+.topnav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(45,8,72,.85);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.08);}
+.nav-btns{display:flex;gap:8px;}
+.btn-giris{background:linear-gradient(180deg,#ffd060 0%,#f59200 100%);color:#fff;font-weight:800;font-size:13px;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;}
+.btn-qeydiyyat{background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);color:#fff;font-weight:800;font-size:13px;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;}
+.footer-bar{background:rgba(20,5,35,.7);border-top:1px solid rgba(255,255,255,.1);padding:16px 16px 12px;margin-top:20px;}
+.footer-copy{text-align:center;font-size:10px;color:rgba(255,255,255,.4);padding:8px 0 4px;}
+.age18{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.4);font-size:8px;font-weight:700;color:rgba(255,255,255,.5);display:inline-flex;align-items:center;justify-content:center;margin-right:4px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <div style="font-size:20px;font-weight:900;color:#e8001a;">Birloto</div>
+  <div class="nav-btns">
+    <button class="btn-giris" onclick="location.href='/login'">Giriş</button>
+    <button class="btn-qeydiyyat" onclick="location.href='/register'">Qeydiyyat</button>
+  </div>
+</nav>
+<div class="hero">
+  <div class="bingo-card bc-card-1" style="padding:7px;">
+    <div class="grid g5">
+      <div class="bc-cell empty"></div><div class="bc-cell">89</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div>
+      <div class="bc-cell">8</div><div class="bc-cell">36</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div>
+    </div>
+  </div>
+  <div class="bingo-card bc-card-2" style="padding:7px;">
+    <div class="grid g5">
+      <div class="bc-cell empty"></div><div class="bc-cell">12</div><div class="bc-cell">25</div><div class="bc-cell empty"></div><div class="bc-cell">66</div>
+    </div>
+  </div>
+  <div class="lball lb-red" style="width:38px;height:38px;font-size:13px;top:130px;left:38px;">47</div>
+  <div class="lball lb-blue" style="width:32px;height:32px;font-size:12px;top:175px;right:44px;">13</div>
+  <div class="content-wrap">
+    <div class="logo-center">
+      <div class="logo-main">
+        <span class="red">Bır</span><span class="logo-ball"></span><span class="white">loto.com</span>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-title">Hesab yaradın</div>
+      <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
+      <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
+      <form method="POST" action="/register">
+        <% if (typeof query !== 'undefined' && query.ref) { %><input type="hidden" name="ref" value="<%= query.ref %>"><% } %>
+        <div class="form-group">
+          <label class="form-label">İstifadəçi adı</label>
+          <input class="form-input" type="text" name="username" placeholder="İstifadəçi adınız" required minlength="3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-poçt</label>
+          <input class="form-input" type="email" name="email" placeholder="E-poçt ünvanınız" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Şifrə</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" name="password" id="pwd1" placeholder="Şifrənizi daxil edin" required minlength="6">
+            <button type="button" class="eye-btn" onclick="togglePwd('pwd1','eye1')">
+              <svg id="eye1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Şifrəni təsdiqlə</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" name="password2" id="pwd2" placeholder="Şifrənizi təkrarlayın" required minlength="6">
+            <button type="button" class="eye-btn" onclick="togglePwd('pwd2','eye2')">
+              <svg id="eye2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-register">Qeydiyyatdan keç</button>
+      </form>
+      <div class="login-note">Hesabınız var? <a href="/login">Giriş edin</a></div>
+    </div>
+  </div>
+  <div class="footer-bar">
+    <div class="footer-copy"><span class="age18">18+</span>© 2026. Bütün hüquqlar qorunur.</div>
+  </div>
+</div>
+<script>
+function togglePwd(id,icId){const i=document.getElementById(id),ic=document.getElementById(icId),show=i.type==='password';i.type=show?'text':'password';ic.innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}
+</script>
+</body>
+</html>

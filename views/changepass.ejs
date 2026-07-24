@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Şifrəni Dəyiş – Birloto</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
+body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;}
+.wrap{max-width:414px;margin:0 auto;padding:80px 16px 100px;}
+.back-btn{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.7);font-size:14px;font-weight:600;text-decoration:none;margin-bottom:20px;}
+.page-title{font-size:22px;font-weight:900;margin-bottom:20px;}
+.form-section{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.form-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:#f5c518;}
+.form-input::placeholder{color:rgba(255,255,255,.35);}
+.pwd-wrap{position:relative;} .pwd-wrap .form-input{padding-right:48px;}
+.eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);}
+.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:14px;text-align:center;}
+.success-msg{background:rgba(0,200,100,.15);border:1px solid rgba(0,200,100,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#60e0a0;margin-bottom:14px;text-align:center;}
+.btn-save{width:100%;padding:14px;background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);color:#fff;font-size:15px;font-weight:900;border:none;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;margin-top:4px;}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+<div class="wrap">
+  <a href="/profile" class="back-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Profilə qayıt
+  </a>
+  <div class="page-title">Şifrəni dəyiş</div>
+  <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
+  <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
+  <div class="form-section">
+    <form method="POST" action="/profile/changepass">
+      <div class="form-group">
+        <label class="form-label">Köhnə şifrə</label>
+        <div class="pwd-wrap">
+          <input class="form-input" type="password" name="oldpass" id="p1" placeholder="Mövcud şifrəniz" required>
+          <button type="button" class="eye-btn" onclick="togglePwd('p1','i1')">
+            <svg id="i1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Yeni şifrə</label>
+        <div class="pwd-wrap">
+          <input class="form-input" type="password" name="newpass" id="p2" placeholder="Yeni şifrəniz (min 6 simvol)" required minlength="6">
+          <button type="button" class="eye-btn" onclick="togglePwd('p2','i2')">
+            <svg id="i2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Yeni şifrəni təsdiqlə</label>
+        <div class="pwd-wrap">
+          <input class="form-input" type="password" name="newpass2" id="p3" placeholder="Yeni şifrəni təkrarlayın" required minlength="6">
+          <button type="button" class="eye-btn" onclick="togglePwd('p3','i3')">
+            <svg id="i3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn-save">Şifrəni dəyiş</button>
+    </form>
+  </div>
+</div>
+<script>
+function togglePwd(id,icId){var i=document.getElementById(id),ic=document.getElementById(icId),show=i.type==='password';i.type=show?'text':'password';ic.innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Əməliyyatlar</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;} body{background:#1a0a2e;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;}
+.topbar{background:#300b51;border-bottom:1px solid rgba(255,255,255,.15);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.tb-title{font-size:18px;font-weight:900;}.tb-user{font-size:13px;color:rgba(255,255,255,.6);}
+.wrap{max-width:800px;margin:0 auto;padding:24px 20px 40px;}
+.section-title{font-size:16px;font-weight:800;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1);}
+.nav-links{display:flex;gap:12px;margin-bottom:20px;}
+.nav-link{color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);}
+.nav-link:hover,.nav-link.active{background:rgba(255,255,255,.1);color:#fff;}
+.txn-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.txn-info .txn-user{font-size:16px;font-weight:800;}
+.txn-info .txn-meta{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;}
+.txn-amount{font-size:20px;font-weight:900;color:#f5c518;white-space:nowrap;}
+.txn-actions{display:flex;gap:8px;margin-top:10px;}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-approve{background:linear-gradient(180deg,#1cb85d 0%,#0d8c3e 100%);color:#fff;}
+.btn-reject{background:rgba(220,50,50,.8);color:#fff;}
+.type-deposit{border-left:4px solid #1cb85d;}
+.type-withdraw{border-left:4px solid #cc1010;}
+.empty-state{text-align:center;padding:40px;color:rgba(255,255,255,.4);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-title">🎰 Admin Panel</div>
+  <div class="tb-user"><%= user.username %> | <a href="/" style="color:#f5c518;text-decoration:none;">Sayta qayıt</a></div>
+</div>
+<div class="wrap">
+  <div class="nav-links">
+    <a href="/admin/rooms" class="nav-link">Otaqlar</a>
+    <a href="/admin/transactions" class="nav-link active">Əməliyyatlar</a>
+  </div>
+  <div class="section-title">Gözləyən Əməliyyatlar (<%= txns.length %>)</div>
+  <% if (txns.length === 0) { %>
+  <div class="empty-state"><div style="font-size:40px;margin-bottom:10px;">✅</div><div>Gözləyən əməliyyat yoxdur</div></div>
+  <% } %>
+  <% txns.forEach(function(t) { %>
+  <div class="txn-card type-<%= t.type %>">
+    <div class="txn-info">
+      <div class="txn-user"><%= t.userId ? t.userId.username : 'İstifadəçi' %></div>
+      <div class="txn-meta">
+        <%= t.type === 'deposit' ? '📥 Yükləmə' : '📤 Çıxarış' %>
+        <% if (t.cardNumber) { %> | Kart: <%= t.cardNumber %><% } %>
+        <br><%= new Date(t.createdAt).toLocaleString('az-AZ') %>
+      </div>
+      <div class="txn-actions">
+        <form method="POST" action="/admin/transactions/approve/<%= t._id %>" style="display:inline;">
+          <button type="submit" class="btn btn-approve">✓ Təsdiqlə</button>
+        </form>
+        <form method="POST" action="/admin/transactions/reject/<%= t._id %>" style="display:inline;">
+          <button type="submit" class="btn btn-reject">✗ Rədd et</button>
+        </form>
+      </div>
+    </div>
+    <div class="txn-amount"><%= t.amount.toFixed(2) %> ₼</div>
+  </div>
+  <% }); %>
+</div>
+</body>
+</html>
