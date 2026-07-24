@@ -1,0 +1,46 @@
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+.quick-nav-wrapper{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(20,5,35,.92);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.1);box-shadow:0 -4px 18px rgba(0,0,0,.35);}
+.quick-nav{display:flex;align-items:center;justify-content:space-around;max-width:430px;margin:0 auto;padding:8px 6px calc(8px + env(safe-area-inset-bottom));}
+.qnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;font-size:10px;font-weight:800;letter-spacing:.2px;color:rgba(255,255,255,.55);transition:color .18s,transform .12s;padding:2px 0;}
+.qnav-item .material-symbols-outlined{font-size:23px;line-height:1;}
+.qnav-item:active{transform:scale(.92);}.qnav-item.active{color:#f5c518;}
+.qnav-item.active .material-symbols-outlined{filter:drop-shadow(0 2px 6px rgba(245,197,24,.45));}
+.footer-bar{background:rgba(20,5,35,.7);border-top:1px solid rgba(255,255,255,.1);padding:16px 16px 92px;}
+.footer-inner{max-width:430px;margin:0 auto;display:flex;justify-content:space-between;gap:16px;}
+.footer-col h4{font-size:12px;font-weight:700;color:#fff;margin-bottom:6px;}
+.footer-col a{display:block;font-size:11px;color:rgba(255,255,255,.6);text-decoration:none;margin-bottom:3px;line-height:1.4;}
+.social-row{display:flex;gap:10px;margin-top:6px;}.social-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.soc-tg{background:#0088cc;}.soc-ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);}.soc-wa{background:#25d366;}
+.footer-copy{text-align:center;font-size:10px;color:rgba(255,255,255,.4);padding:8px 0 4px;max-width:430px;margin:0 auto;}.age18{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.4);font-size:8px;font-weight:700;color:rgba(255,255,255,.5);display:inline-flex;align-items:center;justify-content:center;margin-right:4px;vertical-align:middle;}
+body{padding-bottom:82px;}
+</style>
+<div class="footer-bar">
+  <div class="footer-inner">
+    <div class="footer-col">
+      <h4>Linklər</h4>
+      <a href="/">Ana səhifə</a>
+      <a href="/winners">Qaliblər</a>
+      <a href="/profile/referral">Dəvət</a>
+    </div>
+    <div class="footer-col">
+      <h4>Bizimlə əlaqə</h4>
+      <a href="mailto:support@birloto.com">support@birloto.com</a>
+      <div class="social-row">
+        <div class="social-icon soc-tg"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg></div>
+        <div class="social-icon soc-ig"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg></div>
+        <div class="social-icon soc-wa"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-copy"><span class="age18">18+</span>© 2026. Bütün hüquqlar qorunur.</div>
+</div>
+<div class="quick-nav-wrapper">
+  <nav class="quick-nav">
+    <a href="/" class="qnav-item <%= activePage === 'home' ? 'active' : '' %>"><span class="material-symbols-outlined">home</span>Ana səhifə</a>
+    <a href="/winners" class="qnav-item <%= activePage === 'winners' ? 'active' : '' %>"><span class="material-symbols-outlined">emoji_events</span>Qaliblər</a>
+    <a href="/profile/referral" class="qnav-item <%= activePage === 'referral' ? 'active' : '' %>"><span class="material-symbols-outlined">group_add</span>Dəvət</a>
+    <a href="/profile" class="qnav-item <%= activePage === 'profile' ? 'active' : '' %>"><span class="material-symbols-outlined">person</span>Profil</a>
+  </nav>
+</div>
+<script src="/assets/js/app.js"></script>

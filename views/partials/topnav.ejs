@@ -1,0 +1,28 @@
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+.topnav{font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;position:fixed;top:0;left:0;right:0;z-index:1000;background:#300b51;backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.15);box-shadow:0 4px 20px -5px rgba(48,11,81,.5);}
+.header-inner{max-width:414px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 0;}
+.site-logo{display:flex;align-items:center;text-decoration:none;font-weight:900;font-size:21px;letter-spacing:-.3px;line-height:1;user-select:none;}
+.site-logo .lg-bir{color:#e53935;text-shadow:0 1px 2px rgba(0,0,0,.35);}
+.site-logo .lg-i{position:relative;display:inline-block;}
+.site-logo .lg-ball{position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0%,#f1f1f1 55%,#bfbfbf 100%);box-shadow:0 1px 2px rgba(0,0,0,.45),inset 0 -1px 1px rgba(0,0,0,.15);}
+.site-logo .lg-rest{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);}
+.balance-box{display:flex;align-items:center;gap:8px;background:rgba(92,36,145,.3);border:1px solid rgba(168,85,247,.3);padding:8px 16px;border-radius:16px;text-decoration:none;margin-right:-10px;}
+.balance-box .b-label{font-size:13px;color:rgba(255,255,255,.65);font-weight:600;}
+.balance-box .b-value{font-size:18px;font-weight:900;color:#f5c518;display:flex;align-items:center;gap:4px;}
+.coin-icon{font-size:18px;color:#f5c518;line-height:1;}
+body{padding-top:72px;}
+@media(max-width:434px){.topnav .header-inner{padding-left:14px;padding-right:14px;}.balance-box{padding:8px 12px;}}
+</style>
+<div class="topnav">
+  <div class="header-inner">
+    <a class="site-logo" href="/">
+      <span class="lg-bir">B<span class="lg-i">ı<span class="lg-ball"></span></span>r</span><span class="lg-rest">loto.com</span>
+    </a>
+    <a class="balance-box" href="/wallet">
+      <span class="b-label">Balans:</span>
+      <span class="b-value"><%= user ? user.balance.toFixed(2) : '0.00' %> <span class="coin-icon">₼</span></span>
+    </a>
+  </div>
+</div>
