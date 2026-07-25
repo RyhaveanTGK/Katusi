@@ -2,78 +2,212 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3d0d62">
 <title>Kart əlavə et – Birloto</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:hidden;max-width:100%}
-body{font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;background:#3d0d62;color:#fff;min-height:100vh;padding-bottom:120px}
-.wrap{max-width:430px;margin:0 auto;padding:10px 12px 40px}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ overflow-x:hidden; max-width:100%; }
+body{
+  font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;
+  background:#3d0d62; color:#fff;
+  min-height:100vh; padding-bottom:24px;
+  padding-top: 72px;
+}
+.wrap{ width:100%; max-width:430px; margin:0 auto; padding:10px 12px 24px; }
 
-/* TOPBAR (eyni oyun çubuğu kimi) */
-.gamebar{position:sticky;top:72px;z-index:9;background:linear-gradient(180deg,#7a2db0 0%,#6a25a0 55%,#5d1f90 100%);padding:8px 14px 12px;box-shadow:0 4px 18px rgba(0,0,0,.35);border-radius:0 0 22px 22px;margin:0 -2px}
-.statbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.stat-pill{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.26);border-radius:18px;padding:5px 12px}
-.bet{position:relative;background:linear-gradient(180deg,#e6c44e,#caa130);color:#fff;font-weight:900;font-size:13px;border-radius:14px;padding:3px 26px 3px 12px}
-.bet .x{margin-left:4px}
-.bet .x4{position:absolute;top:-9px;right:-6px;background:#e80000;color:#fff;font-size:10px;font-weight:900;border-radius:8px;padding:1px 6px;border:2px solid #6a25a0;min-width:24px;text-align:center}
-.item{color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;gap:5px}
-.item .material-symbols-outlined{font-size:18px}
-.sep{width:1px;height:22px;background:rgba(255,255,255,.22)}
-.sound{width:32px;height:32px;border-radius:50%;background:#f5c518;color:#5a3000;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;box-shadow:0 2px 4px rgba(0,0,0,.25)}
-.auto{background:linear-gradient(180deg,#4fe06e,#14bb29);color:#fff;font-weight:900;font-size:12px;border-radius:14px;padding:7px 14px;display:flex;align-items:center;gap:5px;border:none;cursor:pointer}
-.auto.off{background:linear-gradient(180deg,#8395a7,#576574)}
+/* TOPBAR (eynı oyun çubuğu kimi) */
+.gamebar{
+  position:sticky; top:72px; z-index:9;
+  background: linear-gradient(180deg,#7a2db0 0%,#6a25a0 55%,#5d1f90 100%);
+  padding: 8px 14px 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.35);
+  border-radius: 0 0 22px 22px;
+  margin: 0 -2px;
+}
+.statbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:0 8px; }
+.stat-pill{ display:flex; align-items:center; gap:10px; background: rgba(0,0,0,.26); border-radius:18px; padding:5px 12px; }
+.bet{
+  position:relative;
+  background: linear-gradient(180deg,#e6c44e,#caa130);
+  color:#fff; font-weight:900; font-size:13px;
+  border-radius:14px; padding:3px 26px 3px 12px;
+}
+.bet .x{ margin-left:4px; }
+.bet .x4{
+  position:absolute; top:-9px; right:-6px;
+  background:#e80000; color:#fff;
+  font-size:10px; font-weight:900;
+  border-radius:8px; padding:1px 6px;
+  border:2px solid #6a25a0;
+  min-width:24px; text-align:center;
+}
+.item{ color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; gap:5px; }
+.item .material-symbols-outlined{ font-size:18px; }
+.sep{ width:1px; height:22px; background: rgba(255,255,255,.22); }
+.sound{
+  width:32px; height:32px; border-radius:50%;
+  background:#f5c518; color:#5a3000;
+  border:none; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; flex:0 0 auto;
+  box-shadow: 0 2px 4px rgba(0,0,0,.25);
+}
+.auto{
+  background: linear-gradient(180deg,#4fe06e,#14bb29);
+  color:#fff; font-weight:900; font-size:12px;
+  border-radius:14px; padding:7px 14px;
+  display:flex; align-items:center; gap:5px;
+  border:none; cursor:pointer;
+}
+.auto.off{ background: linear-gradient(180deg,#8395a7,#576574); }
 
-/* BAŞLIQ + ƏMƏLİYYAT DÜYMƏLƏRİ (yenilə / sil / dəyiş) */
-.panel{margin:14px 0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:12px 12px}
-.actions-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.action-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:14px;font-size:13px;font-weight:800;border:none;cursor:pointer;font-family:'Rubik',sans-serif;color:#fff;background:rgba(255,255,255,.12)}
-.action-btn .material-symbols-outlined{font-size:17px}
-.action-btn:hover{background:rgba(255,255,255,.18)}
-.dot-btn{margin-left:auto;width:36px;height:36px;border-radius:50%;background:#4d3a8a;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.dot-btn:active{transform:scale(.94)}
+/* BAŞLIQ + ƏMƏLİYYAT DÜYMƏLƏRİ */
+.panel{
+  margin: 14px 0;
+  background: rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:20px; padding:12px;
+}
+.actions-row{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.action-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:9px 14px; border-radius:14px;
+  font-size:13px; font-weight:800;
+  border:none; cursor:pointer; font-family:'Rubik',sans-serif;
+  color:#fff; background: rgba(255,255,255,.12);
+  transition: background .15s;
+}
+.action-btn .material-symbols-outlined{ font-size:17px; }
+.action-btn:hover{ background: rgba(255,255,255,.18); }
+.dot-btn{
+  margin-left:auto; width:36px; height:36px; border-radius:50%;
+  background:#4d3a8a; color:#fff; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.dot-btn:active{ transform: scale(.94); }
 
 /* 3x9 KART QREFİ */
-.ticket{background:#fff;border:3px solid #1d0b33;border-radius:16px;padding:10px;color:#191919;margin-top:10px}
-.grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;background:#9a9a9a;border:1px solid #9a9a9a;border-radius:12px;overflow:hidden}
-.cell{aspect-ratio:1/1.05;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.5vw,19px);font-weight:800;color:#161616;cursor:default;user-select:none}
-.cell.empty{background:#cecece;color:transparent}
-.cell.marked{background:linear-gradient(180deg,#4fe06e,#15a62d);color:#fff;box-shadow:inset 0 -2px 4px rgba(0,0,0,.2)}
-.cell.clickable{cursor:pointer;transition:transform .12s}
-.cell.clickable:active{transform:scale(.95)}
-.cell.flash{animation:flash .6s ease}
-@keyframes flash{0%{background:#f5c518;color:#fff}100%{}}
+.ticket{
+  background:#fff; border:3px solid #1d0b33;
+  border-radius:16px; padding:10px;
+  color:#191919; margin-top:10px;
+}
+.grid{
+  display:grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap:4px;
+  background:#9a9a9a; border:1px solid #9a9a9a;
+  border-radius:12px; overflow:hidden;
+}
+.cell{
+  aspect-ratio: 1/1.05;
+  border-radius:6px; background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size: clamp(15px, 4.5vw, 19px);
+  font-weight:800; color:#161616;
+  cursor:default; user-select:none;
+  transition: transform .12s, background .12s;
+}
+.cell.empty{ background:#cecece; color:transparent; }
+.cell.marked{ background: linear-gradient(180deg,#4fe06e,#15a62d); color:#fff; box-shadow: inset 0 -2px 4px rgba(0,0,0,.2); }
+.cell.clickable{ cursor:pointer; }
+.cell.clickable:active{ transform: scale(.95); }
+.cell.flash{ animation: flash .55s ease; }
+@keyframes flash{ 0%{ background:#f5c518; color:#fff; } 100%{} }
 
 /* ALIŞ PANELİ */
-.purchase{margin-top:14px}
-.qty-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:0 4px}
-.buy-btn{flex:1;background:linear-gradient(180deg,#4d86e8,#3f6fd4);color:#fff;border:none;border-radius:16px;padding:14px 18px;font-size:14px;font-weight:900;font-family:'Rubik',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;text-transform:uppercase;letter-spacing:.5px}
-.buy-btn .qazanc{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;opacity:.95;letter-spacing:0}
-.buy-btn:disabled{opacity:.6;cursor:not-allowed}
-.qty{display:flex;align-items:center;gap:8px}
-.qty-btn{width:38px;height:38px;border-radius:50%;border:none;background:#e53935;color:#fff;font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.qty-btn.plus{background:#1ea838}
-.qty-btn:active{transform:scale(.92)}
-.qty-label{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,.25);border-radius:14px;padding:6px 10px;min-width:80px}
-.qty-label .lbl{font-size:10px;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.4px}
-.qty-label .val{font-size:16px;font-weight:900;color:#fff}
+.purchase{ margin-top:14px; }
+.qty-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; padding:0 4px; }
+.buy-btn{
+  flex:1;
+  background: linear-gradient(180deg,#4d86e8,#3f6fd4);
+  color:#fff; border:none; border-radius:16px;
+  padding:14px 18px;
+  font-size:14px; font-weight:900;
+  font-family:'Rubik',sans-serif; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  text-transform:uppercase; letter-spacing:.5px;
+  transition: transform .12s, opacity .12s;
+}
+.buy-btn:active{ transform: scale(.97); }
+.buy-btn .qazanc{ display:flex; align-items:center; gap:4px; font-size:12px; font-weight:700; opacity:.95; letter-spacing:0; }
+.buy-btn:disabled{ opacity:.55; cursor:not-allowed; }
 
-/* NÖVBƏ BAR – çəkİş gözləməsi */
-.status-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.status-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.28);padding:7px 12px;border-radius:18px;font-size:12px;font-weight:700}
-.status-pill .dot{width:8px;height:8px;border-radius:50%;background:#f5c518;animation:blink 1.2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.qty{ display:flex; align-items:center; gap:8px; }
+.qty-btn{
+  width:38px; height:38px; border-radius:50%;
+  border:none; background:#e53935; color:#fff;
+  font-size:20px; font-weight:900; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.qty-btn.plus{ background:#1ea838; }
+.qty-btn:active{ transform: scale(.92); }
+.qty-label{
+  display:flex; flex-direction:column; align-items:center;
+  background: rgba(0,0,0,.25); border-radius:14px;
+  padding:6px 10px; min-width:80px;
+}
+.qty-label .lbl{ font-size:10px; font-weight:800; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:.4px; }
+.qty-label .val{ font-size:16px; font-weight:900; color:#fff; }
 
-.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:10px 16px;border-radius:18px;font-size:13px;font-weight:700;opacity:0;transition:opacity .2s;z-index:2000;pointer-events:none}
-.toast.show{opacity:1}
+/* NÖVBƏ BAR */
+.status-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.status-pill{
+  display:inline-flex; align-items:center; gap:8px;
+  background: rgba(0,0,0,.28);
+  padding:7px 12px; border-radius:18px;
+  font-size:12px; font-weight:700;
+}
+.status-pill .dot{
+  width:8px; height:8px; border-radius:50%;
+  background:#f5c518; animation: blink 1.2s infinite;
+}
+@keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.35} }
 
-.empty-info{text-align:center;color:rgba(255,255,255,.7);margin-top:14px;font-size:13px}
+.toast{
+  position:fixed; left:50%; bottom:20px;
+  transform:translateX(-50%);
+  background: rgba(0,0,0,.85); color:#fff;
+  padding:10px 16px; border-radius:18px;
+  font-size:13px; font-weight:700;
+  opacity:0; transition:opacity .2s, transform .2s;
+  z-index:2000; pointer-events:none;
+}
+.toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px); }
+
+.empty-info{ text-align:center; color:rgba(255,255,255,.7); margin-top:14px; font-size:13px; }
+
+/* Responsive medianlar */
+@media (max-width:430px){
+  .wrap{ padding:10px 8px 24px; }
+  .gamebar{ padding: 8px 10px 12px; }
+  .panel{ padding:10px; }
+  .actions-row{ gap:6px; }
+  .action-btn{ padding:8px 12px; font-size:12px; }
+  .qty-row{ gap:6px; }
+}
+@media (max-width:370px){
+  .cell{ font-size:11px; }
+  .stat-pill{ gap:6px; padding:5px 10px; }
+  .item{ font-size:11px; }
+  .buy-btn{ font-size:12px; padding:12px 14px; }
+  .qty-label{ min-width:64px; }
+  .qty-btn{ width:32px; height:32px; font-size:18px; }
+}
+@supports (padding: max(0px)) {
+  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
+  .toast{ bottom: max(20px, env(safe-area-inset-bottom)); }
+}
 </style>
 </head>
 <body>
+
 <%- include('partials/topnav', { user: user }) %>
+
 <div class="wrap">
   <div class="gamebar">
     <div class="statbar">
@@ -101,7 +235,6 @@ body{font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;background:#3d0d62;c
     <div class="ticket">
       <div class="grid" id="cardGrid">
         <%
-          // Kart yoxdursa placeholder (3 × 9 boş)
           var grid = (card && card.numbers && card.numbers.length)
             ? card.numbers
             : [['','','','','','','','',''],['','','','','','','','',''],['','','','','','','','','']];
@@ -131,13 +264,11 @@ body{font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;background:#3d0d62;c
       </div>
     </div>
 
-    <div class="status-row" style="margin-top:8px;margin-bottom:0">
+    <div class="status-row" style="margin-top:8px;margin-bottom:0;">
       <div class="status-pill"><span class="dot"></span><span id="statusText"><%= displayStatus === 'started' ? 'Oyun başladı' : (displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir') %></span></div>
       <div class="time" id="timer" data-secs="<%= secsLeft %>" style="font-size:20px;font-weight:900;color:#fff;">
-        <%
-          var ss = Number(secsLeft||0), mm = Math.floor(ss/60), se = ss%60;
-          var ft = (mm<10?'0':'')+mm+':'+(se<10?'0':'')+se;
-        %>
+        <% var ss = Number(secsLeft||0), mm = Math.floor(ss/60), se = ss%60;
+           var ft = (mm<10?'0':'')+mm+':'+(se<10?'0':'')+se; %>
         <%= ft %>
       </div>
     </div>
@@ -145,6 +276,9 @@ body{font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;background:#3d0d62;c
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Footer səhifənin ən axırında -->
+<%- include('partials/footer', { activePage: 'card-add' }) %>
 
 <script>
 const ROOM_ID = '<%= room._id %>';
@@ -155,7 +289,7 @@ let soundOn = true;
 let currentCard = <%- JSON.stringify(card && card.numbers ? card : null) %>;
 
 function fmtTime(s){s=Math.max(0,parseInt(s||0,10));var m=Math.floor(s/60),ss=s%60;return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
-function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(function(){el.classList.remove('show');},1800);}
+function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(function(){el.classList.remove('show');},2200);}
 
 function buildCell(n, markedSet){
   var div = document.createElement('div');
@@ -193,7 +327,6 @@ function restartCard(){
     }
   });
 }
-
 // Action: sil — işarələri təmizlə
 function clearCard(){
   if (!currentCard){ toast('Aktiv kart yoxdur'); return; }
@@ -201,7 +334,6 @@ function clearCard(){
   renderCard();
   postJSON('/api/card/'+ROOM_ID+'/reset-marks', {}).then(function(){ toast('İşarələr silindi'); });
 }
-
 // Action: dəyiş — random başqa kart
 function randomizeCard(){ restartCard(); }
 
@@ -266,7 +398,7 @@ document.getElementById('cardGrid').addEventListener('click', function(e){
   });
 });
 
-// Local timer (server poll ilə sinxron qalacaq)
+// Local timer
 setInterval(function(){
   var t = document.getElementById('timer');
   if (!t) return;
@@ -276,7 +408,6 @@ setInterval(function(){
   t.textContent = fmtTime(v);
 }, 1000);
 
-// Render ilkin vəziyyət
 renderCard();
 updateBuyHint();
 </script>
