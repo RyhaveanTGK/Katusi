@@ -1,9 +1,11 @@
+// server.js (modified) — Express entry, Render uyğun.
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const mongoose = require('mongoose');
 const path = require('path');
+const fs = require('fs');
 const { ensureDefaultRooms, startGameLoop } = require('./services/gameEngine');
 
 const app  = express();
@@ -11,16 +13,20 @@ const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://r77513973_db_user:ZnVE8V5URKL2VG9i@venomkzn.utujwym.mongodb.net/?appName=Venomkzn';
 const IS_PROD = process.env.NODE_ENV === 'production';
 
+// ── Uploads qovluğunu yarat (Render diskdə qalır, deploy zamanı silinə bilər) ──
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-// 1) Render reverse-proxy arxasında çalışırıq; etibar edirik
 app.set('trust proxy', 1);
 
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: IS_PROD ? '7d' : 0, etag: true }));
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: IS_PROD ? '7d' : 0,
+  etag: true
+}));
 
-// 2) HTML səhifələrdə köhnə sessiyanın brauzerdə qalıb qara ekrana səbəb
-//    olmasının qarşısını alırıq.
+// HTML səhifələrdə köhnə sessiyanın qara ekrana səbəb olmasının qarşısı
 app.use((req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
   res.setHeader('Pragma', 'no-cache');
@@ -29,10 +35,8 @@ app.use((req, res, next) => {
 });
 
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
-// 3) Cookie/session: Render-də session routing problemlərini aradan qaldırmaq
-//    üçün ad açıq şəkildə qoyulur, sameSite/lax seçilir, secret məcburidir.
 app.use(session({
   name: 'birloto.sid',
   secret: process.env.SESSION_SECRET || 'birloto_super_secret_' + Date.now(),
@@ -60,6 +64,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Routes
 const authRoutes    = require('./routes/auth');
 const gameRoutes    = require('./routes/game');
 const profileRoutes = require('./routes/profile');
@@ -74,7 +79,7 @@ app.use('/wallet', walletRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api', apiRoutes);
 
-// Legacy ".php" redirects (kept for compatibility)
+// Legacy redirects
 const legacyRedirects = {
   '/index.php':'/','/home.php':'/','/login.php':'/login','/register.php':'/register',
   '/logout.php':'/logout','/profile.php':'/profile','/wallet_index.php':'/wallet',
@@ -86,13 +91,8 @@ Object.entries(legacyRedirects).forEach(([from,to])=>{
   app.get(from, (req,res)=>res.redirect(301,to));
 });
 
-// 404 fallback — axtarılan URL səhv yazılıbsa istifadəçini giriş səhifəsinə
-// yönləndir (qara "Not Found" ekranının qarşısı).
 app.use((req, res) => {
-  // API sorğusu? JSON qaytar
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
-  // Render-də cold-start zamanı session/store race condition baş verə bilər;
-  // ona görə istifadəçini məntiqi səhifəyə yönləndir.
   return res.redirect('/login');
 });
 
@@ -105,11 +105,9 @@ mongoose.connect(MONGODB_URI)
   })
   .catch((e) => {
     console.error('MongoDB error:', e.message);
-    // Production-da (Render) restart strategiyası işləsin
     if (!IS_PROD) process.exit(1);
     setTimeout(() => process.exit(1), 5000);
   });
 
-// Render free-tier spin-down sonrası qəflətən restart üçün sağlam ehtiyat
 process.on('unhandledRejection', (e)=>{console.error('UNHANDLED:', e && e.message);});
 process.on('SIGTERM', ()=>{ console.log('SIGTERM received, shutting down'); process.exit(0); });
