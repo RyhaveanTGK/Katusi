@@ -3,24 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Oyun Kartları</title>
+<title>Oyun Kartları – Birloto</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Rubik',sans-serif;background:#3d0d62;color:#fff;display:flex;justify-content:center;padding:88px 10px 18px}html,body{overflow-x:hidden;max-width:100%}
-.stack{width:100%;max-width:415px;display:flex;flex-direction:column;align-items:center;gap:9px;padding:0 10px}
-.card{position:relative;width:100%;max-width:398px;border:6px solid var(--theme,#1f9b3b);border-radius:26px;background:#fff;padding:8px 15px 7px;box-shadow:0 5px 11px rgba(0,0,0,.4);transition:transform .16s ease,border-color .3s ease;text-decoration:none;color:inherit;display:block}.card:active{transform:scale(.985)}.card.starting{border-color:#dc3545}.card[data-state="started"]{border-color:#7f8386}
-.row-top,.row-body,.row-bottom{display:flex;justify-content:space-between;align-items:flex-start}.row-top{align-items:flex-start}.row-body{margin-top:5px}.row-bottom{align-items:center;margin-top:7px}
-.top-left{display:flex;align-items:stretch;gap:0;position:relative}.full-ticket{position:absolute;top:-3px;left:78px;z-index:3;background:#e21d18;color:#fff;font-size:9px;font-weight:800;letter-spacing:.3px;padding:3px 12px;border-radius:7px;box-shadow:0 2px 4px rgba(0,0,0,.3)}
-.classic{display:inline-flex;align-items:center;gap:0;font-size:clamp(14px,4vw,17px);font-weight:800;padding:7px 22px 7px 13px;border-radius:17px;width:max-content;line-height:1;position:relative;z-index:1;background:linear-gradient(180deg,#e4d4a6 0%,#d3b262 100%);border:1px solid #c9a84e;color:#fff}.classic .lbl{color:#f6edd6;font-weight:600;font-size:14px}
-.stars-wrap{position:relative;width:max-content;margin-left:-18px;z-index:2;display:flex;align-items:stretch}.stars{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:#2b343b;border-radius:16px;padding:4px 13px 4px 21px;line-height:1}.stars .top{display:flex;align-items:center;gap:2px;color:#f8c52e;font-size:17px;font-weight:800}.stars .top .star{font-size:14px}.stars .win{color:#f8c52e;font-size:10px;font-weight:600;margin-top:3px}.mult{position:absolute;top:-7px;right:-9px;background:#f50402;color:#fff;font-size:10px;font-weight:800;line-height:1;min-width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.4)}
-.top-right{display:flex;flex-direction:column;align-items:center;line-height:1}.status{display:inline-block;background:#ededed;color:#7d7d7d;font-size:12px;font-weight:600;padding:5px 11px;border-radius:11px;margin-bottom:4px}.status.st-started{background:#7f8386;color:#000}.status.st-waiting{background:#444;color:#fff}.status.st-starting{background:#dc3545;color:#fff}.time{font-size:16px;font-weight:800;color:#555;letter-spacing:.5px}.time.st-started{color:#7f8386}.time.st-waiting{color:#444}.time.st-starting{color:#dc3545}
-.body-left{display:flex;flex-direction:column;flex:1}.prize{display:flex;align-items:center;gap:7px;color:#1ea838;font-size:clamp(20px,5vw,26px);font-weight:800;line-height:1}.coins{position:relative;width:26px;height:24px;flex:0 0 26px}.coin{position:absolute;width:18px;height:11px;border-radius:50%;background:linear-gradient(180deg,#ffe27a,#e0a82e);border:1.5px solid #c8901f;box-shadow:0 1px 0 #b97e1a}.coin.c1{left:2px;bottom:0}.coin.c2{left:5px;bottom:6px}.coin.c3{left:8px;bottom:12px}.players{margin-top:5px;display:flex;align-items:baseline;gap:7px}.players .pcount{font-size:clamp(22px,6vw,29px);font-weight:800;color:#2b2b2b;line-height:1}.players .ptext{font-size:17px;color:#8f8f8f;font-weight:500}
-.slot{width:120px;flex:0 0 120px;display:flex;flex-direction:column;align-items:flex-end;transform:translate(13px,4px)}.jackpot-text{color:#d6303a;font-size:14px;font-weight:900;letter-spacing:.4px;margin-bottom:1px;margin-right:6px}.machine{position:relative;width:104px;height:40px;margin-right:2px}.barrel{position:absolute;bottom:4px;left:7px;width:90px;height:31px;background:linear-gradient(180deg,#f6d97e 0%,#eec253 40%,#d6a431 100%);border-radius:22px;border:2px solid #c08e22;box-shadow:0 3px 5px rgba(0,0,0,.3),inset 0 2px 3px rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;gap:3px}.reel{width:20px;height:23px;border-radius:4px;background:linear-gradient(180deg,#fffae6,#f3e3b0);border:1px solid #c8a33f;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#7a1410;box-shadow:inset 0 -3px 4px rgba(180,140,40,.35)}.barrel::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:26px;height:8px;background:linear-gradient(180deg,#d6a431,#a8781d);border-radius:0 0 6px 6px}
-.numbers{display:flex;gap:7px;flex-wrap:wrap}.num-ball{width:clamp(24px,7vw,30px);height:clamp(24px,7vw,30px);border-radius:50%;background:#fff;border:2px solid #3a3a3a;color:#2b2b2b;font-size:clamp(12px,3.5vw,15px);font-weight:700;display:flex;align-items:center;justify-content:center}.amount-pill{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(180deg,#9bd8bf,#74c6a8);color:#fff;font-size:clamp(13px,4vw,16px);font-weight:700;padding:5px 16px;border-radius:16px;box-shadow:0 2px 4px rgba(0,0,0,.15)}.amount-pill.resume{background:linear-gradient(180deg,#54d57a,#15a62d)}.amount-pill .material-symbols-outlined{font-size:16px}
-.last-winner{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:6px;border-top:1px dashed #e6e6e6;font-size:12px;color:#6b6b6b}.last-winner .lw-name{font-weight:700;color:#2b2b2b;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.last-winner .lw-nums{display:flex;gap:3px;flex:1}.last-winner .lw-nums i{font-style:normal;font-size:10px;font-weight:700;color:#fff;background:#1f9b3b;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center}.last-winner .lw-prize{font-weight:800;color:#1ea838;display:inline-flex;align-items:center;margin-left:auto}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden;max-width:100%}
+body{font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;background:#3d0d62;color:#fff;display:flex;justify-content:center;padding:88px 10px 120px}
+.stack{width:100%;max-width:415px;display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 10px}
+.card{
+  position:relative;width:100%;max-width:398px;border-radius:24px;
+  background:#fff;
+  padding:11px 14px 10px;
+  box-shadow:0 6px 14px rgba(0,0,0,.45);
+  transition:transform .16s ease;border:3px solid #1f9b3b;
+  text-decoration:none;color:inherit;display:block
+}
+.card:active{transform:scale(.985)}
+.card[data-state="starting"]{border-color:#e53935}
+.card[data-state="started"]{border-color:#9aa0a4}
+.row-top,.row-body,.row-bottom{display:flex;justify-content:space-between;align-items:flex-start}
+.row-body{margin-top:6px}
+.row-bottom{align-items:center;margin-top:10px}
+.top-left{display:flex;align-items:stretch;gap:0;position:relative}
+.full-ticket{position:absolute;top:-4px;left:78px;z-index:3;background:#e21d18;color:#fff;font-size:9px;font-weight:900;letter-spacing:.4px;padding:4px 14px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.3);text-transform:uppercase}
+.classic{display:inline-flex;align-items:center;gap:0;font-size:clamp(15px,4vw,18px);font-weight:800;padding:8px 22px 8px 14px;border-radius:18px;width:max-content;line-height:1;position:relative;z-index:1;background:linear-gradient(180deg,#e4d4a6 0%,#d3b262 100%);border:1px solid #c9a84e;color:#fff}
+.classic .lbl{color:#f6edd6;font-weight:600;font-size:14px;margin-right:4px}
+.stars-wrap{position:relative;width:max-content;margin-left:-18px;z-index:2;display:flex;align-items:stretch}
+.stars{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:#2b343b;border-radius:16px;padding:5px 13px 5px 21px;line-height:1}
+.stars .top{display:flex;align-items:center;gap:2px;color:#f8c52e;font-size:18px;font-weight:800}
+.stars .top .star{font-size:14px}
+.stars .win{color:#f8c52e;font-size:10px;font-weight:700;margin-top:3px;letter-spacing:.4px;text-transform:lowercase}
+.mult{position:absolute;top:-7px;right:-9px;background:#f50402;color:#fff;font-size:10px;font-weight:900;line-height:1;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.top-right{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+.status{display:inline-flex;align-items:center;gap:5px;background:#ededed;color:#7d7d7d;font-size:12px;font-weight:700;padding:6px 12px;border-radius:11px;margin-bottom:5px}
+.status .material-symbols-outlined{font-size:14px}
+.status.st-started{background:#7f8386;color:#fff}
+.status.st-waiting{background:#444;color:#fff}
+.status.st-starting{background:#e53935;color:#fff}
+.time{font-size:16px;font-weight:900;color:#555;letter-spacing:.5px;display:inline-flex;align-items:center;gap:4px}
+.time .material-symbols-outlined{font-size:14px}
+.time.st-started{color:#7f8386}
+.time.st-waiting{color:#444}
+.time.st-starting{color:#e53935}
+.body-left{display:flex;flex-direction:column;flex:1}
+.prize{display:flex;align-items:center;gap:7px;color:#1ea838;font-size:clamp(22px,5.5vw,30px);font-weight:900;line-height:1}
+.coins{position:relative;width:28px;height:26px;flex:0 0 28px}
+.coin{position:absolute;width:20px;height:11px;border-radius:50%;background:linear-gradient(180deg,#ffe27a,#e0a82e);border:1.5px solid #c8901f;box-shadow:0 1px 0 #b97e1a}
+.coin.c1{left:2px;bottom:0}
+.coin.c2{left:5px;bottom:6px}
+.coin.c3{left:8px;bottom:12px}
+.players{margin-top:6px;display:flex;align-items:baseline;gap:7px}
+.players .pcount{font-size:clamp(22px,6vw,30px);font-weight:900;color:#2b2b2b;line-height:1}
+.players .ptext{font-size:16px;color:#8f8f8f;font-weight:500}
+.slot{width:120px;flex:0 0 120px;display:flex;flex-direction:column;align-items:flex-end;transform:translate(8px,3px)}
+.jackpot-text{color:#d6303a;font-size:14px;font-weight:900;letter-spacing:.5px;margin-bottom:2px;margin-right:6px;text-transform:uppercase}
+.machine{position:relative;width:104px;height:42px;margin-right:2px}
+.barrel{position:absolute;bottom:4px;left:7px;width:90px;height:32px;background:linear-gradient(180deg,#f6d97e 0%,#eec253 40%,#d6a431 100%);border-radius:22px;border:2px solid #c08e22;box-shadow:0 3px 5px rgba(0,0,0,.3),inset 0 2px 3px rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;gap:3px;padding:0 4px}
+.reel{width:20px;height:23px;border-radius:4px;background:linear-gradient(180deg,#fffae6,#f3e3b0);border:1px solid #c8a33f;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#7a1410;box-shadow:inset 0 -3px 4px rgba(180,140,40,.35)}
+.barrel::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:26px;height:8px;background:linear-gradient(180deg,#d6a431,#a8781d);border-radius:0 0 6px 6px}
+.numbers{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.num-ball{width:clamp(26px,7vw,32px);height:clamp(26px,7vw,32px);border-radius:50%;background:#fff;border:2px solid #3a3a3a;color:#2b2b2b;font-size:clamp(12px,3.5vw,15px);font-weight:800;display:flex;align-items:center;justify-content:center}
+.amount-pill{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(180deg,#9bd8bf,#74c6a8);color:#fff;font-size:clamp(13px,4vw,16px);font-weight:800;padding:6px 16px;border-radius:18px;box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.amount-pill.resume{background:linear-gradient(180deg,#54d57a,#15a62d)}
+.amount-pill .material-symbols-outlined{font-size:18px}
+.last-winner{display:flex;align-items:center;gap:6px;margin-top:7px;padding-top:7px;border-top:1px dashed #e6e6e6;font-size:12px;color:#6b6b6b}
+.last-winner .lw-name{font-weight:800;color:#2b2b2b;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.last-winner .lw-nums{display:flex;gap:3px;flex:1}
+.last-winner .lw-nums i{font-style:normal;font-size:10px;font-weight:800;color:#fff;background:#1f9b3b;border-radius:50%;width:17px;height:17px;display:flex;align-items:center;justify-content:center}
+.last-winner .lw-prize{font-weight:900;color:#1ea838;display:inline-flex;align-items:center;margin-left:auto}
 .empty{padding:28px 20px;text-align:center;color:rgba(255,255,255,.7)}
-@media(max-width:434px){.topnav .header-inner{padding-left:14px;padding-right:14px}}@media(max-width:430px){body{padding:88px 6px 18px}.stack{padding:0 4px}.card{padding:8px 11px 7px;border-width:5px}.slot{transform:translate(4px,4px)}}@media(max-width:370px){.classic{padding:6px 16px 6px 10px;font-size:13px}.classic .lbl{font-size:12px}.stars{padding:4px 10px 4px 18px}.stars .top{font-size:15px}.slot{width:106px;flex:0 0 106px}.machine{width:92px}.barrel{width:80px}.reel{width:18px;height:21px;font-size:14px}}
+@media(max-width:434px){.topnav .header-inner{padding-left:14px;padding-right:14px}}
+@media(max-width:430px){body{padding:88px 6px 120px}.stack{padding:0 4px}.card{padding:11px 11px 10px}.slot{transform:translate(2px,3px)}}
+@media(max-width:370px){.classic{padding:7px 18px 7px 12px;font-size:14px}.classic .lbl{font-size:12px}.stars{padding:4px 11px 4px 18px}.stars .top{font-size:15px}.slot{width:108px;flex:0 0 108px}.machine{width:92px}.barrel{width:80px}.reel{width:18px;height:21px;font-size:14px}}
 </style>
 </head>
 <body>
@@ -30,11 +85,15 @@
     <div class="empty">Hazırda aktiv otaq yoxdur</div>
   <% } %>
   <% rooms.forEach(function(room){ %>
-    <a href="<%= room.hasJoined ? '/gamestart/' + room._id : '/join/' + room._id %>" class="card <%= room.displayStatus === 'starting' ? 'starting' : '' %>" style="--theme:<%= room.themeColor || '#1f9b3b' %>" data-room-id="<%= room._id %>" data-state="<%= room.displayStatus %>">
+    <a href="<%= room.hasJoined ? '/gamestart/' + room._id : '/join/' + room._id %>"
+       class="card"
+       style="border-color:<%= room.displayStatus === 'starting' ? '#e53935' : (room.displayStatus === 'started' ? '#9aa0a4' : '#1f9b3b') %>"
+       data-room-id="<%= room._id %>"
+       data-state="<%= room.displayStatus %>">
       <div class="row-top">
         <div class="top-left">
           <div class="full-ticket"><%= room.ticketLabel || 'TAM BİLET' %></div>
-          <div class="classic"><span class="lbl">Classic:</span>&nbsp;<span><%= Number(room.entryFee || 0).toFixed(2) %></span><span class="man">₼</span></div>
+          <div class="classic"><span class="lbl">Classic:</span><span><%= Number(room.entryFee || 0).toFixed(2) %></span><span>₼</span></div>
           <div class="stars-wrap">
             <div class="stars">
               <div class="top"><span class="star">★</span><span class="js-star-prize"><%= room.starPrize || Math.round((room.entryFee || 1) * 100) %></span></div>
@@ -44,53 +103,120 @@
           </div>
         </div>
         <div class="top-right">
-          <span class="status js-status st-<%= room.displayStatus %>"><%= room.displayStatus === 'started' ? 'Başladı' : room.displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir' %></span>
-          <span class="time js-time st-<%= room.displayStatus %>" data-secs="<%= room.secsLeft %>"><%= room.secsLeft %></span>
+          <span class="status js-status st-<%= room.displayStatus %>">
+            <% if (room.displayStatus==='started') { %><span class="material-symbols-outlined">play_circle</span>Başladı
+            <% } else if (room.displayStatus==='starting') { %><span class="material-symbols-outlined">hourglass_top</span>Başlayır
+            <% } else { %><span class="material-symbols-outlined">hourglass_empty</span>Gözləyir<% } %>
+          </span>
+          <span class="time js-time st-<%= room.displayStatus %>">
+            <span class="material-symbols-outlined">schedule</span>
+            <span data-secs="<%= room.secsLeft %>" class="js-time-text">
+              <%
+                var s = Number(room.secsLeft||0), m = Math.floor(s/60), ss = s%60;
+                var fmt = (m<10?'0':'') + m + ':' + (ss<10?'0':'') + ss;
+              %>
+              <%= fmt %>
+            </span>
+          </span>
         </div>
       </div>
       <div class="row-body">
         <div class="body-left">
-          <div class="prize"><div class="coins"><i class="coin c1"></i><i class="coin c2"></i><i class="coin c3"></i></div><span class="js-prize"><%= Number(room.prize || 0).toFixed(2) %></span><span class="man">₼</span></div>
+          <div class="prize">
+            <div class="coins"><i class="coin c1"></i><i class="coin c2"></i><i class="coin c3"></i></div>
+            <span class="js-prize"><%= Number(room.prize || 0).toFixed(2) %></span><span>₼</span>
+          </div>
           <div class="players"><span class="pcount js-players"><%= room.playerCount %></span><span class="ptext">onlayn oyunçular</span></div>
         </div>
         <div class="slot" <%= room.jackpotEnabled ? '' : 'style="display:none"' %>>
           <div class="jackpot-text">JACKPOT</div>
-          <div class="machine"><div class="barrel js-barrel" data-jackpot="<%= Number(room.jackpot || 0) %>" data-ratio="<%= Number(room.jackpotRatio || 1) %>"><div class="reel">0</div><div class="reel">0</div><div class="reel">0</div></div></div>
+          <div class="machine">
+            <div class="barrel js-barrel" data-jackpot="<%= Number(room.jackpot || 0) %>" data-ratio="<%= Number(room.jackpotRatio || 1) %>">
+              <% var jp = String(Math.round((Number(room.jackpot||0))*( Number(room.jackpotRatio||1) ))).padStart(3,'0').slice(-3).split(''); %>
+              <div class="reel"><%= jp[0] %></div><div class="reel"><%= jp[1] %></div><div class="reel"><%= jp[2] %></div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="row-bottom">
         <div class="numbers js-last-nums">
-          <% (room.lastWinnerNums || []).slice(0,5).forEach(function(n){ %><span class="num-ball"><%= n %></span><% }) %>
+          <% if ((room.lastWinnerNums || []).length) {
+               (room.lastWinnerNums || []).slice(0,5).forEach(function(n){ %>
+            <span class="num-ball"><%= n %></span>
+          <%   });
+             } else { %>
+            <span style="font-size:12px;color:#9aa0a4;font-weight:700;">Son qalib gözlənilir</span>
+          <% } %>
         </div>
-        <div class="amount-pill <%= room.hasJoined ? 'resume' : '' %>"><span class="material-symbols-outlined"><%= room.hasJoined ? 'play_circle' : 'sports_esports' %></span><span class="js-pill"><%= room.hasJoined ? 'Oyuna qayıt' : Number(room.entryFee || 0).toFixed(2) + ' ₼' %></span></div>
+        <div class="amount-pill <%= room.hasJoined ? 'resume' : '' %>">
+          <span class="material-symbols-outlined"><%= room.hasJoined ? 'play_circle' : 'sports_esports' %></span>
+          <span class="js-pill"><%= room.hasJoined ? 'Oyuna qayıt' : Number(room.entryFee || 0).toFixed(2) + ' ₼' %></span>
+        </div>
       </div>
       <% if (room.lastWinnerName) { %>
-      <div class="last-winner"><span>🏆</span><span class="lw-name"><%= room.lastWinnerName %></span><span class="lw-nums"><% (room.lastWinnerNums||[]).slice(0,5).forEach(function(n){ %><i><%= n %></i><% }) %></span><span class="lw-prize"><%= Number(room.winnerPrize || 0).toFixed(2) %>₼</span></div>
+      <div class="last-winner">
+        <span>🏆</span>
+        <span class="lw-name"><%= room.lastWinnerName %></span>
+        <span class="lw-nums"><% (room.lastWinnerNums||[]).slice(0,5).forEach(function(n){ %><i><%= n %></i><% }) %></span>
+        <span class="lw-prize"><%= Number(room.winnerPrize || 0).toFixed(2) %>₼</span>
+      </div>
       <% } %>
     </a>
   <% }) %>
 </div>
 <%- include('partials/footer', { activePage: 'home' }) %>
 <script>
-function fmtTime(s){s=Math.max(0,Math.round(s));var m=Math.floor(s/60),ss=s%60;return(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
-function setJackpot(el,val,ratio){if(!el)return;var d=Math.round((parseFloat(val)||0)*(parseFloat(ratio)||1));var s=String(d).padStart(3,'0').slice(-3);var reels=el.querySelectorAll('.reel');if(reels.length>=3){reels[0].textContent=s[0];reels[1].textContent=s[1];reels[2].textContent=s[2];}}
-document.querySelectorAll('.js-barrel').forEach(function(el){setJackpot(el,el.dataset.jackpot,el.dataset.ratio);});
+function fmtTime(s){s=Math.max(0,Math.round(s));var m=Math.floor(s/60),ss=s%60;return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
+function setJackpot(el,val,ratio){
+  if(!el) return;
+  var d = Math.round((parseFloat(val)||0)*(parseFloat(ratio)||1));
+  var s = String(d).padStart(3,'0').slice(-3);
+  var reels = el.querySelectorAll('.reel');
+  if (reels.length>=3){reels[0].textContent=s[0];reels[1].textContent=s[1];reels[2].textContent=s[2];}
+}
+function setStatusText(status){
+  if (status==='started') return '<span class="material-symbols-outlined">play_circle</span>Başladı';
+  if (status==='starting') return '<span class="material-symbols-outlined">hourglass_top</span>Başlayır';
+  return '<span class="material-symbols-outlined">hourglass_empty</span>Gözləyir';
+}
+function applyState(card, info){
+  card.dataset.state = info.status;
+  card.style.borderColor = info.status==='starting' ? '#e53935' : (info.status==='started' ? '#9aa0a4' : '#1f9b3b');
+  var st = card.querySelector('.js-status');
+  if (st){st.className='status js-status st-'+info.status; st.innerHTML = setStatusText(info.status); }
+  var tm = card.querySelector('.js-time-text');
+  if (tm){tm.dataset.secs = info.secs_left||0; tm.textContent = fmtTime(info.secs_left||0); }
+  var tmWrap = card.querySelector('.js-time');
+  if (tmWrap) tmWrap.className = 'time js-time st-'+info.status;
+  var pe = card.querySelector('.js-players'); if (pe) pe.textContent = info.player_count;
+  var pr = card.querySelector('.js-prize'); if (pr) pr.textContent = (parseFloat(info.prize||0)).toFixed(2);
+  var barrel = card.querySelector('.js-barrel');
+  if (barrel && info.jackpot!==null && info.jackpot!==undefined) setJackpot(barrel, info.jackpot, info.jackpot_ratio||1);
+}
 (function(){
-  document.querySelectorAll('.js-time').forEach(function(el){el.textContent=fmtTime(parseInt(el.dataset.secs||'0',10));});
-  function applyState(card,info){
-    card.dataset.state=info.status;
-    card.classList.toggle('starting', info.status==='starting');
-    var st=card.querySelector('.js-status'); var tm=card.querySelector('.js-time');
-    if(st){st.textContent=info.status==='started'?'Başladı':info.status==='starting'?'Başlayır':'Gözləyir';st.className='status js-status st-'+info.status;}
-    if(tm){tm.dataset.secs=info.secs_left||0;tm.textContent=fmtTime(info.secs_left||0);tm.className='time js-time st-'+info.status;}
-    var pe=card.querySelector('.js-players'); if(pe) pe.textContent=info.player_count;
-    var pr=card.querySelector('.js-prize'); if(pr) pr.textContent=(parseFloat(info.prize||0)).toFixed(2);
-    var barrel=card.querySelector('.js-barrel'); if(barrel && info.jackpot!==null){setJackpot(barrel,info.jackpot,info.jackpot_ratio||1);}
+  function tick(){
+    document.querySelectorAll('.js-time-text').forEach(function(el){
+      var v = parseInt(el.dataset.secs||'0', 10);
+      if (v>0){ v-=1; el.dataset.secs = v; }
+      el.textContent = fmtTime(v);
+    });
   }
-  function tick(){document.querySelectorAll('.js-time').forEach(function(el){var v=parseInt(el.dataset.secs||'0',10);if(v>0){v-=1;el.dataset.secs=v;}el.textContent=fmtTime(v);});}
-  setInterval(tick,1000);
-  function poll(){fetch('/api/rooms-status').then(r=>r.json()).then(function(data){data.forEach(function(info){var card=document.querySelector('[data-room-id="'+info.id+'"]');if(card)applyState(card,info);});}).catch(function(){});}
-  poll(); setInterval(poll,3000);
+  setInterval(tick, 1000);
+
+  function poll(){
+    fetch('/api/rooms-status', { credentials: 'same-origin' })
+      .then(function(r){ return r && r.ok ? r.json() : null; })
+      .then(function(data){
+        if (!Array.isArray(data)) return;
+        data.forEach(function(info){
+          var card = document.querySelector('[data-room-id="'+info.id+'"]');
+          if (card) applyState(card, info);
+        });
+      })
+      .catch(function(){ /* sayt yatır – sessiz */ });
+  }
+  poll();
+  setInterval(poll, 3000);
 })();
 </script>
 </body>
