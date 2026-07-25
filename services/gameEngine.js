@@ -3,8 +3,8 @@ const GameCard = require('../models/GameCard');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 
-const WAITING_SEC = Number(process.env.GAME_WAITING_SEC || 75);
-const STARTING_SEC = Number(process.env.GAME_STARTING_WINDOW_SEC || 15);
+const WAITING_SEC = Number(process.env.GAME_WAITING_SEC || 5);
+const STARTING_SEC = Number(process.env.GAME_STARTING_WINDOW_SEC || 3);
 const DRAW_INTERVAL_SEC = Number(process.env.GAME_DRAW_INTERVAL_SEC || 5);
 const ROUND_DURATION_SEC = Number(process.env.GAME_ROUND_DURATION_SEC || 360);
 
@@ -31,7 +31,7 @@ function isCardComplete(card) {
 
 function getDisplayStatus(room, now = Date.now()) {
   if (room.status === 'started') return 'started';
-  if (room.status === 'ended') return 'ended';
+  if (room.status === 'ended')   return 'ended';
   if (room.nextGameAt) {
     const diff = new Date(room.nextGameAt).getTime() - now;
     if (diff <= STARTING_SEC * 1000) return 'starting';
@@ -79,7 +79,7 @@ async function ensureDefaultRooms() {
     currentRoundId: 1,
     drawIntervalSec: DRAW_INTERVAL_SEC,
     roundDurationSec: ROUND_DURATION_SEC,
-    nextGameAt: new Date(startAt + i * Math.max(5000, Math.floor((WAITING_SEC * 1000) / 2)))
+    nextGameAt: new Date(startAt + i * Math.max(2000, Math.floor((WAITING_SEC * 1000) / 2)))
   }));
   await Room.insertMany(rooms);
 }
@@ -98,6 +98,13 @@ async function startRoom(room) {
   await room.save();
 }
 
+/**
+ * Round bitdikdən sonra növbəti round üçün qısa gözləmə.
+ * Artıq 75 saniyəlik lobby yoxdur – oyun bitən kimi yeni round qısa
+ * fasilə ilə başlayır (WAITING_SEC = 5 saniyə). İstifadəçi oyun
+ * bitən kimi hazır olmalıdır, "qalib olan" və "yeni qoşulan" şəxslər
+ * üçün gözləmə minimuma endirilib.
+ */
 async function resetRoomForNextRound(room) {
   room.status = 'waiting';
   room.players = [];
