@@ -2,35 +2,76 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Oyun Tarixçəsi – Birloto</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
-body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;}
-.wrap{max-width:414px;margin:0 auto;padding:80px 16px 100px;}
-.back-btn{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.7);font-size:14px;font-weight:600;text-decoration:none;margin-bottom:20px;}
-.page-title{font-size:22px;font-weight:900;margin-bottom:6px;}
-.page-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;}
-.game-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
-.game-icon{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:rgba(255,255,255,.08);flex-shrink:0;}
-.game-info{flex:1;}
-.game-room{font-size:14px;font-weight:800;}
-.game-meta{font-size:12px;color:rgba(255,255,255,.5);margin-top:3px;}
-.game-result{text-align:right;}
-.res-win{color:#1cb85d;font-size:15px;font-weight:900;}
-.res-lose{color:rgba(255,255,255,.4);font-size:14px;font-weight:700;}
-.res-prize{font-size:13px;color:#f5c518;font-weight:800;margin-top:2px;}
-.empty-state{text-align:center;padding:50px 20px;color:rgba(255,255,255,.4);}
-.empty-icon{font-size:52px;margin-bottom:14px;}
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
-.stat-box{background:rgba(255,255,255,.07);border-radius:12px;padding:12px;text-align:center;}
-.stat-val{font-size:22px;font-weight:900;color:#f5c518;}
-.stat-lbl{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;text-transform:uppercase;letter-spacing:.3px;}
+*{ box-sizing:border-box; margin:0; padding:0; }
+::-webkit-scrollbar{ display:none; }
+html,body{ overflow-x:hidden; }
+body{
+  background:#3d0d62; color:#fff;
+  font-family:'Inter',sans-serif;
+  min-height:100vh; padding-top:72px; padding-bottom:24px;
+}
+.wrap{ width:100%; max-width:414px; margin:0 auto; padding:14px 16px 24px; }
+.back-btn{
+  display:flex; align-items:center; gap:6px;
+  color:rgba(255,255,255,.7); font-size:14px;
+  font-weight:600; text-decoration:none; margin-bottom:20px;
+}
+.page-title{ font-size:22px; font-weight:900; margin-bottom:6px; }
+.page-sub{ font-size:13px; color:rgba(255,255,255,.5); margin-bottom:20px; }
+
+.game-item{
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:14px; padding:13px 16px; margin-bottom:10px;
+  display:flex; align-items:center; gap:12px;
+}
+.game-icon{
+  font-size:26px; width:42px; height:42px;
+  display:flex; align-items:center; justify-content:center; border-radius:12px;
+  background: rgba(255,255,255,.08); flex-shrink:0;
+}
+.game-info{ flex:1; min-width:0; }
+.game-room{ font-size:14px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.game-meta{ font-size:12px; color:rgba(255,255,255,.5); margin-top:3px; }
+.game-result{ text-align:right; }
+.res-win{ color:#1cb85d; font-size:15px; font-weight:900; }
+.res-lose{ color:rgba(255,255,255,.4); font-size:14px; font-weight:700; }
+.res-prize{ font-size:13px; color:#f5c518; font-weight:800; margin-top:2px; }
+.empty-state{ text-align:center; padding:50px 20px; color:rgba(255,255,255,.4); }
+.empty-icon{ font-size:52px; margin-bottom:14px; }
+
+.stats-row{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+  margin-bottom:18px;
+}
+.stat-box{
+  background: rgba(255,255,255,.07); border-radius:12px;
+  padding:12px; text-align:center;
+}
+.stat-val{ font-size:22px; font-weight:900; color:#f5c518; }
+.stat-lbl{
+  font-size:10px; color:rgba(255,255,255,.5);
+  margin-top:2px; text-transform:uppercase; letter-spacing:.3px;
+}
+
+@media (max-width:370px){
+  .game-item{ padding:11px 14px; }
+  .game-icon{ width:38px; height:38px; font-size:22px; }
+  .game-room{ font-size:13px; }
+  .stat-val{ font-size:18px; }
+}
+@supports (padding: max(0px)) {
+  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
+}
 </style>
 </head>
 <body>
 <%- include('partials/topnav', { user: user }) %>
+
 <div class="wrap">
   <a href="/profile" class="back-btn">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -40,18 +81,9 @@ body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100
   <div class="page-sub">Son 50 oyununuz</div>
 
   <div class="stats-row">
-    <div class="stat-box">
-      <div class="stat-val"><%= user.gamesPlayed %></div>
-      <div class="stat-lbl">Oynanılan</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-val"><%= user.gamesWon %></div>
-      <div class="stat-lbl">Qazanılan</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-val"><%= user.totalWon.toFixed(1) %>₼</div>
-      <div class="stat-lbl">Ümumi</div>
-    </div>
+    <div class="stat-box"><div class="stat-val"><%= user.gamesPlayed %></div><div class="stat-lbl">Oynanılan</div></div>
+    <div class="stat-box"><div class="stat-val"><%= user.gamesWon %></div><div class="stat-lbl">Qazanılan</div></div>
+    <div class="stat-box"><div class="stat-val"><%= user.totalWon.toFixed(1) %>₼</div><div class="stat-lbl">Ümumi</div></div>
   </div>
 
   <% if (games.length === 0) { %>
@@ -59,7 +91,7 @@ body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100
     <div class="empty-icon">🎮</div>
     <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Hələ heç bir oyun yoxdur</div>
     <div style="font-size:13px;">İlk oyununuzu oynamağa başlayın!</div>
-    <div style="margin-top:20px;"><a href="/" style="background:#5c2491;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;">Oyun otaqları</a></div>
+    <div style="margin-top:20px;"><a href="/" style="background:#5c2491;color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;">Oyun otaqları</a></div>
   </div>
   <% } else { %>
   <% games.forEach(function(g) { %>
@@ -84,5 +116,7 @@ body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100
   <% }); %>
   <% } %>
 </div>
+
+<%- include('partials/footer', { activePage: 'profile' }) %>
 </body>
 </html>
