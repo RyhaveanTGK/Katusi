@@ -2,28 +2,148 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Parametrlər – Birloto</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
-body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;}
-.wrap{max-width:414px;margin:0 auto;padding:80px 16px 100px;}
-.back-btn{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.7);font-size:14px;font-weight:600;text-decoration:none;margin-bottom:20px;}
-.page-title{font-size:22px;font-weight:900;margin-bottom:20px;}
-.form-section{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;margin-bottom:16px;}
-.form-group{margin-bottom:16px;}
-.form-group:last-child{margin-bottom:0;}
-.form-label{display:block;font-size:12px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
-.form-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
-.form-input:focus{border-color:#f5c518;}
-.form-input::placeholder{color:rgba(255,255,255,.35);}
-.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:14px;text-align:center;}
-.success-msg{background:rgba(0,200,100,.15);border:1px solid rgba(0,200,100,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#60e0a0;margin-bottom:14px;text-align:center;}
-.btn-save{width:100%;padding:14px;background:linear-gradient(180deg,#f5c518 0%,#c8960c 100%);color:#3d2200;font-size:15px;font-weight:900;border:none;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;}
-.user-id-box{background:rgba(255,255,255,.07);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
-.uid-lbl{font-size:12px;color:rgba(255,255,255,.5);}
-.uid-val{font-size:13px;font-weight:700;font-family:monospace;color:#f5c518;}
+*{ box-sizing:border-box; margin:0; padding:0; }
+::-webkit-scrollbar{ display:none; }
+body{ background:#3d0d62; color:#fff; font-family:'Inter',sans-serif; min-height:100vh; }
+.wrap{ max-width:414px; margin:0 auto; padding:14px 16px 100px; }
+.back-btn{
+  display:flex; align-items:center; gap:6px;
+  color:rgba(255,255,255,.7); font-size:14px;
+  font-weight:600; text-decoration:none; margin-bottom:20px;
+}
+.page-title{ font-size:22px; font-weight:900; margin-bottom:20px; }
+
+/* ── Tabs ── */
+.tab-row{
+  display:flex; gap:0; border-radius:12px; overflow:hidden;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.04);
+  margin-bottom:18px;
+}
+.tab-btn{
+  flex:1; padding:11px; font-size:13px; font-weight:700;
+  border:none; cursor:pointer;
+  background:transparent; color:rgba(255,255,255,.65);
+  font-family:'Inter',sans-serif;
+  transition: background .2s, color .2s;
+}
+.tab-btn.active{ background:#5c2491; color:#fff; }
+
+.section-title{
+  font-size:12px; font-weight:800; color:rgba(255,255,255,.6);
+  margin: 14px 0 8px; text-transform:uppercase; letter-spacing:.5px;
+}
+
+.form-section{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px; padding:20px; margin-bottom:16px;
+}
+.form-group{ margin-bottom:16px; }
+.form-group:last-child{ margin-bottom:0; }
+.form-label{
+  display:block; font-size:12px; font-weight:700;
+  color:rgba(255,255,255,.6); margin-bottom:6px;
+  text-transform:uppercase; letter-spacing:.4px;
+}
+.form-input{
+  width:100%; padding:13px 16px;
+  background:rgba(255,255,255,.1);
+  border:1.5px solid rgba(255,255,255,.2);
+  border-radius:12px; color:#fff; font-size:15px; font-weight:600;
+  font-family:'Inter',sans-serif; outline:none;
+  transition: border-color .2s;
+}
+.form-input:focus{ border-color:#f5c518; }
+.form-input::placeholder{ color:rgba(255,255,255,.35); }
+.form-input[readonly]{ background:rgba(255,255,255,.04); color:rgba(255,255,255,.55); }
+
+.error-msg{
+  background:rgba(232,0,26,.15); border:1px solid rgba(232,0,26,.3);
+  border-radius:10px; padding:10px 14px;
+  font-size:13px; color:#ff8080; margin-bottom:14px; text-align:center;
+}
+.success-msg{
+  background:rgba(0,200,100,.15); border:1px solid rgba(0,200,100,.3);
+  border-radius:10px; padding:10px 14px;
+  font-size:13px; color:#60e0a0; margin-bottom:14px; text-align:center;
+}
+
+.btn-save{
+  width:100%; padding:14px;
+  background: linear-gradient(180deg,#f5c518 0%,#c8960c 100%);
+  color:#3d2200; font-size:15px; font-weight:900;
+  border:none; border-radius:12px; cursor:pointer; font-family:'Inter',sans-serif;
+  transition: transform .12s;
+}
+.btn-save:active{ transform: scale(.98); }
+.btn-danger{
+  width:100%; padding:14px;
+  background: linear-gradient(180deg,#e0556a 0%,#c02a40 100%);
+  color:#fff; font-size:15px; font-weight:800;
+  border:none; border-radius:12px; cursor:pointer; font-family:'Inter',sans-serif;
+}
+
+.user-id-box{
+  background:rgba(255,255,255,.07);
+  border-radius:10px; padding:12px 14px;
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:14px;
+}
+.uid-lbl{ font-size:12px; color:rgba(255,255,255,.5); }
+.uid-val{ font-size:13px; font-weight:700; font-family:monospace; color:#f5c518; }
+
+.danger-row{
+  background:rgba(232,0,26,.10); border:1px solid rgba(232,0,26,.25);
+  border-radius:14px; padding:14px;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:10px;
+}
+.danger-row .label{ flex:1; padding-right:12px; }
+.danger-row .label b{ display:block; color:#ff8080; font-size:14px; margin-bottom:2px; }
+.danger-row .label small{ color:rgba(255,255,255,.55); font-size:11px; line-height:1.4; display:block; }
+.danger-btn{
+  padding:10px 16px; background: linear-gradient(180deg,#e0556a,#c02a40);
+  color:#fff; border:none; border-radius:10px;
+  font-size:12px; font-weight:800; cursor:pointer;
+}
+.terminate-btn{
+  background:rgba(245,197,24,.16); color:#f5c518;
+  padding:9px 14px; border-radius:10px; border:none;
+  font-size:12px; font-weight:700; cursor:pointer;
+}
+
+.contact-pill{
+  background:rgba(245,197,24,.12); border-radius:6px; padding:2px 8px;
+  font-size:10px; color:#f5c518; font-weight:700;
+  margin-left:8px;
+}
+
+/* Eye toggle for password fields */
+.pwd-wrap{ position:relative; }
+.pwd-wrap .form-input{ padding-right:48px; }
+.eye-btn{
+  position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  background:none; border:none; cursor:pointer; color:rgba(255,255,255,.5);
+  display:flex; align-items:center;
+}
+
+/* Help/support block */
+.support-card{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px; padding:16px;
+  display:flex; gap:12px; align-items:flex-start;
+  margin-top:8px;
+}
+.support-card .material-symbols-outlined{ color:#f5c518; font-size:28px; }
+.support-card .email{ color:#f5c518; font-weight:700; text-decoration:none; }
+.support-card .copy{ margin-left:auto; background:rgba(255,255,255,.1); border:none; color:#fff; padding:6px 10px; border-radius:8px; font-size:12px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -34,28 +154,170 @@ body{background:#3d0d62;color:#fff;font-family:'Inter',sans-serif;min-height:100
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     Profilə qayıt
   </a>
-  <div class="page-title">Parametrlər</div>
+  <div class="page-title">Ayarlar</div>
 
-  <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
+  <% if (error)   { %><div class="error-msg"><%= error   %></div><% } %>
   <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
 
-  <div class="form-section">
-    <div class="user-id-box" style="margin-bottom:16px;">
-      <span class="uid-lbl">İstifadəçi ID</span>
-      <span class="uid-val" id="userIdSpan">#<%= user._id.toString().slice(-6).toUpperCase() %></span>
+  <!-- Tabs (Şəkil 8 – Parametrlər) -->
+  <div class="tab-row" id="setTabRow">
+    <button class="tab-btn active" onclick="openSetTab('info')">İstifadəçi</button>
+    <button class="tab-btn" onclick="openSetTab('security')">Şifrə</button>
+    <button class="tab-btn" onclick="openSetTab('sessions')">Oturumlar</button>
+  </div>
+
+  <!-- ===== TAB INFO ===== -->
+  <div class="set-panel" id="set-info">
+    <div class="form-section">
+      <div class="user-id-box">
+        <span class="uid-lbl">İstifadəçi ID</span>
+        <span class="uid-val">#<%= user._id.toString().slice(-6).toUpperCase() %></span>
+      </div>
+      <form method="POST" action="/profile/setting">
+        <div class="form-group">
+          <label class="form-label">İstifadəçi adı</label>
+          <input class="form-input" type="text" name="username" value="<%= user.username %>" required minlength="3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-poçt
+            <% if (user.email) { %>
+              <span class="contact-pill" title="Təsdiqlənib">
+                <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">verified</span> təsdiqli
+              </span>
+            <% } %>
+          </label>
+          <input class="form-input" type="email" name="email" id="emailInput" value="<%= user.email %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefon nömrəsi
+            <% if (!user.phone) { %>
+              <span class="contact-pill" style="background:rgba(232,0,26,.15);color:#ff8080;">
+                Doğrulama gerekli
+              </span>
+            <% } else { %>
+              <span class="contact-pill">+<%= user.phone %></span>
+            <% } %>
+          </label>
+          <input class="form-input" type="tel" name="phone" id="phoneInput" value="<%= user.phone || '' %>" placeholder="+994 XX XXX XX XX" pattern="^[+0-9 ()-]{8,20}$">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">
+            Onaylanmış dəyişiklik üçün <a href="mailto:support@birloto.com" style="color:#f5c518;font-weight:700;text-decoration:none;">bizə ulaşın</a>.
+          </div>
+        </div>
+        <button type="submit" class="btn-save">Yadda saxla</button>
+      </form>
     </div>
-    <form method="POST" action="/profile/setting">
-      <div class="form-group">
-        <label class="form-label">İstifadəçi adı</label>
-        <input class="form-input" type="text" name="username" value="<%= user.username %>" required minlength="3">
+  </div>
+
+  <!-- ===== TAB SECURITY / ŞİFRƏ ===== -->
+  <div class="set-panel" id="set-security" style="display:none;">
+    <div class="form-section">
+      <form method="POST" action="/profile/changepass" id="changePassForm">
+        <div class="form-group">
+          <label class="form-label">Köhnə şifrə</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" name="oldpass" id="p1" required>
+            <button type="button" class="eye-btn" onclick="togglePwd('p1','i1')">
+              <svg id="i1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Yeni şifrə (min 6 simvol)</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" name="newpass" id="p2" minlength="6" required>
+            <button type="button" class="eye-btn" onclick="togglePwd('p2','i2')">
+              <svg id="i2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Yeni şifrəni təsdiqlə</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" name="newpass2" id="p3" minlength="6" required>
+            <button type="button" class="eye-btn" onclick="togglePwd('p3','i3')">
+              <svg id="i3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-save">Şifrəni dəyiş</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== TAB SESSIONS ===== -->
+  <div class="set-panel" id="set-sessions" style="display:none;">
+    <div class="section-title">Aktiv oturumlar</div>
+    <% const sessions = (user.activeSessions && user.activeSessions.length) ? user.activeSessions : []; %>
+    <% if (sessions.length === 0) { %>
+      <div class="form-section" style="text-align:center;color:rgba(255,255,255,.55);font-size:13px;">
+        Aktiv oturum izlərilmir.
       </div>
-      <div class="form-group">
-        <label class="form-label">E-poçt</label>
-        <input class="form-input" type="email" name="email" value="<%= user.email %>" required>
+    <% } else { %>
+      <% sessions.forEach(function(s, idx){ %>
+        <div class="danger-row">
+          <div class="label">
+            <b>Cihaz #<%= idx+1 %></b>
+            <small>IP: <%= s.ip || '—' %><br><%= new Date(s.lastSeenAt).toLocaleString('az-AZ') %></small>
+          </div>
+          <% if (s.sessionId !== (typeof currentSid !== 'undefined' ? currentSid : null)) { %>
+            <form method="POST" action="/profile/sessions/terminate" style="margin:0;">
+              <button type="submit" class="terminate-btn">Sonlandır</button>
+            </form>
+          <% } else { %>
+            <span style="font-size:11px;color:rgba(255,255,255,.5);">Bu cihaz</span>
+          <% } %>
+        </div>
+      <% }); %>
+      <form method="POST" action="/profile/sessions/terminate" style="margin-top:8px;">
+        <button type="submit" class="btn-danger">Digər cihazlardan çıxış</button>
+      </form>
+    <% } %>
+
+    <div class="section-title">7/24 dəstək</div>
+    <div class="support-card">
+      <span class="material-symbols-outlined">support_agent</span>
+      <div style="flex:1;">
+        <div style="font-weight:800;font-size:14px;">Bütün əlaqə məlumatları</div>
+        <a href="mailto:support@birloto.com" class="email">support@birloto.com</a><br>
+        <small style="color:rgba(255,255,255,.55);">Telegram: @birloto_support</small>
       </div>
-      <button type="submit" class="btn-save">Yadda saxla</button>
+      <button type="button" class="copy" onclick="copyMail()">Kopyala</button>
+    </div>
+
+    <div class="section-title">Hesab</div>
+    <form action="/logout" method="GET">
+      <button type="submit" class="btn-danger">Çıxış</button>
     </form>
   </div>
 </div>
+
+<%- include('partials/footer', { activePage: 'profile' }) %>
+
+<script>
+function openSetTab(tab){
+  document.querySelectorAll('.set-panel').forEach(p => p.style.display='none');
+  document.getElementById('set-'+tab).style.display='block';
+  document.querySelectorAll('#setTabRow .tab-btn').forEach((b,i)=>{
+    const tabs = ['info','security','sessions'];
+    b.classList.toggle('active', tabs[i]===tab);
+  });
+}
+function togglePwd(id,icId){
+  const i=document.getElementById(id), ic=document.getElementById(icId);
+  const show=i.type==='password';
+  i.type = show ? 'text' : 'password';
+  ic.innerHTML = show
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+function copyMail(){
+  if (navigator.clipboard){
+    navigator.clipboard.writeText('support@birloto.com').then(()=>{
+      const btn=document.querySelector('.support-card .copy');
+      const old=btn.textContent; btn.textContent='✓'; setTimeout(()=>{btn.textContent=old;},1500);
+    });
+  }
+}
+</script>
 </body>
 </html>
