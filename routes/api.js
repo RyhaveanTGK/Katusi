@@ -33,6 +33,33 @@ function cardToClient(card, room) {
   };
 }
 
+// Generate a single 3x9 tombola card (server-side helper for /api/card actions)
+function generateCard() {
+  const cols = [
+    [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
+    [50, 59], [60, 69], [70, 79], [80, 90]
+  ];
+  const card = [new Array(9).fill(0), new Array(9).fill(0), new Array(9).fill(0)];
+  const used = Array.from({ length: 9 }, () => new Set());
+  for (let row = 0; row < 3; row++) {
+    const chosen = [];
+    while (chosen.length < 5) {
+      const c = Math.floor(Math.random() * 9);
+      if (!chosen.includes(c)) chosen.push(c);
+    }
+    chosen.sort((a, b) => a - b);
+    for (const c of chosen) {
+      const [min, max] = cols[c];
+      let value = min;
+      do { value = Math.floor(Math.random() * (max - min + 1)) + min; }
+      while (used[c].has(value));
+      used[c].add(value);
+      card[row][c] = value;
+    }
+  }
+  return card;
+}
+
 router.get('/rooms-status', apiAuth, async (req, res) => {
   const rooms = await Room.find({}).sort({ sortOrder: 1, createdAt: 1 });
   const now = Date.now();
@@ -127,6 +154,115 @@ router.post('/card/:roomId/auto', apiAuth, async (req, res) => {
   await card.save();
   const won = await claimRoomWin(room._id, req.session.userId);
   res.json({ ok: true, won, card: cardToClient(card, room) });
+});
+
+// POST /api/card/:roomId/regenerate  — "yenilə" düyməsi
+router.post('/card/:roomId/regenerate', apiAuth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+
+    // Game başlamamışsa kart dəyişdirilə bilər; başlayıbsa, server yeni round-da verəcək
+    const existing = await GameCard.findOne({
+      userId: req.session.userId,
+      roomId: room._id,
+      roundId: room.currentRoundId
+    }).sort({ playedAt: -1 });
+
+    if (!existing) return res.status(404).json({ error: 'Card not found' });
+
+    existing.numbers = generateCard();
+    existing.markedNumbers = [];
+    existing.completedAt = null;
+    await existing.save();
+
+    res.json({ ok: true, card: cardToClient(existing, room) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/card/:roomId/reset-marks  — "sil" düyməsi
+router.post('/card/:roomId/reset-marks', apiAuth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+
+    const card = await GameCard.findOne({
+      userId: req.session.userId,
+      roomId: room._id,
+      roundId: room.currentRoundId
+    }).sort({ playedAt: -1 });
+
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+
+    card.markedNumbers = [];
+    card.completedAt = null;
+    await card.save();
+
+    res.json({ ok: true, card: cardToClient(card, room) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/card/:roomId/buy — çoxlu bilet alma (Şəkil 4)
+router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId);
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+
+    const quantity = Math.max(1, Math.min(10, parseInt(req.body.quantity, 10) || 1));
+    const user = await User.findById(req.session.userId);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const feePerCard = Number(room.entryFee || 0);
+    const totalFee = feePerCard * quantity;
+
+    if (user.balance < totalFee) {
+      return res.status(400).json({ error: 'Balans kifayət deyil' });
+    }
+
+    user.balance -= totalFee;
+    user.gamesPlayed += quantity;
+    await user.save();
+
+    if (!room.players.map(String).includes(String(user._id))) {
+      room.players.push(user._id);
+    }
+    room.prize = Number(room.prize || 0) + totalFee;
+    if (room.jackpotEnabled) room.jackpot = Number(room.jackpot || 0) + totalFee;
+    await room.save();
+
+    // Əsas kartı yenilə + sıfırla
+    let baseCard = await GameCard.findOne({
+      userId: user._id, roomId: room._id, roundId: room.currentRoundId
+    }).sort({ playedAt: -1 });
+
+    if (!baseCard) {
+      baseCard = new GameCard({
+        userId: user._id, roomId: room._id, roundId: room.currentRoundId,
+        numbers: generateCard(), markedNumbers: [], autoDaub: false
+      });
+    } else {
+      baseCard.numbers = generateCard();
+      baseCard.markedNumbers = [];
+      baseCard.completedAt = null;
+    }
+    await baseCard.save();
+
+    await new Transaction({
+      userId: user._id,
+      type: 'game_join',
+      amount: -totalFee,
+      status: 'completed',
+      note: `${room.name} otağına ${quantity} bilet`
+    }).save();
+
+    res.json({ ok: true, quantity, total: totalFee, card: cardToClient(baseCard, room) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 router.post('/room/:id/claim-win', apiAuth, async (req, res) => {
