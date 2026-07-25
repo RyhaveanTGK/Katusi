@@ -2,39 +2,166 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>10 Line Loto – Profil</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Profil – Birloto</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-:root{--bg-purple:#3d0d62;--primary-yellow:#f5c518;--secondary-purple:#5c2491;--panel-border:rgba(255,255,255,.1);--text-gray:rgba(255,255,255,.6);}
-*{box-sizing:border-box;margin:0;padding:0;}::-webkit-scrollbar{display:none;}
-body{margin:0;color:#fff;min-height:100vh;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overflow-x:hidden;background-color:#3d0d62;}
-.profile-wrap{position:relative;z-index:1;max-width:414px;margin:0 auto;padding:80px 16px 100px;display:flex;flex-direction:column;gap:16px;}
-.avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);border:3px solid var(--primary-yellow);display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.3);}
-.glass-panel{background:rgba(255,255,255,.05);border:1px solid var(--panel-border);border-radius:14px;}
-.info-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
-.info-row:last-child{border-bottom:none;}
-.info-label{font-size:13px;color:var(--text-gray);}
-.info-value{font-size:14px;font-weight:700;color:#fff;text-align:right;}
-.balance-card{background:linear-gradient(135deg,#5c2491 0%,#3d0d62 100%);border:1px solid var(--primary-yellow);border-radius:16px;padding:18px 20px;text-align:center;}
-.balance-label{font-size:12px;color:var(--text-gray);text-transform:uppercase;letter-spacing:.5px;}
-.balance-value{font-size:34px;font-weight:900;color:var(--primary-yellow);line-height:1.1;margin-top:4px;}
-.man{font-family:"Segoe UI",Tahoma,Arial,sans-serif;}
-.action-link{display:flex;align-items:center;gap:12px;padding:15px 16px;text-decoration:none;color:#fff;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;position:relative;overflow:hidden;transition:background .25s ease,padding-left .22s ease;}
-.action-link:last-child{border-bottom:none;}
-.action-link::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 3px 3px 0;background:var(--primary-yellow);transform:scaleY(0);transform-origin:center;transition:transform .25s ease;}
-.action-link:hover{background:linear-gradient(90deg,rgba(245,197,24,.14) 0%,rgba(245,197,24,0) 70%);padding-left:22px;}
-.action-link:hover::before{transform:scaleY(1);}
-.action-link .icon{width:22px;height:22px;color:var(--primary-yellow);flex-shrink:0;transition:transform .25s ease;}
-.action-link:hover .icon{transform:scale(1.12);}
-.action-link .label{flex-grow:1;font-size:14px;font-weight:600;}
-.action-link .chevron{color:var(--text-gray);transition:transform .25s ease;}
-.action-link:hover .chevron{transform:translateX(4px);color:var(--primary-yellow);}
-.btn-logout{width:100%;background:linear-gradient(180deg,#e0556a 0%,#c02a40 100%);color:#fff;font-size:15px;font-weight:800;border:none;border-radius:14px;padding:14px;cursor:pointer;font-family:inherit;}
-.section-title{font-size:12px;font-weight:700;color:var(--text-gray);text-transform:uppercase;letter-spacing:.5px;padding:0 4px;}
+:root{
+  --bg-purple:#3d0d62;
+  --primary-yellow:#f5c518;
+  --secondary-purple:#5c2491;
+  --panel-border:rgba(255,255,255,.1);
+  --text-gray:rgba(255,255,255,.6);
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+::-webkit-scrollbar{ display:none; }
+html,body{ overflow-x:hidden; }
+body{
+  margin:0; color:#fff; min-height:100vh;
+  font-family:'Inter',ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  background-color:#3d0d62;
+  padding-top: 72px;
+  padding-bottom: 24px;
+}
+.profile-wrap{
+  position:relative; z-index:1;
+  width:100%; max-width:414px;
+  margin:0 auto; padding: 16px;
+  display:flex; flex-direction:column; gap:14px;
+}
+
+.avatar{
+  width:84px; height:84px; border-radius:50%;
+  background: linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);
+  border:3px solid var(--primary-yellow);
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px; font-weight:900; color:#fff;
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+
+.glass-panel{
+  background: rgba(255,255,255,.05);
+  border:1px solid var(--panel-border);
+  border-radius:14px;
+}
+.info-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:13px 16px; border-bottom:1px solid rgba(255,255,255,.07);
+}
+.info-row:last-child{ border-bottom:none; }
+.info-label{ font-size:13px; color:var(--text-gray); }
+.info-value{ font-size:14px; font-weight:700; color:#fff; text-align:right; }
+
+.balance-card{
+  background: linear-gradient(135deg,#5c2491 0%,#3d0d62 100%);
+  border:1px solid var(--primary-yellow);
+  border-radius:16px;
+  padding:18px 20px; text-align:center;
+}
+.balance-label{
+  font-size:12px; color:var(--text-gray);
+  text-transform:uppercase; letter-spacing:.5px;
+}
+.balance-value{
+  font-size:34px; font-weight:900;
+  color:var(--primary-yellow); line-height:1.1;
+  margin-top:4px; font-variant-numeric: tabular-nums;
+}
+
+.man{ font-family:"Segoe UI",Tahoma,Arial,sans-serif; }
+
+.action-link{
+  display:flex; align-items:center; gap:12px;
+  padding:14px 16px; text-decoration:none; color:#fff;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  cursor:pointer; position:relative; overflow:hidden;
+  transition: background .25s ease, padding-left .22s ease;
+}
+.action-link:last-child{ border-bottom:none; }
+.action-link::before{
+  content:""; position:absolute; left:0; top:0; bottom:0;
+  width:3px; border-radius:0 3px 3px 0;
+  background:var(--primary-yellow);
+  transform:scaleY(0); transform-origin:center;
+  transition: transform .25s ease;
+}
+.action-link:hover{
+  background: linear-gradient(90deg,rgba(245,197,24,.14) 0%,rgba(245,197,24,0) 70%);
+  padding-left:22px;
+}
+.action-link:hover::before{ transform:scaleY(1); }
+.action-link .icon{ width:22px; height:22px; color:var(--primary-yellow); flex-shrink:0; transition: transform .25s ease; }
+.action-link:hover .icon{ transform:scale(1.12); }
+.action-link .label{ flex-grow:1; font-size:14px; font-weight:600; }
+.action-link .chevron{ color:var(--text-gray); transition: transform .25s ease; }
+.action-link:hover .chevron{ transform: translateX(4px); color:var(--primary-yellow); }
+
+.btn-logout{
+  width:100%;
+  background: linear-gradient(180deg,#e0556a 0%,#c02a40 100%);
+  color:#fff; font-size:15px; font-weight:800;
+  border:none; border-radius:14px; padding:14px;
+  cursor:pointer; font-family:inherit;
+}
+.section-title{
+  font-size:11px; font-weight:800; color:var(--text-gray);
+  text-transform:uppercase; letter-spacing:.5px;
+  padding:0 4px; margin-top: 4px;
+}
+
+/* Yeni: balans kartının altındakı Yüklə/Çıxar düymələri */
+.balance-actions{
+  margin-top:12px;
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+}
+.bal-btn{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  border-radius:12px; padding:10px;
+  font-size:13px; font-weight:800;
+  text-decoration:none; color:#fff;
+  transition: transform .12s;
+}
+.bal-btn:active{ transform: scale(.97); }
+.bal-btn.deposit{ background: linear-gradient(180deg,#ffd060 0%,#f59200 100%); }
+.bal-btn.withdraw{ background: rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.2); }
+
+/* Bonus code pill */
+.bonus-row{
+  background: rgba(245,197,24,.10);
+  border:1px dashed rgba(245,197,24,.4);
+  border-radius:12px; padding:10px 14px;
+  margin-bottom:8px;
+}
+.bonus-row form{ display:flex; gap:8px; }
+.bonus-row input{
+  flex:1; padding:9px 12px; background: rgba(0,0,0,.2);
+  border:1px solid rgba(245,197,24,.3); border-radius:8px;
+  color:#fff; font-size:13px; font-weight:700;
+  font-family:monospace; letter-spacing:1px;
+}
+.bonus-row input::placeholder{ color:rgba(255,255,255,.4); }
+.bonus-row button{
+  background: linear-gradient(180deg,#f5c518,#c8960c);
+  color:#3d2200; border:none; border-radius:8px;
+  padding:9px 14px; font-weight:800; font-size:12px;
+  cursor:pointer;
+}
+
+@media (max-width:370px){
+  .profile-wrap{ padding: 14px 12px; }
+  .avatar{ width:74px; height:74px; font-size:30px; }
+  .balance-value{ font-size:28px; }
+  .balance-actions{ gap:6px; }
+  .bal-btn{ padding:8px; font-size:12px; }
+}
+@supports (padding: max(0px)) {
+  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
+}
 </style>
 </head>
 <body>
+
 <%- include('partials/topnav', { user: user }) %>
 
 <div class="profile-wrap">
@@ -49,9 +176,13 @@ body{margin:0;color:#fff;min-height:100vh;font-family:ui-sans-serif,system-ui,-a
   <div class="balance-card">
     <div class="balance-label">Balansınız</div>
     <div class="balance-value"><%= user.balance.toFixed(2) %> <span class="man">₼</span></div>
-    <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">
-      <a href="/wallet" style="background:linear-gradient(180deg,#ffd060 0%,#f59200 100%);color:#fff;font-size:13px;font-weight:800;border-radius:12px;padding:8px 20px;text-decoration:none;">Yüklə</a>
-      <a href="/wallet" style="background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:800;border-radius:12px;padding:8px 20px;text-decoration:none;">Çıxar</a>
+    <div class="balance-actions">
+      <a href="/wallet" class="bal-btn deposit">
+        <span class="material-symbols-outlined" style="font-size:16px;">add_circle</span>Yüklə
+      </a>
+      <a href="/wallet" class="bal-btn withdraw">
+        <span class="material-symbols-outlined" style="font-size:16px;">payments</span>Çıxar
+      </a>
     </div>
   </div>
 
@@ -60,6 +191,16 @@ body{margin:0;color:#fff;min-height:100vh;font-family:ui-sans-serif,system-ui,-a
     <div class="info-row"><span class="info-label">Qazanılan oyunlar</span><span class="info-value"><%= user.gamesWon %></span></div>
     <div class="info-row"><span class="info-label">Ümumi qazanc</span><span class="info-value"><%= user.totalWon.toFixed(2) %> ₼</span></div>
     <div class="info-row"><span class="info-label">Referral kodu</span><span class="info-value" style="font-family:monospace;font-size:12px;"><%= user.referralCode %></span></div>
+  </div>
+
+  <% if (success) { %><div class="success-msg" style="background:rgba(0,200,100,.15);border:1px solid rgba(0,200,100,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#60e0a0;text-align:center;"><%= success %></div><% } %>
+  <% if (error)   { %><div class="error-msg"   style="background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;text-align:center;"><%= error %></div><% } %>
+
+  <div class="bonus-row">
+    <form method="POST" action="/profile/bonus/redeem">
+      <input type="text" name="code" placeholder="Bonus kodu" maxlength="20" autocomplete="off">
+      <button type="submit">Aktivləşdir</button>
+    </form>
   </div>
 
   <div class="glass-panel">
@@ -106,5 +247,6 @@ body{margin:0;color:#fff;min-height:100vh;font-family:ui-sans-serif,system-ui,-a
 </div>
 
 <%- include('partials/footer', { activePage: 'profile' }) %>
+
 </body>
 </html>
