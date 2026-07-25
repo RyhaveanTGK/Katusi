@@ -2,16 +2,109 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Otağa qoşul – Birloto</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}body{background:#3d0d62;color:#fff;font-family:'Rubik',sans-serif;min-height:100vh}.wrap{max-width:430px;margin:0 auto;padding:16px 14px 110px}.hero{background:linear-gradient(180deg,#7a2db0 0%,#5d1f90 100%);border-radius:24px;padding:18px 16px;box-shadow:0 10px 22px rgba(0,0,0,.35)}.status-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.status-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.24);padding:8px 12px;border-radius:18px;font-size:12px;font-weight:700}.count{font-size:13px;font-weight:800;color:#f5c518}.ticket-card{background:#fff;border:3px solid #1d0b33;border-radius:18px;padding:14px;color:#181818;margin-bottom:16px}.ticket-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}.badge-main{background:linear-gradient(180deg,#e4d4a6 0%,#d3b262 100%);color:#fff;border-radius:16px;padding:7px 14px;font-size:15px;font-weight:800}.badge-side{background:#2b343b;color:#f8c52e;border-radius:16px;padding:6px 14px;font-size:14px;font-weight:800}.big-prize{display:flex;align-items:center;gap:8px;color:#1ea838;font-size:34px;font-weight:900;line-height:1}.coins{position:relative;width:32px;height:28px}.coin{position:absolute;width:20px;height:12px;border-radius:50%;background:linear-gradient(180deg,#ffe27a,#e0a82e);border:1.5px solid #c8901f}.coin.c1{left:2px;bottom:0}.coin.c2{left:6px;bottom:7px}.coin.c3{left:10px;bottom:14px}.meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.meta-box{background:#f5f5f7;border-radius:14px;padding:12px}.meta-k{font-size:11px;color:#7b7b85;text-transform:uppercase;font-weight:700}.meta-v{font-size:16px;font-weight:900;color:#222;margin-top:4px}.preview-card{margin-top:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:14px}.preview-title{font-size:12px;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.68);text-transform:uppercase;margin-bottom:10px}.grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}.cell{aspect-ratio:1;border-radius:6px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}.cell.empty{background:rgba(255,255,255,.05);color:transparent}.actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}.btn{width:100%;border:none;border-radius:16px;padding:15px 16px;font-size:16px;font-weight:900;font-family:'Rubik',sans-serif;cursor:pointer}.btn-primary{background:linear-gradient(180deg,#4d86e8,#3f6fd4);color:#fff;box-shadow:0 4px 14px rgba(77,134,232,.35)}.btn-secondary{background:rgba(255,255,255,.1);color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center}.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:12px;padding:10px 14px;font-size:13px;color:#ff9d9d;margin-bottom:14px}.timer{font-size:18px;font-weight:900;color:#fff}.help{font-size:12px;color:rgba(255,255,255,.68);line-height:1.45;margin-top:10px}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html, body{ overflow-x:hidden; }
+body{
+  background:#3d0d62; color:#fff;
+  font-family:'Rubik',sans-serif;
+  min-height:100vh;
+  padding-top: 72px;
+  padding-bottom: 24px;
+}
+.wrap{ width:100%; max-width:430px; margin:0 auto; padding:16px 14px 24px; }
+
+.hero{
+  background: linear-gradient(180deg,#7a2db0 0%,#5d1f90 100%);
+  border-radius:24px;
+  padding:18px 16px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.35);
+}
+.status-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.status-pill{
+  display:inline-flex; align-items:center; gap:8px;
+  background: rgba(0,0,0,.24);
+  padding:8px 12px; border-radius:18px;
+  font-size:12px; font-weight:700;
+}
+.count{ font-size:13px; font-weight:800; color:#f5c518; }
+.timer{ font-size:18px; font-weight:900; color:#fff; font-variant-numeric: tabular-nums; }
+
+.ticket-card{
+  background:#fff; border:3px solid #1d0b33;
+  border-radius:18px; padding:14px;
+  color:#181818; margin-bottom:16px;
+}
+.ticket-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.badge-main{
+  background: linear-gradient(180deg,#e4d4a6 0%,#d3b262 100%);
+  color:#fff; border-radius:16px;
+  padding:7px 14px; font-size:15px; font-weight:800;
+}
+.badge-side{
+  background:#2b343b; color:#f8c52e;
+  border-radius:16px; padding:6px 14px;
+  font-size:14px; font-weight:800;
+}
+.big-prize{ display:flex; align-items:center; gap:8px; color:#1ea838; font-size:34px; font-weight:900; line-height:1; }
+.coins{ position:relative; width:32px; height:28px; }
+.coin{ position:absolute; width:20px; height:12px; border-radius:50%; background: linear-gradient(180deg,#ffe27a,#e0a82e); border:1.5px solid #c8901f; }
+.coin.c1{ left:2px; bottom:0; }
+.coin.c2{ left:6px; bottom:7px; }
+.coin.c3{ left:10px; bottom:14px; }
+
+.meta{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
+.meta-box{ background:#f5f5f7; border-radius:14px; padding:12px; }
+.meta-k{ font-size:11px; color:#7b7b85; text-transform:uppercase; font-weight:700; }
+.meta-v{ font-size:16px; font-weight:900; color:#222; margin-top:4px; }
+
+.preview-card{
+  margin-top:16px;
+  background: rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:18px; padding:14px;
+}
+.preview-title{ font-size:12px; font-weight:800; letter-spacing:.5px; color:rgba(255,255,255,.68); text-transform:uppercase; margin-bottom:10px; }
+.grid{ display:grid; grid-template-columns:repeat(9,1fr); gap:3px; }
+.cell{ aspect-ratio:1; border-radius:6px; background: rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
+.cell.empty{ background: rgba(255,255,255,.05); color:transparent; }
+
+.actions{ display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+.btn{
+  width:100%; border:none; border-radius:16px;
+  padding:15px 16px;
+  font-size:16px; font-weight:900;
+  font-family:'Rubik',sans-serif; cursor:pointer;
+}
+.btn-primary{ background: linear-gradient(180deg,#4d86e8,#3f6fd4); color:#fff; box-shadow: 0 4px 14px rgba(77,134,232,.35); }
+.btn-secondary{ background: rgba(255,255,255,.1); color:#fff; text-decoration:none; display:flex; align-items:center; justify-content:center; }
+
+.error-msg{
+  background: rgba(232,0,26,.15); border:1px solid rgba(232,0,26,.3);
+  border-radius:12px; padding:10px 14px; font-size:13px;
+  color:#ff9d9d; margin-bottom:14px;
+}
+.help{ font-size:12px; color:rgba(255,255,255,.68); line-height:1.45; margin-top:10px; }
+
+@media (max-width:370px){
+  .big-prize{ font-size:26px; }
+  .badge-main{ font-size:13px; padding:6px 10px; }
+  .badge-side{ font-size:12px; padding:5px 10px; }
+  .cell{ font-size:11px; }
+}
+@supports (padding: max(0px)) {
+  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
+}
 </style>
 </head>
 <body>
+
 <%- include('partials/topnav', { user: user }) %>
+
 <div class="wrap">
   <% if (typeof error !== 'undefined' && error) { %><div class="error-msg"><%= error %></div><% } %>
   <div class="hero">
@@ -24,7 +117,10 @@
         <span class="badge-main"><%= room.ticketLabel || 'TAM BİLET' %></span>
         <span class="badge-side">⭐ <%= room.starPrize || Math.round(room.entryFee * 100) %></span>
       </div>
-      <div class="big-prize"><div class="coins"><i class="coin c1"></i><i class="coin c2"></i><i class="coin c3"></i></div><span><%= Number(room.prize || 0).toFixed(2) %></span><span>₼</span></div>
+      <div class="big-prize">
+        <div class="coins"><i class="coin c1"></i><i class="coin c2"></i><i class="coin c3"></i></div>
+        <span><%= Number(room.prize || 0).toFixed(2) %></span><span>₼</span>
+      </div>
       <div class="meta">
         <div class="meta-box"><div class="meta-k">Giriş haqqı</div><div class="meta-v"><%= Number(room.entryFee || 0).toFixed(2) %> ₼</div></div>
         <div class="meta-box"><div class="meta-k">Oyunçu</div><div class="meta-v"><%= room.players.length %> / <%= room.maxPlayers %></div></div>
@@ -47,6 +143,14 @@
     </div>
   </div>
 </div>
-<script>function fmt(s){s=Math.max(0,parseInt(s||0,10));var m=Math.floor(s/60),ss=s%60;return(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}var t=document.getElementById('timer');function tick(){var v=parseInt(t.dataset.secs||'0',10);t.textContent=fmt(v);if(v>0)t.dataset.secs=v-1;}tick();setInterval(tick,1000);</script>
+
+<%- include('partials/footer', { activePage: 'home' }) %>
+
+<script>
+function fmt(s){s=Math.max(0,parseInt(s||0,10));var m=Math.floor(s/60),ss=s%60;return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
+var t=document.getElementById('timer');
+function tick(){var v=parseInt(t.dataset.secs||'0',10);t.textContent=fmt(v);if(v>0)t.dataset.secs=v-1;}
+tick(); setInterval(tick, 1000);
+</script>
 </body>
 </html>
