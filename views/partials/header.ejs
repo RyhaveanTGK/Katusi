@@ -3,9 +3,116 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title><%= typeof title !== 'undefined' ? title : 'One Loto.com' %></title>
+<title><%= typeof title !== 'undefined' ? title : 'One Loto' %></title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/main.css">
 </head>
 <body>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+.topnav{
+  font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  background: linear-gradient(180deg, rgba(30,8,55,.96) 0%, rgba(15,3,28,.98) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(245,197,24,.18);
+  box-shadow: 0 6px 22px -6px rgba(0,0,0,.55);
+  padding-top: env(safe-area-inset-top);
+}
+.header-inner{
+  max-width: 430px; margin: 0 auto;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 10px 14px 10px;
+}
+.site-logo{
+  display:flex; align-items:center; gap:8px; text-decoration:none;
+  font-weight:900; font-size:20px; letter-spacing:.3px; line-height:1;
+  user-select:none;
+}
+.site-logo .lg-one{
+  color:#f5c518;
+  text-shadow:0 2px 6px rgba(245,197,24,.35), 0 1px 2px rgba(0,0,0,.5);
+}
+.site-logo .lg-loto{
+  color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.45);
+}
+.site-logo .lg-chip{
+  width:22px; height:22px; border-radius:50%;
+  background:
+    radial-gradient(circle at 35% 30%, #ffe27a 0%, #f5c518 45%, #b78d00 100%);
+  border:2px dashed rgba(255,255,255,.85);
+  box-shadow: 0 2px 6px rgba(0,0,0,.45), inset 0 0 0 2px rgba(0,0,0,.15);
+}
+.balance-box{
+  display:flex; align-items:center; gap:8px;
+  background: linear-gradient(180deg, rgba(92,36,145,.55), rgba(60,20,110,.55));
+  border: 1px solid rgba(245,197,24,.35);
+  padding: 7px 14px; border-radius: 16px;
+  text-decoration:none;
+  box-shadow: 0 4px 12px -4px rgba(0,0,0,.45);
+}
+.balance-box .b-label{ font-size:12px; color:rgba(255,255,255,.75); font-weight:600; }
+.balance-box .b-value{
+  font-size:16px; font-weight:900; color:#f5c518;
+  display:flex; align-items:center; gap:4px;
+}
+.coin-icon{ font-size:16px; color:#f5c518; line-height:1; }
+@media (max-width: 360px){
+  .header-inner { padding: 8px 10px; }
+  .site-logo { font-size: 18px; }
+  .balance-box { padding: 6px 10px; }
+  .balance-box .b-value { font-size: 14px; }
+}
+/* Twemoji: convert every emoji in the DOM to a crisp SVG image. */
+img.emoji{
+  height:1em; width:1em; margin:0 .05em 0 .1em;
+  vertical-align:-0.12em;
+  display:inline-block;
+}
+</style>
+
+<div class="topnav">
+  <div class="header-inner">
+    <a class="site-logo" href="/" aria-label="One Loto">
+      <span class="lg-chip" aria-hidden="true"></span>
+      <span class="lg-one">One</span><span class="lg-loto">Loto</span>
+    </a>
+    <a class="balance-box" href="/wallet">
+      <span class="b-label">Balans:</span>
+      <span class="b-value">
+        <%= user ? user.balance.toFixed(2) : '0.00' %>
+        <span class="coin-icon">₼</span>
+      </span>
+    </a>
+  </div>
+</div>
+
+<!-- Twemoji: replaces every emoji site-wide with real casino-style SVG icons -->
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>
+(function(){
+  function run(){
+    if (window.twemoji && document.body){
+      twemoji.parse(document.body, {
+        folder: 'svg', ext: '.svg',
+        base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'
+      });
+    }
+  }
+  if (document.readyState !== 'loading') run();
+  else document.addEventListener('DOMContentLoaded', run);
+  // Re-parse when the page updates its content (winner ticker, live rooms, etc.)
+  var mo = new MutationObserver(function(muts){
+    for (var i=0;i<muts.length;i++){
+      if (muts[i].addedNodes && muts[i].addedNodes.length){ run(); break; }
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function(){
+    mo.observe(document.body, { childList:true, subtree:true });
+  });
+})();
+</script>
