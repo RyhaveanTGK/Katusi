@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Loto – Admin Girişi</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:linear-gradient(160deg,#1a0a2e 0%,#0d0620 100%);font-family:'Inter',sans-serif;color:#fff;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{width:100%;max-width:380px;background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);border-radius:22px;padding:32px 26px;box-shadow:0 24px 60px -20px rgba(0,0,0,.5)}
+.brand{text-align:center;margin-bottom:18px}
+.brand .logo{font-size:26px;font-weight:900;letter-spacing:.5px;color:#f5c518}
+.brand .tag{font-size:12px;color:rgba(255,255,255,.55);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+h1{font-size:20px;font-weight:800;text-align:center;margin-bottom:20px}
+.err{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px;font-size:13px;color:#ff8080;text-align:center;margin-bottom:14px}
+label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.6);margin-bottom:6px}
+input{width:100%;padding:12px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;color:#fff;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px}
+input:focus{border-color:#f5c518}
+button{width:100%;padding:13px;background:linear-gradient(180deg,#f5c518,#c99a00);border:none;border-radius:12px;color:#3d2200;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit}
+.back{display:block;text-align:center;margin-top:16px;font-size:12px;color:rgba(255,255,255,.5);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand"><div class="logo">One Loto</div><div class="tag">Admin Panel</div></div>
+  <h1>Admin Girişi</h1>
+  <% if (error) { %><div class="err"><%= error %></div><% } %>
+  <form method="POST" action="/admin/login">
+    <label>Admin Login</label>
+    <input type="text" name="login" placeholder="admin" required autofocus>
+    <label>Şifrə</label>
+    <input type="password" name="password" required>
+    <button type="submit">DAXİL OL</button>
+  </form>
+  <a href="/login" class="back">← İstifadəçi girişinə qayıt</a>
+</div>
+</body>
+</html>
