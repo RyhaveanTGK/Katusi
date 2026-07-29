@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema({
   referralCode: { type: String, unique: true },
   referredBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   isAdmin:  { type: Boolean, default: false },
+  isBlocked:{ type: Boolean, default: false },
+  blockReason: { type: String, default: '' },
   telegramChatId: { type: String, default: '' },
   gamesPlayed: { type: Number, default: 0 },
   gamesWon:    { type: Number, default: 0 },
