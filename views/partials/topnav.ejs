@@ -80,3 +80,50 @@ img.emoji{ height:1em; width:1em; margin:0 .05em 0 .1em; vertical-align:-0.12em;
   document.addEventListener('DOMContentLoaded', function(){ mo.observe(document.body, {childList:true, subtree:true}); });
 })();
 </script>
+
+<!-- Global kopyalama qadağası: yalnız login/şifrə/bonus code sahələrində icazə verilir -->
+<style>
+  body, body * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  input, textarea, [contenteditable="true"] { -webkit-user-select: text !important; -moz-user-select: text !important; -ms-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; }
+</style>
+<script>
+(function(){
+  function isAllowedField(el){
+    if (!el) return false;
+    var tag = (el.tagName || '').toUpperCase();
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA') return false;
+    var type = (el.type || '').toLowerCase();
+    var name = ((el.name || '') + ' ' + (el.id || '') + ' ' + (el.className || '') + ' ' + (el.getAttribute('autocomplete') || '')).toLowerCase();
+    // Login / şifrə / parol dəyişmə / bonus kodu üçün icazə
+    if (type === 'password') return true;
+    if (/user|login|email|phone|nomre|bonus|promo|code|kod|current-password|new-password|old-password|pass|parol|sifre|şifr/.test(name)) return true;
+    // parol dəyişmə səhifəsindəki bütün text sahələrinə icazə
+    if (/changepass|change-password|parol-deyis|password/.test((location.pathname || '').toLowerCase())) return true;
+    return false;
+  }
+  function block(e){
+    var t = e.target;
+    if (isAllowedField(t)) return; // icazəli sahə
+    if (t && t.closest && t.closest('input, textarea')) {
+      if (isAllowedField(t.closest('input, textarea'))) return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+  ['copy','cut','contextmenu','dragstart','selectstart'].forEach(function(ev){
+    document.addEventListener(ev, block, true);
+  });
+  // Klaviatura qısayolları (Ctrl/Cmd + C / X / A / S / P / U)
+  document.addEventListener('keydown', function(e){
+    var t = e.target;
+    if (isAllowedField(t)) return;
+    var mod = e.ctrlKey || e.metaKey;
+    if (!mod) return;
+    var k = (e.key || '').toLowerCase();
+    if (['c','x','a','s','p','u'].indexOf(k) !== -1){
+      e.preventDefault(); e.stopPropagation(); return false;
+    }
+  }, true);
+})();
+</script>
