@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="az"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One Loto – Canlı oyunlar</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',Arial,sans-serif}
+body{background:#0d0620;color:#fff;padding:16px 12px 100px}
+.logo{color:#f5c518;font-weight:900;font-size:20px;margin-bottom:14px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.nav a{padding:8px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;text-decoration:none;font-size:13px}
+.nav a.on{background:#f5c518;color:#3d2200}
+.card{background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px;margin-bottom:10px}
+.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.nm{font-weight:800;font-size:15px}
+.st{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:800}
+.w{background:#64748b;color:#fff}.s{background:#22c55e;color:#0d1a08}.e{background:#e8001a;color:#fff}
+.info{font-size:12px;color:rgba(255,255,255,.7);display:flex;gap:14px;flex-wrap:wrap}
+.pl{margin-top:8px;font-size:12px;color:rgba(255,255,255,.6)}
+.pl b{color:#f5c518}
+</style></head><body>
+<div class="logo">One Loto · Admin</div>
+<div class="nav">
+  <a href="/admin/users">İstifadəçilər</a>
+  <a href="/admin/transactions">Əməliyyatlar</a>
+  <a href="/admin/rooms">Otaqlar</a>
+  <a href="/admin/live-games" class="on">Canlı oyunlar</a>
+  <a href="/admin/bonus">Bonus kodları</a>
+</div>
+<% rooms.forEach(function(r){ %>
+<div class="card">
+  <div class="hd">
+    <div class="nm"><%= r.name %></div>
+    <span class="st <%= r.status==='waiting'?'w':(r.status==='started'?'s':'e') %>"><%= r.status.toUpperCase() %></span>
+  </div>
+  <div class="info">
+    <span>Giriş: <%= r.entryFee %> AZN</span>
+    <span>Oyunçu: <%= r.players.length %>/<%= r.maxPlayers %></span>
+    <span>Jackpot: <%= (r.jackpot||0).toFixed(2) %> AZN</span>
+    <% if(r.lastWinnerName){ %><span>Son qalib: <b style="color:#f5c518"><%= r.lastWinnerName %></b></span><% } %>
+  </div>
+  <% if(r.players.length){ %>
+  <div class="pl">Oyunçular: <% r.players.forEach(function(p,i){ %><b><%= p.username %></b><%= i<r.players.length-1?', ':'' %><% }); %></div>
+  <% } %>
+</div>
+<% }); %>
+</body></html>
