@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Parametrlər – Birloto</title>
+<title>Parametrlər – One Loto</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
@@ -200,7 +200,7 @@ body{ background:#3d0d62; color:#fff; font-family:'Inter',sans-serif; min-height
           </label>
           <input class="form-input" type="tel" name="phone" id="phoneInput" value="<%= user.phone || '' %>" placeholder="+994 XX XXX XX XX" pattern="^[+0-9 ()-]{8,20}$">
           <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">
-            Onaylanmış dəyişiklik üçün <a href="mailto:support@birloto.com" style="color:#f5c518;font-weight:700;text-decoration:none;">bizə ulaşın</a>.
+            Onaylanmış dəyişiklik üçün <a href="mailto:support@onelotto.com" style="color:#f5c518;font-weight:700;text-decoration:none;">bizə ulaşın</a>.
           </div>
         </div>
         <button type="submit" class="btn-save">Yadda saxla</button>
@@ -278,8 +278,8 @@ body{ background:#3d0d62; color:#fff; font-family:'Inter',sans-serif; min-height
       <span class="material-symbols-outlined">support_agent</span>
       <div style="flex:1;">
         <div style="font-weight:800;font-size:14px;">Bütün əlaqə məlumatları</div>
-        <a href="mailto:support@birloto.com" class="email">support@birloto.com</a><br>
-        <small style="color:rgba(255,255,255,.55);">Telegram: @birloto_support</small>
+        <a href="mailto:support@onelotto.com" class="email">support@onelotto.com</a><br>
+        <small style="color:rgba(255,255,255,.55);">Telegram: @onelotto_support</small>
       </div>
       <button type="button" class="copy" onclick="copyMail()">Kopyala</button>
     </div>
@@ -312,7 +312,7 @@ function togglePwd(id,icId){
 }
 function copyMail(){
   if (navigator.clipboard){
-    navigator.clipboard.writeText('support@birloto.com').then(()=>{
+    navigator.clipboard.writeText('support@onelotto.com').then(()=>{
       const btn=document.querySelector('.support-card .copy');
       const old=btn.textContent; btn.textContent='✓'; setTimeout(()=>{btn.textContent=old;},1500);
     });
