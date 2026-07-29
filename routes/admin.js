@@ -3,10 +3,13 @@ const router  = express.Router();
 const User    = require('../models/User');
 const Room    = require('../models/Room');
 const Transaction = require('../models/Transaction');
+const BonusCode   = require('../models/BonusCode');
 const { requireAdmin } = require('../middleware/auth');
 const { notifyDecision } = require('../services/telegramBot');
 
 // ── Otaqlar ──
+router.get('/', requireAdmin, (req, res) => res.redirect('/admin/users'));
+
 router.get('/rooms', requireAdmin, async (req, res) => {
   const user  = await User.findById(req.session.userId);
   const rooms = await Room.find({}).sort({ sortOrder: 1 });
@@ -28,18 +31,13 @@ router.post('/rooms/create', requireAdmin, async (req, res) => {
       sortOrder:   parseInt(sortOrder) || 0
     });
     await room.save();
-
-    const rooms = await Room.find({}).sort({ sortOrder: 1 });
-    const curUser = await User.findById(req.session.userId);
-    res.render('admin_rooms', { user: curUser, rooms, error: null, success: 'Otaq yaradıldı' });
+    res.redirect('/admin/rooms');
   } catch(e) {
-    const rooms = await Room.find({}).sort({ sortOrder: 1 });
-    const curUser = await User.findById(req.session.userId);
-    res.render('admin_rooms', { user: curUser, rooms, error: 'Xəta baş verdi', success: null });
+    res.redirect('/admin/rooms');
   }
 });
 
-router.post('/rooms/delete/:id',       requireAdmin, async (req, res) => { await Room.findByIdAndDelete(req.params.id); res.redirect('/admin/rooms'); });
+router.post('/rooms/delete/:id',        requireAdmin, async (req, res) => { await Room.findByIdAndDelete(req.params.id); res.redirect('/admin/rooms'); });
 router.post('/rooms/reset-jackpot/:id', requireAdmin, async (req, res) => { await Room.findByIdAndUpdate(req.params.id, { jackpot: 0 }); res.redirect('/admin/rooms'); });
 router.post('/rooms/toggle-status/:id', requireAdmin, async (req, res) => {
   const room = await Room.findById(req.params.id);
@@ -61,84 +59,162 @@ router.get('/transactions', requireAdmin, async (req, res) => {
 
   const txns = await Transaction.find(filter)
     .sort({ createdAt: -1 })
-    .limit(50)
+    .limit(80)
     .populate('userId', 'username');
 
   res.render('admin_transactions', { user, txns, error: null, success: null, query: req.query });
 });
 
-// Köhnə `/approve`-dən istifadə edən Telegram client-lər üçün saxlanılıb:
+async function decideTx(id, action, adminName) {
+  const txn = await Transaction.findById(id).populate('userId');
+  if (!txn || txn.status !== 'pending') return null;
+
+  txn.status = action === 'approve' ? 'completed' : 'rejected';
+  txn.decidedAt = new Date();
+  txn.decidedBy = adminName;
+  if (action === 'reject') txn.adminMessage = 'Rədd edildi';
+  await txn.save();
+
+  if (action === 'approve' && txn.type === 'deposit' && txn.userId) {
+    txn.userId.balance = Number(txn.userId.balance || 0) + Number(txn.amount || 0);
+    await txn.userId.save();
+  }
+  if (action === 'reject' && txn.type === 'withdraw' && txn.userId) {
+    txn.userId.balance = Number(txn.userId.balance || 0) + Number(txn.amount || 0);
+    await txn.userId.save();
+  }
+  notifyDecision(txn, txn.userId, action === 'approve' ? 'approved' : 'rejected').catch(()=>{});
+  return txn;
+}
+
 router.post('/transactions/:id/approve', requireAdmin, async (req, res) => {
-  try {
-    const txn = await Transaction.findById(req.params.id).populate('userId');
-    if (!txn || txn.status !== 'pending') return res.redirect('/admin/transactions');
-
-    txn.status = 'completed';
-    txn.decidedAt = new Date();
-    txn.decidedBy = (await User.findById(req.session.userId))?.username || 'admin';
-    await txn.save();
-
-    if (txn.type === 'deposit') {
-      txn.userId.balance = Number(txn.userId.balance || 0) + Number(txn.amount || 0);
-      await txn.userId.save();
-    }
-    notifyDecision(txn, txn.userId, 'approved').catch(()=>{});
-    res.redirect('/admin/transactions');
-  } catch (e) {
-    res.redirect('/admin/transactions');
-  }
+  const admin = await User.findById(req.session.userId);
+  await decideTx(req.params.id, 'approve', admin?.username || 'admin');
+  res.redirect('back');
 });
-
 router.post('/transactions/:id/reject', requireAdmin, async (req, res) => {
-  try {
-    const txn = await Transaction.findById(req.params.id).populate('userId');
-    if (!txn || txn.status !== 'pending') return res.redirect('/admin/transactions');
-    txn.status = 'rejected';
-    txn.decidedAt = new Date();
-    txn.decidedBy = (await User.findById(req.session.userId))?.username || 'admin';
-    txn.adminMessage = req.body.reason || 'Admin tərəfindən rədd edildi';
-    await txn.save();
-
-    if (txn.type === 'withdraw') {
-      txn.userId.balance = Number(txn.userId.balance || 0) + Number(txn.amount || 0);
-      await txn.userId.save();
-    }
-    notifyDecision(txn, txn.userId, 'rejected').catch(()=>{});
-    res.redirect('/admin/transactions');
-  } catch (e) {
-    res.redirect('/admin/transactions');
-  }
+  const admin = await User.findById(req.session.userId);
+  await decideTx(req.params.id, 'reject', admin?.username || 'admin');
+  res.redirect('back');
+});
+router.post('/transactions/:id/decision', requireAdmin, async (req, res) => {
+  // əvvəlki UI ilə uyğunluq
+  const isApprove = req.originalUrl.includes('/approve') || req.body.action === 'approve';
+  const admin = await User.findById(req.session.userId);
+  await decideTx(req.params.id, isApprove ? 'approve' : 'reject', admin?.username || 'admin');
+  res.redirect('/admin/transactions');
 });
 
-// Yeni UI üçün vahid endpoint
-router.post('/transactions/:id/decision', requireAdmin, async (req, res) => {
-  try {
-    const txn = await Transaction.findById(req.params.id).populate('userId');
-    if (!txn || txn.status !== 'pending') return res.redirect('/admin/transactions');
-
-    // Form button `decide()` tərəfindən POST endpoint-ə yönləndirilir:
-    // URL .../approve | .../reject göndərilir
-    const isApprove = req.url.includes('/approve');
-    txn.status = isApprove ? 'completed' : 'rejected';
-    txn.decidedAt = new Date();
-    txn.decidedBy = (await User.findById(req.session.userId))?.username || 'admin';
-    if (!isApprove) txn.adminMessage = req.body.reason || 'Admin tərəfindən rədd edildi';
-    await txn.save();
-
-    if (isApprove && txn.type === 'deposit') {
-      txn.userId.balance = Number(txn.userId.balance || 0) + Number(txn.amount || 0);
-      await txn.userId.save();
-    }
-    if (!isApprove && txn.type === 'withdraw') {
-      txn.userId.balance = Number(txn.userId.balance || 0) + Number(txn.amount || 0);
-      await txn.userId.save();
-    }
-
-    notifyDecision(txn, txn.userId, isApprove ? 'approved' : 'rejected').catch(()=>{});
-    res.redirect('/admin/transactions');
-  } catch (e) {
-    res.redirect('/admin/transactions');
+// ── İstifadəçilər ──
+router.get('/users', requireAdmin, async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  const q = (req.query.q || '').toString().trim();
+  const filter = {};
+  if (q) {
+    filter.$or = [
+      { username: { $regex: q, $options: 'i' } },
+      { email:    { $regex: q, $options: 'i' } },
+      { phone:    { $regex: q, $options: 'i' } }
+    ];
   }
+  const users = await User.find(filter).sort({ createdAt: -1 }).limit(200);
+
+  // hər user üçün son deposit / withdraw
+  const ids = users.map((u) => u._id);
+  const [lastDeps, lastWds] = await Promise.all([
+    Transaction.aggregate([
+      { $match: { userId: { $in: ids }, type: 'deposit', status: 'completed' } },
+      { $sort: { createdAt: -1 } },
+      { $group: { _id: '$userId', amount: { $first: '$amount' }, at: { $first: '$createdAt' } } }
+    ]),
+    Transaction.aggregate([
+      { $match: { userId: { $in: ids }, type: 'withdraw', status: 'completed' } },
+      { $sort: { createdAt: -1 } },
+      { $group: { _id: '$userId', amount: { $first: '$amount' }, at: { $first: '$createdAt' } } }
+    ])
+  ]);
+  const depMap = new Map(lastDeps.map((d) => [String(d._id), d]));
+  const wdMap  = new Map(lastWds.map((d) => [String(d._id), d]));
+
+  res.render('admin_users', {
+    user, users, q,
+    depMap: Object.fromEntries(depMap),
+    wdMap:  Object.fromEntries(wdMap),
+    error: null, success: null
+  });
+});
+
+router.post('/users/:id/balance', requireAdmin, async (req, res) => {
+  const delta = parseFloat(req.body.delta);
+  const note  = (req.body.note || '').toString().slice(0, 200);
+  if (!isFinite(delta) || delta === 0) return res.redirect('/admin/users');
+  const u = await User.findById(req.params.id);
+  if (!u) return res.redirect('/admin/users');
+  u.balance = Math.max(0, Number(u.balance || 0) + delta);
+  await u.save();
+  await new Transaction({
+    userId: u._id,
+    type: delta > 0 ? 'deposit' : 'withdraw',
+    amount: Math.abs(delta),
+    status: 'completed',
+    method: 'manual_admin',
+    note: note || 'Balans düzəlişi'
+  }).save();
+  res.redirect('/admin/users');
+});
+
+router.post('/users/:id/toggle-block', requireAdmin, async (req, res) => {
+  const u = await User.findById(req.params.id);
+  if (!u) return res.redirect('/admin/users');
+  u.isBlocked = !u.isBlocked;
+  u.blockReason = u.isBlocked ? (req.body.reason || 'Qaydaların pozulması') : '';
+  await u.save();
+  res.redirect('/admin/users');
+});
+
+// İstifadəçinin son deposit/çıxarışları
+router.get('/users/:id', requireAdmin, async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  const target = await User.findById(req.params.id);
+  if (!target) return res.redirect('/admin/users');
+  const txns = await Transaction.find({ userId: target._id }).sort({ createdAt: -1 }).limit(50);
+  res.render('admin_user_detail', { user, target, txns });
+});
+
+// ── Bonus kodları ──
+router.get('/bonus', requireAdmin, async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  const codes = await BonusCode.find({}).sort({ createdAt: -1 }).limit(100);
+  res.render('admin_bonus', { user, codes, error: null, success: null });
+});
+
+router.post('/bonus/create', requireAdmin, async (req, res) => {
+  try {
+    const code = String(req.body.code || '').trim().toUpperCase();
+    const amount = parseFloat(req.body.amount);
+    const maxUses = parseInt(req.body.maxUses, 10) || 1;
+    if (!code || !isFinite(amount) || amount <= 0) return res.redirect('/admin/bonus');
+    await BonusCode.create({ code, amount, maxUses, note: req.body.note || '' });
+  } catch (e) { /* dup key etc */ }
+  res.redirect('/admin/bonus');
+});
+
+router.post('/bonus/:id/toggle', requireAdmin, async (req, res) => {
+  const b = await BonusCode.findById(req.params.id);
+  if (b) { b.active = !b.active; await b.save(); }
+  res.redirect('/admin/bonus');
+});
+
+router.post('/bonus/:id/delete', requireAdmin, async (req, res) => {
+  await BonusCode.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/bonus');
+});
+
+// ── Hazırda gedən oyunlar ──
+router.get('/live-games', requireAdmin, async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  const rooms = await Room.find({}).sort({ sortOrder: 1 }).populate('players', 'username balance');
+  res.render('admin_live', { user, rooms });
 });
 
 module.exports = router;
