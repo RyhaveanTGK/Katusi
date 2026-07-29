@@ -7,7 +7,7 @@ services:
     startCommand: node server.js
     envVars:
       - key: MONGODB_URI
-        value: mongodb+srv://r77513973_db_user:ZnVE8V5URKL2VG9i@venomkzn.utujwym.mongodb.net/?appName=Venomkzn
+        value: *
       - key: SESSION_SECRET
         generateValue: true
       - key: NODE_ENV
@@ -19,6 +19,13 @@ services:
         sync: false        # Render Dashboard-dan əl ilə daxil edin
       - key: TELEGRAM_ADMIN_CHAT_ID
         sync: false        # Admin-in şəxsi chat ID-si (bot started olmalıdır)
+      # ── Admin panel girişi (ENV əsaslı) ──
+      # Bu iki dəyəri Render Dashboard → Environment bölməsində əl ilə təyin edin.
+      # Sonra sayta /admin/login üzərindən daxil olun.
+      - key: ADMIN_USERNAME
+        sync: false        # məs: admin
+      - key: ADMIN_PASSWORD
+        sync: false        # güclü şifrə seçin
       # ── Oyun mühəndisi üçün tuning ──
       - key: GAME_WAITING_SEC
         value: 5           # Round-lar arası gözləmə artıq 5 saniyədir (75 deyil)
