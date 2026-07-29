@@ -2,78 +2,155 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>One Loto – Giriş</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Exo+2:wght@600;700;800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Otağa qoşul – One Loto</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-:root{--purple-bg:#3d0d62;--purple-dark:#2a0848;--purple-mid:#5a1a90;--gold:#f5c518;--orange-btn:#f5a623}
-@keyframes float1{0%,100%{transform:translateY(0) rotate(-15deg)}50%{transform:translateY(-8px) rotate(-15deg)}}
-@keyframes float2{0%,100%{transform:translateY(0) rotate(12deg)}50%{transform:translateY(-6px) rotate(12deg)}}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-*{box-sizing:border-box;margin:0;padding:0}
-html{background:#3d0d62;overflow-x:hidden;width:100%}
-body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background:#3d0d62;color:#fff;min-height:100vh;overflow-x:hidden;position:relative}
-.hero{padding-top:18px;min-height:100vh;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,rgba(120,40,200,.6) 0%,transparent 65%)}
-.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 15% 25%,rgba(255,255,255,.04) 1px,transparent 1px),radial-gradient(circle at 80% 15%,rgba(255,255,255,.06) 1px,transparent 1px),radial-gradient(circle at 60% 70%,rgba(255,255,255,.04) 1px,transparent 1px),radial-gradient(circle at 30% 80%,rgba(255,255,255,.05) 1px,transparent 1px);background-size:120px 120px,90px 90px,150px 150px,80px 80px;pointer-events:none}
-.bingo-card{position:absolute;background:linear-gradient(135deg,#7b35c4,#5a1a90);border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.grid{display:grid;gap:3px}.g5{grid-template-columns:repeat(5,1fr)}
-.bc-cell{width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:rgba(255,255,255,.85)}
-.bc-cell.empty{background:rgba(255,255,255,.06)}
-.bc-card-1{top:68px;left:-22px;transform:rotate(-18deg);animation:float1 4s ease-in-out infinite;z-index:2}
-.bc-card-2{top:55px;right:-18px;transform:rotate(14deg);animation:float2 3.5s ease-in-out infinite;z-index:2}
-.lball{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3),inset 0 3px 6px rgba(255,255,255,.4),0 4px 10px rgba(0,0,0,.4);z-index:3}
-.lb-red{background:radial-gradient(circle at 35% 30%,#ff7070,#cc1010)}
-.lb-blue{background:radial-gradient(circle at 35% 30%,#60a0ff,#1a3fbf)}
-.lb-green{background:radial-gradient(circle at 35% 30%,#60e060,#0d8c0d)}
-.content-wrap{position:relative;z-index:10;max-width:414px;margin:0 auto;padding:100px 20px 30px}
-.logo-center{text-align:center;margin-bottom:26px;animation:fadeInUp .6s ease}
-.logo-main{font-family:'Exo 2','Nunito',sans-serif;font-size:44px;font-weight:900;letter-spacing:-1px;line-height:1}
-.logo-main .gold{color:#f5c518}.logo-main .white{color:#fff}
-.logo-sub{font-size:13px;color:rgba(255,255,255,.55);margin-top:6px;letter-spacing:.5px}
-.form-card{background:linear-gradient(145deg,rgba(107,47,168,.55),rgba(45,8,72,.7));border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:28px 22px;backdrop-filter:blur(12px);animation:fadeInUp .7s ease}
-.form-title{font-size:22px;font-weight:900;text-align:center;margin-bottom:22px}
-.form-group{margin-bottom:16px}
-.form-label{display:block;font-size:12px;font-weight:800;color:rgba(255,255,255,.7);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase}
-.form-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s}
-.form-input:focus{border-color:#f5c518}
-.form-input::placeholder{color:rgba(255,255,255,.35)}
-.pwd-wrap{position:relative}.pwd-wrap .form-input{padding-right:48px}
-.eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);display:flex;align-items:center}
-.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:14px;text-align:center}
-.btn-login,.btn-register,.btn-admin{width:100%;padding:15px;color:#fff;font-size:16px;font-weight:900;border:none;border-radius:16px;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:4px;text-decoration:none;display:block;text-align:center}
-.btn-login{background:linear-gradient(180deg,#ffd060 0%,#f59200 100%);box-shadow:0 4px 14px rgba(245,162,35,.45)}
-.btn-register{background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);margin-top:12px}
-.btn-admin{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);margin-top:12px;font-weight:700;font-size:14px;color:#f5c518}
-.register-link{text-align:center;font-size:13px;color:rgba(255,255,255,.5);margin-top:18px}
-.register-link a{color:#f5c518;font-weight:800;text-decoration:none}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html, body{ overflow-x:hidden; }
+body{
+  background:#3d0d62; color:#fff;
+  font-family:'Rubik',sans-serif;
+  min-height:100vh;
+  padding-top: 72px;
+  padding-bottom: 24px;
+}
+.wrap{ width:100%; max-width:430px; margin:0 auto; padding:16px 14px 24px; }
+
+.hero{
+  background: linear-gradient(180deg,#7a2db0 0%,#5d1f90 100%);
+  border-radius:24px;
+  padding:18px 16px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.35);
+}
+.status-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.status-pill{
+  display:inline-flex; align-items:center; gap:8px;
+  background: rgba(0,0,0,.24);
+  padding:8px 12px; border-radius:18px;
+  font-size:12px; font-weight:700;
+}
+.count{ font-size:13px; font-weight:800; color:#f5c518; }
+.timer{ font-size:18px; font-weight:900; color:#fff; font-variant-numeric: tabular-nums; }
+
+.ticket-card{
+  background:#fff; border:3px solid #1d0b33;
+  border-radius:18px; padding:14px;
+  color:#181818; margin-bottom:16px;
+}
+.ticket-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.badge-main{
+  background: linear-gradient(180deg,#e4d4a6 0%,#d3b262 100%);
+  color:#fff; border-radius:16px;
+  padding:7px 14px; font-size:15px; font-weight:800;
+}
+.badge-side{
+  background:#2b343b; color:#f8c52e;
+  border-radius:16px; padding:6px 14px;
+  font-size:14px; font-weight:800;
+}
+.big-prize{ display:flex; align-items:center; gap:8px; color:#1ea838; font-size:34px; font-weight:900; line-height:1; }
+.coins{ position:relative; width:32px; height:28px; }
+.coin{ position:absolute; width:20px; height:12px; border-radius:50%; background: linear-gradient(180deg,#ffe27a,#e0a82e); border:1.5px solid #c8901f; }
+.coin.c1{ left:2px; bottom:0; }
+.coin.c2{ left:6px; bottom:7px; }
+.coin.c3{ left:10px; bottom:14px; }
+
+.meta{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
+.meta-box{ background:#f5f5f7; border-radius:14px; padding:12px; }
+.meta-k{ font-size:11px; color:#7b7b85; text-transform:uppercase; font-weight:700; }
+.meta-v{ font-size:16px; font-weight:900; color:#222; margin-top:4px; }
+
+.preview-card{
+  margin-top:16px;
+  background: rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:18px; padding:14px;
+}
+.preview-title{ font-size:12px; font-weight:800; letter-spacing:.5px; color:rgba(255,255,255,.68); text-transform:uppercase; margin-bottom:10px; }
+.grid{ display:grid; grid-template-columns:repeat(9,1fr); gap:3px; }
+.cell{ aspect-ratio:1; border-radius:6px; background: rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
+.cell.empty{ background: rgba(255,255,255,.05); color:transparent; }
+
+.actions{ display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+.btn{
+  width:100%; border:none; border-radius:16px;
+  padding:15px 16px;
+  font-size:16px; font-weight:900;
+  font-family:'Rubik',sans-serif; cursor:pointer;
+}
+.btn-primary{ background: linear-gradient(180deg,#4d86e8,#3f6fd4); color:#fff; box-shadow: 0 4px 14px rgba(77,134,232,.35); }
+.btn-secondary{ background: rgba(255,255,255,.1); color:#fff; text-decoration:none; display:flex; align-items:center; justify-content:center; }
+
+.error-msg{
+  background: rgba(232,0,26,.15); border:1px solid rgba(232,0,26,.3);
+  border-radius:12px; padding:10px 14px; font-size:13px;
+  color:#ff9d9d; margin-bottom:14px;
+}
+.help{ font-size:12px; color:rgba(255,255,255,.68); line-height:1.45; margin-top:10px; }
+
+@media (max-width:370px){
+  .big-prize{ font-size:26px; }
+  .badge-main{ font-size:13px; padding:6px 10px; }
+  .badge-side{ font-size:12px; padding:5px 10px; }
+  .cell{ font-size:11px; }
+}
+@supports (padding: max(0px)) {
+  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
+}
 </style>
 </head>
 <body>
-<div class="hero">
-  <div class="bingo-card bc-card-1"><div class="grid g5"><div class="bc-cell empty"></div><div class="bc-cell">89</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">8</div><div class="bc-cell">36</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">79</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div></div></div>
-  <div class="bingo-card bc-card-2"><div class="grid g5"><div class="bc-cell empty"></div><div class="bc-cell">12</div><div class="bc-cell">25</div><div class="bc-cell empty"></div><div class="bc-cell">66</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">41</div><div class="bc-cell empty"></div><div class="bc-cell">72</div></div></div>
-  <div class="lball lb-red" style="width:38px;height:38px;font-size:13px;top:130px;left:38px;">47</div>
-  <div class="lball lb-blue" style="width:32px;height:32px;font-size:12px;top:175px;right:44px;">13</div>
-  <div class="lball lb-green" style="width:26px;height:26px;font-size:11px;top:105px;right:80px;">82</div>
-  <div class="content-wrap">
-    <div class="logo-center">
-      <div class="logo-main"><span class="gold">One</span> <span class="white">Loto</span></div>
-      <div class="logo-sub">Premium casino stilində loto platforması</div>
+
+<%- include('partials/topnav', { user: user }) %>
+
+<div class="wrap">
+  <% if (typeof error !== 'undefined' && error) { %><div class="error-msg"><%= error %></div><% } %>
+  <div class="hero">
+    <div class="status-row">
+      <div class="status-pill"><span class="material-symbols-outlined">schedule</span><span><%= displayStatus === 'started' ? 'Oyun başladı' : displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir' %></span></div>
+      <div class="timer" id="timer" data-secs="<%= secsLeft %>">00:00</div>
     </div>
-    <div class="form-card">
-      <div class="form-title">Hesabınıza Giriş edin</div>
-      <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
-      <form method="POST" action="/login">
-        <div class="form-group"><label class="form-label">İstifadəçi adı və ya e-poçt</label><input class="form-input" type="text" name="login" placeholder="İstifadəçi adı daxil edin" required></div>
-        <div class="form-group"><label class="form-label">Şifrə</label><div class="pwd-wrap"><input class="form-input" type="password" name="password" id="pwdInput" placeholder="Şifrəni daxil edin" required><button type="button" class="eye-btn" onclick="togglePwd()"><svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-        <button type="submit" class="btn-login">GİRİŞ</button>
-      </form>
-      <a class="btn-register" href="/register">QEYDİYYAT</a>
-      <div class="register-link">Hesab yaratmaqla <a href="#">Qaydalar və Şərtləri</a> qəbul etmiş olursunuz.</div>
+    <div class="ticket-card">
+      <div class="ticket-head">
+        <span class="badge-main"><%= room.ticketLabel || 'TAM BİLET' %></span>
+        <span class="badge-side">⭐ <%= room.starPrize || Math.round(room.entryFee * 100) %></span>
+      </div>
+      <div class="big-prize">
+        <div class="coins"><i class="coin c1"></i><i class="coin c2"></i><i class="coin c3"></i></div>
+        <span><%= Number(room.prize || 0).toFixed(2) %></span><span>₼</span>
+      </div>
+      <div class="meta">
+        <div class="meta-box"><div class="meta-k">Giriş haqqı</div><div class="meta-v"><%= Number(room.entryFee || 0).toFixed(2) %> ₼</div></div>
+        <div class="meta-box"><div class="meta-k">Oyunçu</div><div class="meta-v"><%= room.players.length %> / <%= room.maxPlayers %></div></div>
+        <div class="meta-box"><div class="meta-k">Jackpot</div><div class="meta-v"><%= room.jackpotEnabled ? Number(room.jackpot || 0).toFixed(2) + ' ₼' : 'OFF' %></div></div>
+        <div class="meta-box"><div class="meta-k">Bonus</div><div class="meta-v"><%= room.prizeMultiplier || 'x2' %></div></div>
+      </div>
+    </div>
+    <div class="preview-card">
+      <div class="preview-title">Oyuna qoşulduqda sizə avtomatik kart veriləcək</div>
+      <div class="grid">
+        <% [[0,12,0,0,44,0,0,70,0],[5,0,26,0,0,53,0,0,81],[0,18,0,31,0,0,67,0,89]].forEach(function(row){ row.forEach(function(n){ %>
+          <div class="cell <%= n ? '' : 'empty' %>"><%= n || '' %></div>
+        <% }) }) %>
+      </div>
+      <div class="help">Qoşulduqdan sonra daşlar random çıxacaq. Kartı manual işarələyə və ya avto rejimi aktivləşdirə bilərsiniz.</div>
+    </div>
+    <div class="actions">
+      <form method="POST" action="/join/<%= room._id %>"><button type="submit" class="btn btn-primary">Bilet al və oyuna qoşul</button></form>
+      <a href="/" class="btn btn-secondary">Ana səhifəyə qayıt</a>
     </div>
   </div>
 </div>
-<script>function togglePwd(){const i=document.getElementById('pwdInput'),ic=document.getElementById('eyeIcon'),show=i.type==='password';i.type=show?'text':'password';ic.innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}</script>
-<script src="/assets/js/noselect.js"></script>
+
+<%- include('partials/footer', { activePage: 'home' }) %>
+
+<script>
+function fmt(s){s=Math.max(0,parseInt(s||0,10));var m=Math.floor(s/60),ss=s%60;return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
+var t=document.getElementById('timer');
+function tick(){var v=parseInt(t.dataset.secs||'0',10);t.textContent=fmt(v);if(v>0)t.dataset.secs=v-1;}
+tick(); setInterval(tick, 1000);
+</script>
 </body>
 </html>
