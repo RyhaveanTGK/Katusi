@@ -2,759 +2,149 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Balans – One Loto</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Qaliblər – One Loto</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
+*{ box-sizing:border-box; margin:0; padding:0; }
+::-webkit-scrollbar{ display:none; }
+html,body{ overflow-x:hidden; }
 :root{
   --bg-purple:#3d0d62;
   --primary-yellow:#f5c518;
-  --primary-purple:#6b2fa8;
-  --secondary-purple:#9b4dd4;
-  --text-gray:rgba(255,255,255,.6);
+  --secondary-purple:#5c2491;
+  --panel-border:rgba(255,255,255,.1);
 }
-*{ box-sizing:border-box; margin:0; padding:0; }
-::-webkit-scrollbar{ display:none; }
-html,body{ background:#fff; color:#3d0d62; font-family:'Inter',ui-sans-serif,system-ui,sans-serif; min-height:100vh; }
-.wallet-wrap{ max-width:414px; margin:0 auto; padding:16px 14px 100px; }
+body{
+  background:var(--bg-purple); color:#fff;
+  font-family:'Inter',sans-serif; min-height:100vh;
+  padding-top:72px; padding-bottom:24px;
+}
+.wrap{ width:100%; max-width:414px; margin:0 auto; padding:14px 14px 24px; }
+.page-title{ font-size:22px; font-weight:900; margin-bottom:4px; }
+.page-sub{ font-size:13px; color:rgba(255,255,255,.5); margin-bottom:20px; }
 
-/* ── TOPBAR ── */
-.top-bar{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:10px 0 14px;
-}
-.back-btn{
-  display:flex; align-items:center; gap:6px;
-  color:#883AB7; font-size:14px; font-weight:500;
-  text-decoration:none; cursor:pointer;
-}
-.page-title{ font-size:22px; font-weight:700; color:#3d0d62; }
-.divider{
-  height:3px; border-radius:2px;
-  background: linear-gradient(90deg,#6b2fa8,#9b4dd4,#6b2fa8);
-  margin-bottom:18px;
-}
-
-/* ── Balans kartı ── */
-.balance-box{
-  background: linear-gradient(135deg,#6b2fa8 0%,#3d0d62 100%);
-  border-radius:20px; padding:22px; text-align:center;
-  margin-bottom:20px; color:#fff;
-}
-.balance-lbl{ font-size:12px; color:rgba(255,255,255,.6); letter-spacing:.5px; text-transform:uppercase; }
-.balance-val{ font-size:40px; font-weight:900; color:#f5c518; margin-top:4px; }
-
-/* ── Tablar (Yüklə / Çıxar) ── */
 .tab-row{
   display:flex; gap:0; border-radius:12px; overflow:hidden;
-  border:1px solid #e0d0f0; margin-bottom:18px;
+  border:1px solid rgba(255,255,255,.15);
+  margin-bottom:18px;
 }
 .tab-btn{
-  flex:1; padding:12px; font-size:14px; font-weight:700;
+  flex:1; padding:11px; font-size:13px; font-weight:700;
   border:none; cursor:pointer;
-  background:#f5f0ff; color:#883AB7;
+  background: rgba(255,255,255,.07);
+  color:rgba(255,255,255,.7);
   transition: background .2s, color .2s;
 }
-.tab-btn.active{ background:#6b2fa8; color:#fff; }
+.tab-btn.active{ background:#5c2491; color:#fff; }
 
-/* ── Addım göstəricisi ── */
-.stepper{
+.rank-row{
+  display:flex; align-items:center; gap:12px;
+  padding:13px 16px;
+  background: rgba(255,255,255,.05);
+  border-radius:12px; margin-bottom:8px;
+  border:1px solid rgba(255,255,255,.08);
+  position:relative;
+}
+.rank-medal{
+  width:34px; height:34px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
-  gap:8px; margin-bottom:16px;
+  font-weight:800; font-size:15px; color:#3d2200;
+  border:2px solid rgba(255,255,255,.55);
 }
-.step-dot{
-  width:30px; height:30px; border-radius:50%;
-  background:#e0d0f0; color:#883AB7;
-  display:flex; align-items:center; justify-content:center;
-  font-size:12px; font-weight:800;
-  transition: background .25s, color .25s, transform .25s;
-}
-.step-dot.active{ background:#6b2fa8; color:#fff; transform:scale(1.08); }
-.step-dot.done{ background:#1cb85d; color:#fff; }
-.step-bar{
-  flex:1; max-width:36px; height:3px;
-  background:#e0d0f0; border-radius:2px;
-}
-.step-bar.done{ background:#1cb85d; }
+.rank-1{ background: linear-gradient(135deg,#ffd700,#f0a800); }
+.rank-2{ background: linear-gradient(135deg,#c0c0c0,#a0a0a0); }
+.rank-3{ background: linear-gradient(135deg,#cd7f32,#a0522d); }
+.rank-other{ background: rgba(255,255,255,.15); color:#fff; }
+.rank-info{ flex:1; min-width:0; }
+.rank-name{ font-size:15px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rank-stats{ font-size:12px; color:rgba(255,255,255,.5); margin-top:2px; }
+.rank-prize{ font-size:16px; font-weight:900; color:var(--primary-yellow); flex-shrink:0; }
 
-/* ── Form ── */
-.form-group{ margin-bottom:14px; }
-.form-label{
-  display:block; font-size:12px; font-weight:700;
-  color:#6b2fa8; margin-bottom:6px;
-  text-transform:uppercase; letter-spacing:.4px;
-}
-.form-input{
-  width:100%; padding:13px 16px;
-  background:#f5f0ff; border:1.5px solid #d0b8f0;
-  border-radius:12px;
-  color:#3d0d62; font-size:15px; font-weight:600;
-  font-family:'Inter',sans-serif; outline:none;
-  transition: border-color .2s;
-}
-.form-input:focus{ border-color:#6b2fa8; }
-.amount-readonly{
-  width:100%; padding:13px 16px;
-  background: linear-gradient(90deg,#f5f0ff,#ede0ff);
-  border:1.5px solid #6b2fa8; border-radius:12px;
-  color:#3d0d62; font-size:18px; font-weight:900;
-  display:flex; align-items:center; gap:6px;
-}
-.amount-readonly .big{ font-size:24px; color:#6b2fa8; }
-
-/* Quick amount pills */
-.quick-row{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
-.quick-pill{
-  flex:1; min-width:60px; padding:9px 6px;
-  background:#fff; border:1.5px solid #d0b8f0;
-  border-radius:10px; color:#6b2fa8;
-  font-size:13px; font-weight:700;
-  cursor:pointer; transition: all .15s;
-  text-align:center;
-}
-.quick-pill:hover{ background:#f5f0ff; }
-.quick-pill.selected{ background:#6b2fa8; color:#fff; border-color:#6b2fa8; }
-
-/* Method picker (kart/kripto) */
-.method-grid{
-  display:grid; grid-template-columns:repeat(2,1fr); gap:10px;
-  margin-bottom:16px;
-}
-.method-card{
-  background:#fff; border:1.5px solid #e0d0f0;
-  border-radius:14px; padding:14px 12px;
-  cursor:pointer; text-align:center;
-  transition: all .2s;
-  display:flex; flex-direction:column; align-items:center; gap:8px;
-}
-.method-card:hover{ border-color:#9b4dd4; transform:translateY(-2px); }
-.method-card.selected{ border-color:#6b2fa8; background:#f5f0ff; box-shadow:0 4px 14px rgba(107,47,168,.18); }
-.method-card .method-icon{ width:46px; height:46px; display:flex; align-items:center; justify-content:center; border-radius:8px; font-weight:900; font-size:11px; color:#fff; }
-.method-card .method-name{ font-size:13px; font-weight:700; color:#3d0d62; }
-.method-card .method-desc{ font-size:10px; color:#888; }
-
-/* Receipt upload */
-.receipt-zone{
-  border:2px dashed #9b4dd4; border-radius:14px;
-  padding:18px; text-align:center;
-  background:#f5f0ff; margin-bottom:14px;
-  cursor:pointer; transition: all .2s;
-}
-.receipt-zone:hover{ background:#ede0ff; border-color:#6b2fa8; }
-.receipt-zone .material-symbols-outlined{ font-size:36px; color:#6b2fa8; }
-.receipt-zone .upload-text{ font-size:13px; font-weight:700; color:#6b2fa8; margin-top:6px; }
-.receipt-zone .upload-sub{ font-size:11px; color:#883AB7; margin-top:2px; opacity:.75; }
-.receipt-preview{
+.recent-item{
   display:flex; align-items:center; gap:10px;
-  padding:10px 14px; background:#e7f7ee;
-  border:1px solid #b2f5cc; border-radius:12px;
-  margin-bottom:14px;
+  padding:12px 14px;
+  background: rgba(255,255,255,.05);
+  border-radius:12px; margin-bottom:8px;
+  border:1px solid rgba(255,255,255,.08);
 }
-.receipt-preview .thumb{ width:48px; height:48px; border-radius:8px; background:#1cb85d; display:flex; align-items:center; justify-content:center; color:#fff; }
-.receipt-preview .thumb img, .receipt-preview .thumb embed{ width:100%; height:100%; object-fit:cover; border-radius:8px; }
+.ri-icon{ font-size:24px; flex-shrink:0; }
+.ri-info{ flex:1; min-width:0; }
+.ri-name{ font-size:14px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ri-room{ font-size:12px; color:rgba(255,255,255,.5); }
+.ri-prize{ font-size:15px; font-weight:900; color:#1cb85d; flex-shrink:0; }
+.ri-date{ font-size:11px; color:rgba(255,255,255,.4); margin-top:2px; }
 
-/* Buttons */
-.btn-action{
-  width:100%; padding:14px; border:none; border-radius:12px;
-  font-size:15px; font-weight:800; cursor:pointer;
-  font-family:'Inter',sans-serif; margin-top:4px;
-  transition: transform .12s;
-}
-.btn-action:active{ transform: scale(.98); }
-.btn-deposit{ background: linear-gradient(180deg,#1cb85d 0%,#0d8c3e 100%); color:#fff; }
-.btn-withdraw{ background: linear-gradient(180deg,#9b4dd4 0%,#6b2fa8 100%); color:#fff; }
-.btn-row{ display:flex; gap:10px; }
-.btn-row .btn-action{ flex:1; }
-.btn-secondary{
-  background:#f5f0ff; color:#6b2fa8;
-  border:1.5px solid #d0b8f0;
-}
+.empty-state{ text-align:center; padding:40px 20px; color:rgba(255,255,255,.4); }
+.empty-state .icon{ font-size:48px; margin-bottom:12px; }
 
-/* Status mesajları */
-.error-msg{
-  background:#fff0f0; border:1px solid #ffcccc;
-  border-radius:10px; padding:10px 14px;
-  font-size:13px; color:#cc0000; margin-bottom:14px; text-align:center;
+@media (max-width:370px){
+  .rank-row{ padding:11px 14px; gap:10px; }
+  .rank-medal{ width:30px; height:30px; font-size:13px; }
+  .rank-name{ font-size:14px; }
+  .rank-prize{ font-size:14px; }
 }
-.success-msg{
-  background:#f0fff4; border:1px solid #b2f5cc;
-  border-radius:10px; padding:10px 14px;
-  font-size:13px; color:#0d8c3e; margin-bottom:14px; text-align:center;
-}
-
-/* ── Əməliyyat tarixçəsi ── */
-.txn-list{ margin-top:20px; }
-.txn-title{
-  font-size:13px; font-weight:700; color:#6b2fa8;
-  margin-bottom:10px; text-transform:uppercase; letter-spacing:.4px;
-}
-.txn-item{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 14px; background:#f9f5ff; border-radius:10px;
-  margin-bottom:8px; border-left:4px solid #9b4dd4;
-}
-.txn-item.deposit{ border-left-color:#0d8c3e; }
-.txn-item.withdraw{ border-left-color:#cc1010; }
-.txn-item.win{ border-left-color:#f5c518; }
-.txn-item.pending{ opacity:.7; }
-.txn-type{ font-size:13px; font-weight:700; color:#3d0d62; }
-.txn-date{ font-size:11px; color:#888; margin-top:2px; }
-.txn-amount{ font-size:15px; font-weight:900; }
-.txn-amount.pos{ color:#0d8c3e; }
-.txn-amount.neg{ color:#cc1010; }
-.txn-badge{ font-size:10px; font-weight:700; border-radius:6px; padding:2px 7px; margin-top:2px; display:inline-block; }
-.badge-pending{ background:#fff3cd; color:#856404; }
-.badge-completed{ background:#d4edda; color:#155724; }
-.badge-rejected{ background:#f8d7da; color:#721c24; }
-.empty-state{ text-align:center; padding:30px; color:#9b4dd4; }
-
-/* Crypto dropdown */
-.crypto-picker{ position:relative; margin-bottom:14px; }
-.crypto-input{
-  width:100%; padding:13px 16px; padding-right:42px;
-  background:#f5f0ff; border:1.5px solid #d0b8f0; border-radius:12px;
-  color:#3d0d62; font-size:15px; font-weight:700;
-  display:flex; align-items:center; justify-content:space-between; gap:8px;
-  cursor:pointer;
-}
-.crypto-input .left{ display:flex; align-items:center; gap:8px; }
-.crypto-input .token-icon{
-  width:28px; height:28px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  font-size:14px; font-weight:900; color:#fff;
-}
-.crypto-input .material-symbols-outlined{ color:#6b2fa8; }
-.crypto-list{
-  display:none; position:absolute; top:calc(100% + 6px); left:0; right:0;
-  background:#fff; border:1.5px solid #d0b8f0; border-radius:12px;
-  box-shadow: 0 10px 26px rgba(0,0,0,.12); z-index:50;
-  max-height:230px; overflow-y:auto;
-}
-.crypto-list.open{ display:block; }
-.crypto-list .search-row{ position:sticky; top:0; background:#fff; padding:8px; border-bottom:1px solid #eee; }
-.crypto-list .search-row input{
-  width:100%; padding:9px 12px;
-  background:#f5f0ff; border:1.5px solid #d0b8f0; border-radius:8px;
-  font-size:13px;
-}
-.crypto-list .token-row{
-  display:flex; align-items:center; gap:10px;
-  padding:10px 14px; cursor:pointer; border-bottom:1px solid #f3eafa;
-}
-.crypto-list .token-row:hover{ background:#f5f0ff; }
-.crypto-list .token-row:last-child{ border-bottom:none; }
-.token-name{ font-weight:700; color:#3d0d62; }
-.token-ticker{ font-size:11px; color:#883AB7; }
-.wallet-connector{
-  display:flex; align-items:center; justify-content:center; gap:10px;
-  padding:10px; background:#f9f5ff; border-radius:12px;
-  font-size:13px; color:#6b2fa8; font-weight:700;
-  margin-bottom:14px;
-}
-.wallet-connector i{
-  width:24px; height:24px; border-radius:6px;
-  display:inline-flex; align-items:center; justify-content:center;
-  font-size:14px; color:#fff;
+@supports (padding: max(0px)) {
+  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
 }
 </style>
 </head>
 <body>
+<%- include('partials/topnav', { user: user }) %>
 
-<div class="wallet-wrap">
-
-  <!-- TOP -->
-  <div class="top-bar">
-    <a href="/" class="back-btn">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M6.29 9.29C6.199 9.385 6.128 9.497 6.08 9.62c-.1.243-.1.516 0 .76.048.123.119.235.21.32L9.29 13.71c.188.188.444.294.71.294s.522-.106.71-.294c.188-.188.294-.444.294-.71s-.106-.522-.294-.71L9.41 11H13c.265 0 .52-.105.707-.293C13.895 10.52 14 10.265 14 10c0-.265-.105-.52-.293-.707A1.001 1.001 0 0 0 13 9H9.41l1.3-1.29c.094-.093.168-.204.219-.325.05-.122.077-.252.077-.385s-.027-.263-.077-.385a1.001 1.001 0 0 0-.219-.325 1.001 1.001 0 0 0-1.41 0L6.29 9.29z" fill="#883AB7"/></svg>
-      <span>Geri</span>
-    </a>
-    <span class="page-title">Balans</span>
-  </div>
-  <div class="divider"></div>
-
-  <div class="balance-box">
-    <div class="balance-lbl">Cari balansınız</div>
-    <div class="balance-val"><%= user.balance.toFixed(2) %> ₼</div>
-    <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:6px;">
-      ⭐ <%= user.stars %> ulduz
-    </div>
-  </div>
-
-  <% if (typeof error !== 'undefined' && error) { %>
-    <div class="error-msg"><%= error %></div>
-  <% } %>
-  <% if (typeof success !== 'undefined' && success) { %>
-    <div class="success-msg"><%= typeof successMsg !== 'undefined' ? successMsg : success %></div>
-  <% } %>
+<div class="wrap">
+  <div class="page-title">🏆 Qaliblər</div>
+  <div class="page-sub">Ən çox qazanan oyunçular</div>
 
   <div class="tab-row" id="tabRow">
-    <button class="tab-btn active" onclick="showTab('deposit')">Yüklə</button>
-    <button class="tab-btn" onclick="showTab('withdraw')">Çıxar</button>
+    <button class="tab-btn active" onclick="showTab('top')">Liderboard</button>
+    <button class="tab-btn" onclick="showTab('recent')">Son qaliblər</button>
   </div>
 
-  <!-- ══════════════ DEPOSIT ══════════════ -->
-  <div id="tab-deposit">
-    <div class="stepper" id="depStepper">
-      <div class="step-dot active" data-step="1">1</div><div class="step-bar"></div>
-      <div class="step-dot"           data-step="2">2</div><div class="step-bar"></div>
-      <div class="step-dot"           data-step="3">3</div><div class="step-bar"></div>
-      <div class="step-dot"           data-step="4">4</div>
-    </div>
-
-    <!-- Addım 1: yalnız məbləğ -->
-    <div class="step-panel" id="dep-step-1">
-      <div class="form-group">
-        <label class="form-label">Depozit məbləği</label>
-        <div class="amount-readonly">
-          <span class="big">₼ <%= firstDepositAmount %></span>
-          <span style="font-size:11px;color:#883AB7;margin-left:auto;">İlk depozit üçün başlanğıc dəyər</span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Və ya öz məbləğinizi daxil edin</label>
-        <input class="form-input" id="depAmountInput" type="number" placeholder="₼5 – ₼3000 arasında" min="5" max="3000" step="0.01" value="<%= firstDepositAmount %>">
-      </div>
-      <div class="quick-row">
-        <button type="button" class="quick-pill selected" onclick="setAmount(30, this)">₼30</button>
-        <button type="button" class="quick-pill" onclick="setAmount(50, this)">₼50</button>
-        <button type="button" class="quick-pill" onclick="setAmount(100, this)">₼100</button>
-        <button type="button" class="quick-pill" onclick="setAmount(200, this)">₼200</button>
-      </div>
-      <button type="button" class="btn-action btn-deposit" onclick="goStep(2)">Yüklə</button>
-    </div>
-
-    <!-- Addım 2: ödəniş üsulu seçimi -->
-    <div class="step-panel" id="dep-step-2" style="display:none;">
-      <div style="font-size:13px;color:#6b2fa8;font-weight:700;margin-bottom:10px;">
-        Ödəniş üsulunu seçin
-      </div>
-      <div class="method-grid">
-        <div class="method-card selected" data-method="kapital_bank" onclick="pickMethod(this)">
-          <div class="method-icon" style="background:#e21d18;">KB</div>
-          <div class="method-name">Kapital Bank</div>
-          <div class="method-desc">Transfer to Kapital Bank card</div>
-        </div>
-        <div class="method-card" data-method="visa" onclick="pickMethod(this)">
-          <div class="method-icon" style="background:#1a1f71;">VISA</div>
-          <div class="method-name">VISA / MasterCard</div>
-          <div class="method-desc">Bank kartı ilə ödəniş</div>
-        </div>
-        <div class="method-card" data-method="card_transfer" onclick="pickMethod(this)">
-          <div class="method-icon" style="background:linear-gradient(135deg,#0088cc,#25d366);">AŻ</div>
-          <div class="method-name">Card transfer</div>
-          <div class="method-desc">Azericard / ölkədaxili köçürmə</div>
-        </div>
-        <div class="method-card" data-method="birbank" onclick="pickMethod(this)">
-          <div class="method-icon" style="background:#e80000;">BB</div>
-          <div class="method-name">Birbank</div>
-          <div class="method-desc">Birbank hesabından</div>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button type="button" class="btn-action btn-secondary" onclick="goStep(1)">Geri</button>
-        <button type="button" class="btn-action btn-deposit"       onclick="goStep(3)">İrəli</button>
-      </div>
-    </div>
-
-    <!-- Addım 3: kart məlumatları + qəbz -->
-    <div class="step-panel" id="dep-step-3" style="display:none;">
-      <div style="font-size:13px;color:#6b2fa8;font-weight:800;margin-bottom:10px;">
-        Məbləğ: <span style="color:#1cb85d;">₼<span id="depAmountDisplay"><%= firstDepositAmount %></span></span>
-      </div>
-      <form id="depCardForm" method="POST" action="/wallet/deposit" enctype="multipart/form-data">
-        <input type="hidden" name="amount" id="depAmountHidden" value="<%= firstDepositAmount %>">
-        <input type="hidden" name="method" id="depMethodHidden" value="kapital_bank">
-
-        <div class="form-group">
-          <label class="form-label">Kart nömrəsi</label>
-          <input class="form-input" type="text" name="cardNumber" id="cardNumber" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" autocomplete="off">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Qəbz (çek) – inandırıcılıq üçün</label>
-          <div class="receipt-zone" onclick="document.getElementById('receiptFile').click()">
-            <span class="material-symbols-outlined">cloud_upload</span>
-            <div class="upload-text">Şəkil və ya PDF yüklə</div>
-            <div class="upload-sub">JPG / PNG / PDF – maks 5 MB</div>
-          </div>
-          <input type="file" id="receiptFile" name="receipt" accept="image/*,application/pdf" style="display:none" onchange="previewReceipt(this)">
-          <div id="receiptPreview" class="receipt-preview" style="display:none;">
-            <div class="thumb" id="receiptThumb"><span class="material-symbols-outlined" style="color:#fff;font-size:24px;">description</span></div>
-            <div style="flex:1;">
-              <div style="font-weight:700;color:#0d8c3e;font-size:13px;" id="receiptName">fayl.jpg</div>
-              <div style="font-size:11px;color:#888;">Admin tərəfindən yoxlanılacaq</div>
-            </div>
-            <button type="button" class="quick-pill" style="background:#cc1010;color:#fff;border:none;" onclick="removeReceipt()">Sil</button>
-          </div>
-          <div style="font-size:11px;color:#883AB7;margin-top:-6px;margin-bottom:10px;">
-            ℹ️ Qəbz yükləsəniz admin daha tez təsdiqləyə bilər.
-          </div>
-        </div>
-        <div class="btn-row">
-          <button type="button" class="btn-action btn-secondary" onclick="goStep(2)">Geri</button>
-          <button type="submit" class="btn-action btn-deposit">Para yatır</button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Addım 4: gözləmə / uğur -->
-    <div class="step-panel" id="dep-step-4" style="display:none;">
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:60px;">⏳</div>
-        <div style="font-size:18px;font-weight:800;color:#6b2fa8;margin-top:10px;">Sorğunuz admin-ə göndərildi</div>
-        <div style="font-size:13px;color:#883AB7;margin-top:6px;line-height:1.5;">
-          Depozit bot vasitəsilə adminə bildirildi.<br>
-          Təsdiq gözlənilir – balansınız avtomatik yüklənəcək.
-        </div>
-        <div style="margin-top:18px;background:#f5f0ff;border-radius:10px;padding:12px 14px;font-size:12px;color:#6b2fa8;">
-          ⓘ Sorğunuz qəbul edildikdən sonra <b>Telegram botu</b> vasitəsilə admin-ə bildiriş göndərilir. Admin təsdiq/ya rədd edir və nəticə sizə də Telegram kanalları ilə çatır.
-        </div>
-      </div>
-    </div>
-
-    <!-- ─── CRYPTO alternativ (Kart > Kripto yönləndirməsi) ─── -->
-    <div style="border-top:1px dashed #d0b8f0;margin:24px 0;padding-top:18px;">
-      <div style="font-size:13px;color:#6b2fa8;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-        <span class="material-symbols-outlined">currency_bitcoin</span>
-        Kriptovalyuta ilə yükləmək istəyirsiniz?
-      </div>
-
-      <div class="crypto-picker">
-        <div class="crypto-input" onclick="toggleCryptoList()">
-          <div class="left">
-            <span class="token-icon" id="cryptoTokenIcon" style="background:#26a17b;">T</span>
-            <div>
-              <div style="font-weight:800;font-size:14px;" id="cryptoTokenName">USDT</div>
-              <div style="font-size:10px;color:#883AB7;" id="cryptoNetwork">Tether (TRC20)</div>
-            </div>
-          </div>
-          <span class="material-symbols-outlined" id="cryptoChevron">expand_more</span>
-        </div>
-        <div class="crypto-list" id="cryptoList">
-          <div class="search-row">
-            <input id="cryptoSearch" type="text" placeholder="Axtarış…" oninput="filterCrypto()">
-          </div>
-          <div class="token-row" data-token="USDT" data-net="TRC20" onclick="pickCrypto(this)">
-            <span class="token-icon" style="background:#26a17b;">T</span>
-            <div>
-              <div class="token-name">USDT</div>
-              <div class="token-ticker">Tether (TRC20)</div>
-            </div>
-          </div>
-          <div class="token-row" data-token="ETH"  data-net="ERC20" onclick="pickCrypto(this)">
-            <span class="token-icon" style="background:#627eea;">Ξ</span>
-            <div>
-              <div class="token-name">Ethereum</div>
-              <div class="token-ticker">ETH (ERC20)</div>
-            </div>
-          </div>
-          <div class="token-row" data-token="TON"  data-net="TON" onclick="pickCrypto(this)">
-            <span class="token-icon" style="background:#0098ea;">💎</span>
-            <div>
-              <div class="token-name">Toncoin</div>
-              <div class="token-ticker">TON</div>
-            </div>
-          </div>
-          <div class="token-row" data-token="BTC"  data-net="BTC" onclick="pickCrypto(this)">
-            <span class="token-icon" style="background:#f7931a;">₿</span>
-            <div>
-              <div class="token-name">Bitcoin</div>
-              <div class="token-ticker">BTC</div>
-            </div>
-          </div>
-          <div class="token-row" data-token="USDC" data-net="ERC20" onclick="pickCrypto(this)">
-            <span class="token-icon" style="background:#2775ca;">$</span>
-            <div>
-              <div class="token-name">USDC</div>
-              <div class="token-ticker">USD Coin (ERC20)</div>
-            </div>
-          </div>
-          <div class="token-row" data-token="TRX"  data-net="TRC20" onclick="pickCrypto(this)">
-            <span class="token-icon" style="background:#ff060a;">T</span>
-            <div>
-              <div class="token-name">Tron</div>
-              <div class="token-ticker">TRX (TRC20)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <form method="POST" action="/wallet/deposit/crypto" enctype="multipart/form-data" id="cryptoForm">
-        <input type="hidden" name="token"  id="cryptoFormToken"  value="USDT">
-        <input type="hidden" name="network" id="cryptoFormNet"   value="TRC20">
-
-        <div class="form-group">
-          <label class="form-label">Məbləğ (₼ ekvivalentində)</label>
-          <input class="form-input" type="number" name="amount" placeholder="₼5 – ₼50000" min="5" max="50000" step="0.01" id="cryptoAmount" required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Cüzdan ünvanınız (sizdən)</label>
-          <input class="form-input" type="text" name="walletAddress" id="walletAddress" placeholder="Sizin şəxsi cüzdanınız (geri qaytarılacaq ünvan)" autocomplete="off">
-        </div>
-
-        <div class="receipt-zone" onclick="document.getElementById('cryptoReceipt').click()">
-          <span class="material-symbols-outlined">cloud_upload</span>
-          <div class="upload-text">Tranzaksiya qəbzi</div>
-          <div class="upload-sub">Hash və ya screenshot yüklə</div>
-        </div>
-        <input type="file" id="cryptoReceipt" name="receipt" accept="image/*,application/pdf" style="display:none">
-        <div style="font-size:11px;color:#883AB7;margin-top:-6px;margin-bottom:10px;">
-          ⓘ Qəbz admin-ə təsdiq üçün yardımçı olacaq.
-        </div>
-
-        <button type="submit" class="btn-action btn-deposit" style="background:linear-gradient(180deg,#f5c518,#c8960c);color:#3d2200;">Kripto ilə yatır</button>
-      </form>
-
-      <div class="wallet-connector">
-        <span>Cüzdanı bağla</span>
-        <i style="background:linear-gradient(135deg,#f0b90b,#fcd535);">M</i>
-        <i style="background:#3374ff;">W</i>
-        <i style="background:linear-gradient(135deg,#26a17b,#50af95);">T</i>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════ WITHDRAW ══════════════ -->
-  <div id="tab-withdraw" style="display:none;">
-    <div class="stepper" id="wdStepper">
-      <div class="step-dot active" data-step="1">1</div><div class="step-bar"></div>
-      <div class="step-dot"           data-step="2">2</div><div class="step-bar"></div>
-      <div class="step-dot"           data-step="3">3</div>
-    </div>
-
-    <!-- Addım 1: məbləğ -->
-    <div class="step-panel" id="wd-step-1">
-      <div class="form-group">
-        <label class="form-label">Çıxarış məbləği</label>
-        <div class="amount-readonly">
-          <span class="big">₼ <%= firstWithdrawAmount %></span>
-          <span style="font-size:11px;color:#883AB7;margin-left:auto;">İlk çıxarış üçün başlanğıc dəyər</span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Və ya öz məbləğinizi daxil edin</label>
-        <input class="form-input" id="wdAmountInput" type="number" placeholder="₼30 – ₼2000 arasında" min="30" max="2000" step="0.01" value="<%= firstWithdrawAmount %>">
-      </div>
-      <div class="quick-row">
-        <button type="button" class="quick-pill selected" onclick="setWdAmount(100, this)">₼100</button>
-        <button type="button" class="quick-pill" onclick="setWdAmount(200, this)">₼200</button>
-        <button type="button" class="quick-pill" onclick="setWdAmount(500, this)">₼500</button>
-        <button type="button" class="quick-pill" onclick="setWdAmount(1000, this)">₼1000</button>
-      </div>
-      <button type="button" class="btn-action btn-withdraw" onclick="goWd(2)">Çıxar</button>
-    </div>
-
-    <!-- Addım 2: kart məlumatları -->
-    <div class="step-panel" id="wd-step-2" style="display:none;">
-      <div style="font-size:13px;color:#6b2fa8;font-weight:800;margin-bottom:10px;">
-        Məbləğ: <span style="color:#cc1010;">₼<span id="wdAmountDisplay"><%= firstWithdrawAmount %></span></span>
-      </div>
-      <form id="wdForm" method="POST" action="/wallet/withdraw">
-        <input type="hidden" name="amount" id="wdAmountHidden" value="<%= firstWithdrawAmount %>">
-
-        <div class="form-group">
-          <label class="form-label">Kart sahibi (kart üzərindəki ad)</label>
-          <input class="form-input" type="text" name="cardHolder" id="cardHolder" placeholder="Məs: RƏVAN HƏSİYEV" required autocomplete="off">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Kart nömrəsi</label>
-          <input class="form-input" type="text" name="cardNumber" id="cardNumber2" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" required autocomplete="off">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Kartın son istifadə tarixi (AA/YY)</label>
-          <input class="form-input" type="text" name="cardExpiry" id="cardExpiry" placeholder="12/29" maxlength="5" required autocomplete="off">
-        </div>
-        <div class="btn-row">
-          <button type="button" class="btn-action btn-secondary" onclick="goWd(1)">Geri</button>
-          <button type="submit" class="btn-action btn-withdraw">Para çək</button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Addım 3: gözləmə -->
-    <div class="step-panel" id="wd-step-3" style="display:none;">
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:60px;">⏳</div>
-        <div style="font-size:18px;font-weight:800;color:#6b2fa8;margin-top:10px;">Çıxarış sorğunuz admin-ə göndərildi</div>
-        <div style="font-size:13px;color:#883AB7;margin-top:6px;line-height:1.5;">
-          Balansınız bloklandı. Admin təsdiq/ya rədd edəcək.<br>
-          Rədd halında balans geri qaytarılacaq.
-        </div>
-        <div style="margin-top:18px;background:#f5f0ff;border-radius:10px;padding:12px 14px;font-size:12px;color:#6b2fa8;">
-          ⓘ Sorğunuz <b>Telegram botu</b> vasitəsilə admin-ə bildirildi.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Əməliyyat tarixçəsi -->
-  <div class="txn-list">
-    <div class="txn-title">Əməliyyat tarixçəsi</div>
-    <% if (transactions.length === 0) { %>
-    <div class="empty-state">
-      <div style="font-size:40px;margin-bottom:8px;">📋</div>
-      <div>Hələ heç bir əməliyyat yoxdur</div>
-    </div>
+  <div id="tab-top">
+    <% if (topWinners.length === 0) { %>
+    <div class="empty-state"><div class="icon">🏅</div><div>Hələ qalib yoxdur</div></div>
     <% } %>
-    <% transactions.forEach(function(t) { %>
-      <% const typeLabels = {deposit:'Yükləmə',withdraw:'Çıxarış',win:'Qalib mükafatı',referral:'Referral bonusu',game_join:'Oyuna qoşulma',stars_purchase:'Ulduz alışı'}; %>
-      <% const isPos = t.type === 'win' || t.type === 'deposit' || t.type === 'referral'; %>
-      <div class="txn-item <%= t.type %> <%= t.status %>">
-        <div>
-          <div class="txn-type"><%= typeLabels[t.type] || t.type %></div>
-          <div class="txn-date"><%= new Date(t.createdAt).toLocaleDateString('az-AZ', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) %></div>
-          <span class="txn-badge badge-<%= t.status %>"><%= t.status === 'pending' ? 'Gözləyir' : t.status === 'completed' ? 'Tamamlandı' : 'Rədd edildi' %></span>
-        </div>
-        <div class="txn-amount <%= isPos ? 'pos' : 'neg' %>"><%= isPos ? '+' : '-' %><%= Math.abs(t.amount).toFixed(2) %> ₼</div>
+    <% topWinners.forEach(function(w, i) { %>
+    <div class="rank-row">
+      <div class="rank-medal <%= i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other' %>"><%= i+1 %></div>
+      <div class="rank-info">
+        <div class="rank-name"><%= w.username %></div>
+        <div class="rank-stats"><%= w.gamesWon %> qalibiyyət • <%= w.gamesPlayed %> oyun</div>
       </div>
+      <div class="rank-prize"><%= w.totalWon.toFixed(2) %> ₼</div>
+    </div>
+    <% }); %>
+  </div>
+
+  <div id="tab-recent" style="display:none;">
+    <% if (recentGames.length === 0) { %>
+    <div class="empty-state"><div class="icon">🎯</div><div>Hələ heç bir oyun bitməyib</div></div>
+    <% } %>
+    <% recentGames.forEach(function(g) { %>
+    <div class="recent-item">
+      <div class="ri-icon">🎊</div>
+      <div class="ri-info">
+        <div class="ri-name"><%= g.userId ? g.userId.username : 'İstifadəçi' %></div>
+        <div class="ri-room"><%= g.roomId ? g.roomId.name : 'Otaq' %></div>
+        <div class="ri-date"><%= new Date(g.playedAt).toLocaleDateString('az-AZ', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) %></div>
+      </div>
+      <div class="ri-prize">+<%= g.prize.toFixed(2) %> ₼</div>
+    </div>
     <% }); %>
   </div>
 </div>
 
-<!-- Footer həmişə səhifənin ən sonunda -->
-<%- include('partials/footer', { activePage: 'wallet' }) %>
+<%- include('partials/footer', { activePage: 'winners' }) %>
 
 <script>
-// ── Tab keçidi ──
 function showTab(tab){
-  document.getElementById('tab-deposit').style.display  = tab==='deposit'  ? 'block':'none';
-  document.getElementById('tab-withdraw').style.display = tab==='withdraw' ? 'block':'none';
+  document.getElementById('tab-top').style.display    = tab==='top'    ? 'block':'none';
+  document.getElementById('tab-recent').style.display = tab==='recent' ? 'block':'none';
   document.querySelectorAll('.tab-btn').forEach(function(b,i){
-    b.classList.toggle('active', (tab==='deposit'  && i===0) || (tab==='withdraw' && i===1));
+    b.classList.toggle('active', (tab==='top' && i===0) || (tab==='recent' && i===1));
   });
 }
-
-// ── Deposit stepper ──
-function goStep(n){
-  for (let i=1;i<=4;i++){
-    const panel = document.getElementById('dep-step-' + i);
-    if (panel) panel.style.display = (i===n) ? 'block':'none';
-  }
-  // sync stepper dots
-  document.querySelectorAll('#depStepper .step-dot').forEach(function(d){
-    const idx = parseInt(d.dataset.step,10);
-    d.classList.remove('active','done');
-    if (idx < n) d.classList.add('done');
-    else if (idx === n) d.classList.add('active');
-  });
-  // məbləği göstəricilərə yaz
-  const val = parseFloat(document.getElementById('depAmountInput').value) || <%= firstDepositAmount %>;
-  document.getElementById('depAmountDisplay').textContent  = val.toFixed(2);
-  document.getElementById('depAmountHidden').value        = val.toFixed(2);
-}
-function setAmount(v, btn){
-  document.getElementById('depAmountInput').value = v;
-  document.querySelectorAll('#dep-step-1 .quick-pill').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('depAmountDisplay').textContent = v.toFixed(2);
-}
-function pickMethod(card){
-  document.querySelectorAll('#dep-step-2 .method-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
-  document.getElementById('depMethodHidden').value = card.dataset.method;
-}
-
-// ── Receipt preview ──
-function previewReceipt(input){
-  const f = input.files && input.files[0]; if (!f) return;
-  document.getElementById('receiptPreview').style.display = 'flex';
-  document.getElementById('receiptName').textContent = f.name;
-  const thumb = document.getElementById('receiptThumb');
-  if (/^image\//.test(f.type)){
-    const url = URL.createObjectURL(f);
-    thumb.innerHTML = '<img src="' + url + '" alt="">';
-  } else {
-    thumb.innerHTML = '<span class="material-symbols-outlined" style="color:#fff;font-size:24px;">description</span>';
-  }
-}
-function removeReceipt(){
-  document.getElementById('receiptFile').value = '';
-  document.getElementById('receiptPreview').style.display = 'none';
-}
-// kart nömrəsi auto-format
-document.getElementById('cardNumber').addEventListener('input', function(e){
-  let v = e.target.value.replace(/\D/g,'').slice(0,16);
-  e.target.value = v.replace(/(.{4})/g,'$1 ').trim();
-});
-
-// ── Crypto ──
-function toggleCryptoList(){
-  const l = document.getElementById('cryptoList');
-  const open = l.classList.toggle('open');
-  const chev = document.getElementById('cryptoChevron');
-  chev.textContent = open ? 'expand_less' : 'expand_more';
-  if (open) setTimeout(()=>document.getElementById('cryptoSearch').focus(), 50);
-}
-function filterCrypto(){
-  const q = (document.getElementById('cryptoSearch').value || '').toLowerCase();
-  document.querySelectorAll('#cryptoList .token-row').forEach(row=>{
-    const name = row.querySelector('.token-name').textContent.toLowerCase();
-    const tick = row.querySelector('.token-ticker').textContent.toLowerCase();
-    row.style.display = (name.includes(q) || tick.includes(q)) ? 'flex':'none';
-  });
-}
-function pickCrypto(row){
-  const tok = row.dataset.token, net = row.dataset.net;
-  document.getElementById('cryptoFormToken').value = tok;
-  document.getElementById('cryptoFormNet').value   = net;
-  document.getElementById('cryptoTokenName').textContent = tok;
-  document.getElementById('cryptoNetwork').textContent   = row.querySelector('.token-ticker').textContent;
-  document.getElementById('cryptoTokenIcon').textContent = tok.charAt(0);
-  document.getElementById('cryptoList').classList.remove('open');
-  document.getElementById('cryptoChevron').textContent = 'expand_more';
-}
-document.addEventListener('click', function(e){
-  if (!e.target.closest('.crypto-picker')){
-    document.getElementById('cryptoList').classList.remove('open');
-    document.getElementById('cryptoChevron').textContent = 'expand_more';
-  }
-});
-
-// ── Withdraw stepper ──
-function goWd(n){
-  for (let i=1;i<=3;i++){
-    const panel = document.getElementById('wd-step-' + i);
-    if (panel) panel.style.display = (i===n) ? 'block':'none';
-  }
-  document.querySelectorAll('#wdStepper .step-dot').forEach(function(d){
-    const idx = parseInt(d.dataset.step,10);
-    d.classList.remove('active','done');
-    if (idx < n) d.classList.add('done');
-    else if (idx === n) d.classList.add('active');
-  });
-  const v = parseFloat(document.getElementById('wdAmountInput').value) || <%= firstWithdrawAmount %>;
-  document.getElementById('wdAmountDisplay').textContent = v.toFixed(2);
-  document.getElementById('wdAmountHidden').value        = v.toFixed(2);
-}
-function setWdAmount(v, btn){
-  document.getElementById('wdAmountInput').value = v;
-  document.querySelectorAll('#wd-step-1 .quick-pill').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('wdAmountDisplay').textContent = v.toFixed(2);
-}
-document.getElementById('cardNumber2').addEventListener('input', function(e){
-  let v = e.target.value.replace(/\D/g,'').slice(0,16);
-  e.target.value = v.replace(/(.{4})/g,'$1 ').trim();
-});
-document.getElementById('cardExpiry').addEventListener('input', function(e){
-  let v = e.target.value.replace(/\D/g,'').slice(0,4);
-  if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
-  e.target.value = v;
-});
-
-// Uğur mesajı varsa avtomatik olaraq addım-4-ə keç
-<% if (typeof success !== 'undefined' && success) { %>
-  setTimeout(function(){
-    if (document.getElementById('tab-deposit').style.display !== 'none') {
-      goStep(4);
-      setTimeout(() => goStep(1), 4500);
-    } else {
-      goWd(3);
-      setTimeout(() => goWd(1), 4500);
-    }
-  }, 200);
-<% } %>
 </script>
 </body>
 </html>
