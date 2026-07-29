@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="az"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One Loto – İstifadəçi</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',Arial,sans-serif}
+body{background:#0d0620;color:#fff;padding:16px 12px 100px}
+.logo{color:#f5c518;font-weight:900;font-size:20px;margin-bottom:14px}
+h1{font-size:18px;margin-bottom:10px}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px;margin-bottom:10px}
+.t{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+a{color:#f5c518}
+</style></head><body>
+<a href="/admin/users">← Geri</a>
+<div class="logo" style="margin-top:8px">One Loto · İstifadəçi</div>
+<div class="card">
+  <h1><%= target.username %></h1>
+  <p style="font-size:13px;color:rgba(255,255,255,.6)"><%= target.email %></p>
+  <p style="font-size:18px;font-weight:900;color:#f5c518;margin-top:8px"><%= (target.balance||0).toFixed(2) %> AZN</p>
+</div>
+<div class="card">
+  <h1>Son əməliyyatlar</h1>
+  <% txns.forEach(function(t){ %>
+    <div class="t"><span><%= t.type %> · <%= t.status %></span><span><%= t.amount.toFixed(2) %> AZN</span></div>
+  <% }); %>
+</div>
+</body></html>
