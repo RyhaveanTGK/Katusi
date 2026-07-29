@@ -119,7 +119,7 @@ router.post('/deposit', requireLogin, upload.single('receipt'), async (req, res)
       ...ctx,
       firstDepositAmount: 30,
       firstWithdrawAmount: 100,
-      successMsg: 'Ödəniş sorğunuz qəbul edildi. Admin təsdiqlədikdən sonra balansınıza yüklənəcək.'
+      successMsg: 'Ödəniş sorğunuz qəbul edildi. Yoxlama başa çatdıqdan sonra balansınıza yüklənəcək.'
     });
   } catch (e) {
     console.error('Deposit err:', e);
@@ -180,7 +180,7 @@ router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (re
     const ctx = await loadWalletContext(req.session.userId);
     res.render('wallet', {
       ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-      successMsg: 'Kripto depozit sorğunuz admin-ə göndərildi. Təsdiq gözlənilir.'
+      successMsg: 'Kripto depozit sorğunuz göndərildi. Yoxlama gözlənilir.'
     });
   } catch (e) {
     console.error('Crypto deposit err:', e);
@@ -251,7 +251,7 @@ router.post('/withdraw', requireLogin, async (req, res) => {
     const ctx = await loadWalletContext(req.session.userId);
     res.render('wallet', {
       ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-      successMsg: 'Çıxarış sorğunuz admin-ə göndərildi. Təsdiq gözlənilir.'
+      successMsg: 'Çıxarış sorğunuz göndərildi. Yoxlama gözlənilir.'
     });
   } catch (e) {
     console.error('Withdraw err:', e);
