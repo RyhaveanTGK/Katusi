@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Oyun – Birloto</title>
+<title>Oyun – One Loto</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
@@ -192,6 +192,43 @@ body{
   </div>
 </div>
 
+<style>
+.winner-ticker{
+  max-width:430px; margin:8px auto 0; padding:0 10px;
+}
+.winner-ticker-inner{
+  display:flex; align-items:center; gap:10px;
+  background: linear-gradient(180deg, rgba(245,197,24,.14), rgba(245,197,24,.06));
+  border:1px solid rgba(245,197,24,.35);
+  border-radius:14px; padding:8px 12px;
+  box-shadow: 0 4px 12px -4px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+.wt-badge{
+  flex:0 0 auto; font-size:18px; line-height:1;
+}
+.wt-scroll{
+  flex:1; overflow:hidden; position:relative; height:20px;
+}
+.wt-track{
+  display:flex; gap:26px; white-space:nowrap;
+  animation: wt-marquee 28s linear infinite;
+  font-size:13px; font-weight:700; color:#fff;
+}
+.wt-track b{ color:#f5c518; }
+.wt-track span.wt-prize{ color:#4fe06e; margin-left:6px; }
+@keyframes wt-marquee{
+  0%{ transform: translateX(0); }
+  100%{ transform: translateX(-50%); }
+}
+</style>
+<div class="winner-ticker" id="winnerTicker" style="display:none">
+  <div class="winner-ticker-inner">
+    <span class="wt-badge">🏆</span>
+    <div class="wt-scroll"><div class="wt-track" id="wtTrack"></div></div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="panel">
     <div class="panel-title">Canlı oyun</div>
@@ -337,6 +374,33 @@ function poll(){
 renderCard();
 poll();
 setInterval(poll, 2500);
+
+// ── Son qazananların canlı ticker-i (bütün otaqlar üzrə) ──
+(function(){
+  var track = document.getElementById('wtTrack');
+  var wrap  = document.getElementById('winnerTicker');
+  if (!track || !wrap) return;
+  function fmt(w){
+    var name = (w.name || 'Oyunçu').replace(/[<>&]/g,'');
+    var room = (w.room || '').replace(/[<>&]/g,'');
+    var prize = Number(w.prize||0).toFixed(2);
+    return '🎊 <b>'+name+'</b> · '+room+' <span class="wt-prize">+'+prize+' ₼</span>';
+  }
+  function load(){
+    fetch('/api/latest-winners', {credentials:'same-origin'})
+      .then(function(r){ return r && r.ok ? r.json() : []; })
+      .then(function(list){
+        if (!Array.isArray(list) || !list.length){ wrap.style.display='none'; return; }
+        wrap.style.display='block';
+        var html = list.map(fmt).join('&nbsp;&nbsp;•&nbsp;&nbsp;');
+        // dublikat — kəsintisiz axın üçün
+        track.innerHTML = html + '&nbsp;&nbsp;•&nbsp;&nbsp;' + html;
+      })
+      .catch(function(){});
+  }
+  load();
+  setInterval(load, 8000);
+})();
 </script>
 </body>
 </html>
