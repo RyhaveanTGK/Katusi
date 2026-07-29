@@ -1,7 +1,64 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-/* Footer artıq səhifənin əN ALTINDA – quick-nav da footer-in üstündə deyil,
-   səhifənin sonunda “statik” blok kimi görünür. */
+/* ─────────────────────────────────────────────
+   Alt naviqasiya (quick-nav) — həmişə ekranın altında sabit
+   ───────────────────────────────────────────── */
+.quicknav{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 950;
+  background: linear-gradient(180deg, rgba(30,8,55,.92) 0%, rgba(15,3,28,.98) 100%);
+  border-top: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 -6px 20px -6px rgba(0,0,0,.55);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.quicknav-inner{
+  max-width: 480px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 8px 6px 10px;
+}
+.qn-item{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-decoration: none;
+  color: rgba(255,255,255,.55);
+  padding: 6px 4px;
+  border-radius: 12px;
+  transition: color .15s ease, background .15s ease, transform .1s ease;
+  font-family: 'Rubik','Segoe UI',Tahoma,Arial,sans-serif;
+}
+.qn-item .material-symbols-outlined{
+  font-size: 26px;
+  line-height: 1;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+.qn-item .qn-label{
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  line-height: 1;
+}
+.qn-item:active{ transform: scale(.94); }
+.qn-item.active{
+  color: #f5c518;
+}
+.qn-item.active .material-symbols-outlined{
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+  filter: drop-shadow(0 2px 4px rgba(245,197,24,.35));
+}
+
+/* Səhifə kontenti alt naviqasiya ilə örtülməsin */
+body{ padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
+
+/* Footer artıq səhifənin ən altında – quick-nav-ın üstündə */
 .footer-bar{
   background: linear-gradient(180deg, rgba(20,5,35,.0) 0%, rgba(20,5,35,.85) 40%, rgba(15,3,28,.95) 100%);
   border-top: 1px solid rgba(255,255,255,.08);
@@ -102,5 +159,29 @@
     <span class="age18">18+</span>© 2026. Bütün hüquqlar qorunur.
   </div>
 </div>
+
+<%
+  var _active = (typeof activePage !== 'undefined') ? activePage : '';
+%>
+<nav class="quicknav" aria-label="Alt naviqasiya">
+  <div class="quicknav-inner">
+    <a href="/" class="qn-item <%= _active === 'home' ? 'active' : '' %>">
+      <span class="material-symbols-outlined">home</span>
+      <span class="qn-label">Ana səhifə</span>
+    </a>
+    <a href="/winners" class="qn-item <%= _active === 'winners' ? 'active' : '' %>">
+      <span class="material-symbols-outlined">emoji_events</span>
+      <span class="qn-label">Qaliblər</span>
+    </a>
+    <a href="/profile/referral" class="qn-item <%= _active === 'referral' ? 'active' : '' %>">
+      <span class="material-symbols-outlined">group</span>
+      <span class="qn-label">Dəvət</span>
+    </a>
+    <a href="/profile" class="qn-item <%= (_active === 'profile' || _active === 'wallet') ? 'active' : '' %>">
+      <span class="material-symbols-outlined">person</span>
+      <span class="qn-label">Profil</span>
+    </a>
+  </div>
+</nav>
 
 <script src="/assets/js/app.js"></script>
