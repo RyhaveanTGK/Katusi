@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="az"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One Loto – Bonus Kodları</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',Arial,sans-serif}
+body{background:#0d0620;color:#fff;padding:16px 12px 100px}
+.logo{color:#f5c518;font-weight:900;font-size:20px;margin-bottom:14px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.nav a{padding:8px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;text-decoration:none;font-size:13px}
+.nav a.on{background:#f5c518;color:#3d2200}
+.panel{background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:16px;margin-bottom:16px}
+.panel h2{font-size:15px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+label{display:block;font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+input,textarea{width:100%;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:14px;font-family:inherit}
+button{width:100%;margin-top:12px;padding:12px;background:linear-gradient(180deg,#f5c518,#c99a00);border:none;border-radius:10px;color:#3d2200;font-weight:900;cursor:pointer}
+.code{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.code .c{font-family:'JetBrains Mono',monospace;font-weight:800;color:#f5c518;font-size:16px;letter-spacing:1px}
+.code .m{font-size:12px;color:rgba(255,255,255,.6)}
+.badge{padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800}
+.on{background:#22c55e;color:#0d1a08}.off{background:#64748b;color:#0d1420}
+.act{display:flex;gap:6px}
+.act form{margin:0}
+.act button{width:auto;padding:6px 10px;font-size:11px;margin-top:0;background:rgba(255,255,255,.1);color:#fff;font-weight:700}
+.act button.del{background:#e8001a;color:#fff}
+</style></head><body>
+<div class="logo">One Loto · Admin</div>
+<div class="nav">
+  <a href="/admin/users">İstifadəçilər</a>
+  <a href="/admin/transactions">Əməliyyatlar</a>
+  <a href="/admin/rooms">Otaqlar</a>
+  <a href="/admin/live-games">Canlı oyunlar</a>
+  <a href="/admin/bonus" class="on">Bonus kodları</a>
+</div>
+
+<div class="panel">
+  <h2>Yeni bonus kodu yarat</h2>
+  <form method="POST" action="/admin/bonus/create">
+    <div class="grid">
+      <div><label>Kod</label><input name="code" required placeholder="ONELOTO2026" style="text-transform:uppercase"></div>
+      <div><label>Məbləğ (AZN)</label><input name="amount" type="number" step="0.01" required></div>
+      <div><label>Max istifadə (0=limitsiz)</label><input name="maxUses" type="number" value="1"></div>
+      <div><label>Qeyd</label><input name="note" placeholder="opsional"></div>
+    </div>
+    <button type="submit">Aktivləşdir</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Mövcud kodlar</h2>
+  <% codes.forEach(function(b){ %>
+    <div class="code">
+      <div>
+        <div class="c"><%= b.code %> <span class="badge <%= b.active?'on':'off' %>"><%= b.active?'AKTİV':'DEAKTİV' %></span></div>
+        <div class="m"><%= b.amount.toFixed(2) %> AZN · İstifadə: <%= b.usedCount %>/<%= b.maxUses||'∞' %></div>
+      </div>
+      <div class="act">
+        <form method="POST" action="/admin/bonus/<%= b._id %>/toggle"><button type="submit"><%= b.active?'Deaktiv':'Aktiv' %></button></form>
+        <form method="POST" action="/admin/bonus/<%= b._id %>/delete" onsubmit="return confirm('Silinsin?')"><button type="submit" class="del">Sil</button></form>
+      </div>
+    </div>
+  <% }); %>
+  <% if(!codes.length){ %><p style="color:rgba(255,255,255,.5);text-align:center">Kod yoxdur</p><% } %>
+</div>
+</body></html>
