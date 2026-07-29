@@ -65,9 +65,6 @@ router.get('/rooms-status', apiAuth, async (req, res) => {
   const rooms = await Room.find({}).sort({ sortOrder: 1, createdAt: 1 });
   const now = Date.now();
   const data = rooms.map((r) => {
-    // Artıq status="waiting" olsa da, server tərəfində vaxt gəldikdə
-    // avtomatik "starting" / "started" status-a keçir. Client tərəfində
-    // yalnız vizual — heç bir lobby gözləməsi yoxdur.
     return {
       id:         r._id.toString(),
       status:     getDisplayStatus(r, now),
@@ -82,10 +79,33 @@ router.get('/rooms-status', apiAuth, async (req, res) => {
       winner_prize: Number(r.winnerPrize || 0),
       current_number: r.currentNumber,
       star_prize:  Number(r.starPrize || 0),
-      multiplier:  r.prizeMultiplier || 'x2'
+      multiplier:  r.prizeMultiplier || 'x2',
+      last_winner_name: r.lastWinnerName || null,
+      last_winner_nums: r.lastWinnerNums || []
     };
   });
   res.json(data);
+});
+
+// ── Son qazananlar (real-time ticker üçün) ──
+// Bütün otaqlardan ən son qazanan oyunçuların adı və məbləği.
+router.get('/latest-winners', async (req, res) => {
+  try {
+    const games = await GameCard.find({ isWinner: true, claimedAt: { $ne: null } })
+      .sort({ claimedAt: -1 })
+      .limit(15)
+      .populate('userId', 'username')
+      .populate('roomId', 'name');
+    const out = games.map((g) => ({
+      name: g.userId ? g.userId.username : 'Oyunçu',
+      room: g.roomId ? g.roomId.name : 'Otaq',
+      prize: Number(g.prize || 0),
+      at: g.claimedAt
+    }));
+    res.json(out);
+  } catch (e) {
+    res.json([]);
+  }
 });
 
 router.get('/room/:id', apiAuth, async (req, res) => {
