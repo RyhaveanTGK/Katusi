@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#3d0d62">
-<title>Oyun Kartları – Birloto</title>
+<title>Oyun Kartları – One Loto</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
@@ -337,6 +337,23 @@ function applyState(card, info){
   var pr = card.querySelector('.js-prize'); if (pr) pr.textContent = (parseFloat(info.prize||0)).toFixed(2);
   var barrel = card.querySelector('.js-barrel');
   if (barrel && info.jackpot!==null && info.jackpot!==undefined) setJackpot(barrel, info.jackpot, info.jackpot_ratio||1);
+
+  // Son qalibin real-time yenilənməsi — növbəti qalibə qədər saxlanılır.
+  var lw = card.querySelector('.last-winner');
+  if (info.last_winner_name){
+    var nums = (info.last_winner_nums||[]).slice(0,5).map(function(n){ return '<i>'+n+'</i>'; }).join('');
+    var prize = (parseFloat(info.winner_prize||0)).toFixed(2);
+    var html = '<span>🏆</span><span class="lw-name">'+info.last_winner_name+'</span>'
+             + '<span class="lw-nums">'+nums+'</span>'
+             + '<span class="lw-prize">'+prize+'₼</span>';
+    if (lw){ lw.innerHTML = html; }
+    else {
+      lw = document.createElement('div');
+      lw.className = 'last-winner';
+      lw.innerHTML = html;
+      card.appendChild(lw);
+    }
+  }
 }
 (function(){
   function tick(){
