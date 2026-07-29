@@ -241,12 +241,6 @@ body{
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-title">Çıxan daşlar (<span id="drawnCount"><%= (room.drawnNumbers || []).length %></span>)</div>
-    <div class="draw-list" id="drawList">
-      <% (room.drawnNumbers || []).forEach(function(n, i){ %><div class="draw-item <%= i === room.drawnNumbers.length - 1 ? 'latest' : '' %>"><%= n %></div><% }) %>
-    </div>
-  </div>
 
   <div class="ticket">
     <div class="ticket-head">
@@ -269,7 +263,6 @@ body{
     <button class="btn btn-primary" id="claimBtn" type="button">Bingo et</button>
     <a class="btn btn-secondary" href="/">Ana səhifə</a>
   </div>
-  <div class="warn">Manual rejimdə qalib olmaq üçün çıxan bütün daşları kartda işarələməlisiniz.</div>
 
   <div class="panel">
     <div class="panel-title">Otaq məlumatları</div>
@@ -318,14 +311,7 @@ function syncState(data){
   document.getElementById('timer').dataset.secs=data.secs_left||0;
   document.getElementById('currentBall').textContent=data.current_number||'?';
   document.getElementById('currentNumberText').textContent=data.current_number||'-';
-  document.getElementById('drawnCount').textContent=drawnNumbers.length;
   document.getElementById('jackpotVal').textContent=data.jackpot===null?'OFF':(parseFloat(data.jackpot||0)).toFixed(2)+' ₼';
-  var list=document.getElementById('drawList'); list.innerHTML='';
-  drawnNumbers.forEach(function(n,i){
-    var d=document.createElement('div');
-    d.className='draw-item'+(i===drawnNumbers.length-1?' latest':'');
-    d.textContent=n; list.appendChild(d);
-  });
   var autoBtn=document.getElementById('autoBtn');
   autoBtn.classList.toggle('off', !(data.card && data.card.auto_daub));
   document.getElementById('autoText').textContent=data.card && data.card.auto_daub ? 'avto açıq' : 'avto bağlı';
