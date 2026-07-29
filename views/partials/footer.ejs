@@ -1,10 +1,10 @@
-<!-- Footer: One Loto — link siyahısı silinib, yerinə lisenziya/hüquq mətni -->
+<!-- Footer: One Loto — sadə, səliqəli hüquq mətni + alt naviqasiya -->
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
 .quicknav{
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 950;
   background: linear-gradient(180deg, rgba(30,8,55,.92) 0%, rgba(15,3,28,.98) 100%);
-  border-top: 1px solid rgba(255,255,255,.08);
+  border-top: 1px solid rgba(245,197,24,.18);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 -6px 20px -6px rgba(0,0,0,.55);
   padding-bottom: env(safe-area-inset-bottom);
@@ -34,47 +34,40 @@ body{ padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
 
 .footer-bar{
   background: linear-gradient(180deg, rgba(20,5,35,.0) 0%, rgba(20,5,35,.85) 40%, rgba(15,3,28,.95) 100%);
-  border-top: 1px solid rgba(255,255,255,.08);
-  padding: 22px 16px 24px; margin-top: 32px;
+  border-top: 1px solid rgba(245,197,24,.15);
+  padding: 20px 16px 22px; margin-top: 32px;
 }
-.footer-inner{
-  max-width: 480px; margin: 0 auto; text-align: center;
-}
-.footer-logo{
-  font-family:'Exo 2','Rubik',sans-serif;
-  font-size: 20px; font-weight: 900; letter-spacing: .5px;
-  color:#f5c518; margin-bottom: 10px;
-}
+.footer-inner{ max-width: 480px; margin: 0 auto; text-align: center; }
 .footer-license{
-  font-size: 12px; color: rgba(255,255,255,.7);
-  line-height: 1.6; max-width: 380px; margin: 0 auto;
+  font-size: 12px; color: rgba(255,255,255,.75); line-height: 1.7;
+  max-width: 380px; margin: 0 auto;
 }
-.footer-license strong{ color:#fff; }
+.footer-license strong{ color:#f5c518; }
 .footer-copy{
-  text-align: center; font-size: 10px; color: rgba(255,255,255,.45);
+  text-align: center; font-size: 10px; color: rgba(255,255,255,.5);
   padding: 14px 0 6px; max-width: 430px; margin: 14px auto 0;
   border-top: 1px solid rgba(255,255,255,.08);
+  display:flex; align-items:center; justify-content:center; gap:6px;
 }
 .age18{
   width: 22px; height: 22px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.4);
-  font-size: 8px; font-weight: 700; color: rgba(255,255,255,.5);
+  border: 2px solid rgba(245,197,24,.55);
+  font-size: 8px; font-weight: 800; color:#f5c518;
   display: inline-flex; align-items: center; justify-content: center;
-  margin-right: 4px; vertical-align: middle;
 }
 </style>
 
 <div class="footer-bar">
   <div class="footer-inner">
-    <div class="footer-logo">One Loto</div>
     <div class="footer-license">
-      <strong>Hüquqların qorunması.</strong> Bu platforma qanuni əyləncə məqsədilə istifadə olunur.
-      Bütün oyun nəticələri təsadüfi seçim əsasında formalaşır və müstəqil audit sistemi ilə qorunur.
-      İstifadəçi məlumatları şifrələnərək saxlanılır. Yalnız 18 yaşdan yuxarı şəxslər üçün nəzərdə tutulub.
+      <strong>Lisenziyalı əyləncə platforması.</strong>
+      Bütün nəticələr təsadüfi qaydada müəyyənləşir, hesablar şifrələnərək qorunur.
+      Yalnız <strong>18+</strong> istifadəçilər üçün nəzərdə tutulub.
     </div>
   </div>
   <div class="footer-copy">
-    <span class="age18">18+</span>© <%= new Date().getFullYear() %> One Loto. Bütün hüquqlar qorunur.
+    <span class="age18">18+</span>
+    <span>© <%= new Date().getFullYear() %> One Loto — Bütün hüquqlar qorunur.</span>
   </div>
 </div>
 
@@ -103,3 +96,15 @@ body{ padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
 </nav>
 
 <script src="/assets/js/app.js"></script>
+
+<!-- Twemoji safety net: replaces any emoji not caught by header on this page -->
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>
+(function(){
+  function run(){ if (window.twemoji && document.body){
+    twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});
+  } }
+  if (document.readyState !== 'loading') run(); else document.addEventListener('DOMContentLoaded', run);
+})();
+</script>
+<style>img.emoji{height:1em;width:1em;margin:0 .05em 0 .1em;vertical-align:-0.12em;display:inline-block;}</style>
