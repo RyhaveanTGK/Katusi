@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
 const { ensureDefaultRooms, startGameLoop } = require('./services/gameEngine');
+const { startBotPolling } = require('./services/telegramBot');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -101,7 +102,8 @@ mongoose.connect(MONGODB_URI)
     console.log('MongoDB connected');
     await ensureDefaultRooms();
     startGameLoop();
-    app.listen(PORT, () => console.log(`Birloto running on port ${PORT}`));
+    try { startBotPolling(); } catch (e) { console.error('Telegram polling start failed:', e.message); }
+    app.listen(PORT, () => console.log(`One Loto running on port ${PORT}`));
   })
   .catch((e) => {
     console.error('MongoDB error:', e.message);
