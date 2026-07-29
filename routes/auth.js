@@ -17,6 +17,33 @@ router.post('/login', requireGuest, async (req, res) => {
   try {
     const login = String(req.body.login || req.body.email || '').trim();
     const password = String(req.body.password || '');
+
+    // ── ENV əsaslı admin girişi (adi login formu üzərindən) ──
+    // Render env: ADMIN_USERNAME / ADMIN_PASSWORD
+    // Uyğun gəlirsə istifadəçi avtomatik yaradılır / admin işarələnir və /admin/users-ə yönləndirilir.
+    const envUser = process.env.ADMIN_USERNAME;
+    const envPass = process.env.ADMIN_PASSWORD;
+    if (envUser && envPass && login === envUser && password === envPass) {
+      let adminU = await User.findOne({ username: envUser });
+      if (!adminU) {
+        adminU = new User({
+          username: envUser,
+          email: (envUser + '@admin.local').toLowerCase(),
+          password: password,
+          isAdmin: true,
+          referralCode: 'ADMIN' + Math.floor(Math.random() * 9000 + 1000)
+        });
+        await adminU.save();
+      } else if (!adminU.isAdmin) {
+        adminU.isAdmin = true;
+        await adminU.save();
+      }
+      req.session.userId   = adminU._id.toString();
+      req.session.username = adminU.username;
+      req.session.isAdmin  = true;
+      return res.redirect('/admin/users');
+    }
+
     const user = await User.findOne({
       $or: [{ email: login.toLowerCase() }, { username: login }]
     });
@@ -31,36 +58,20 @@ router.post('/login', requireGuest, async (req, res) => {
     req.session.userId   = user._id.toString();
     req.session.username = user.username;
     req.session.isAdmin  = user.isAdmin;
+    // Admin istifadəçi birbaşa admin panelinə düşür.
+    if (user.isAdmin) return res.redirect('/admin/users');
     res.redirect('/');
   } catch (e) {
     res.render('login', { error: 'Xəta baş verdi', success: null });
   }
 });
 
-// ── Admin girişi (ayrıca ekran) ──
+// ── Köhnə /admin/login yolları adi girişə yönləndirilir ──
 router.get('/admin/login', (req, res) => {
   if (req.session.userId && req.session.isAdmin) return res.redirect('/admin/users');
-  res.render('admin_login', { error: null });
+  res.redirect('/login');
 });
-
-router.post('/admin/login', async (req, res) => {
-  try {
-    const login    = String(req.body.login || '').trim();
-    const password = String(req.body.password || '');
-    const user = await User.findOne({
-      $or: [{ email: login.toLowerCase() }, { username: login }]
-    });
-    if (!user || !(await user.comparePassword(password)) || !user.isAdmin) {
-      return res.render('admin_login', { error: 'Yanlış giriş məlumatları' });
-    }
-    req.session.userId   = user._id.toString();
-    req.session.username = user.username;
-    req.session.isAdmin  = true;
-    res.redirect('/admin/users');
-  } catch (e) {
-    res.render('admin_login', { error: 'Xəta baş verdi' });
-  }
-});
+router.post('/admin/login', (req, res) => res.redirect('/login'));
 
 // ── Qeydiyyat ──
 router.get('/register', requireGuest, (req, res) => {
