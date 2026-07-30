@@ -80,6 +80,13 @@
       noise(0.06, 0.08);
       tone({ from: 1180, to: 620, dur: 0.09, type: 'square', vol: 0.09 });
     },
+    /** balans artdı — qəpik (sikkə) səsi */
+    coin: function () {
+      noise(0.05, 0.05);
+      tone({ from: 1760, to: 2640, dur: 0.09, type: 'square', vol: 0.11 });
+      tone({ from: 2640, to: 3520, dur: 0.14, type: 'square', vol: 0.09, delay: 0.07 });
+      tone({ from: 1320, dur: 0.18, type: 'triangle', vol: 0.07, delay: 0.05 });
+    },
     /** bilet tam doldu */
     win: function () {
       [0, 0.12, 0.24, 0.4].forEach(function (d, i) {
