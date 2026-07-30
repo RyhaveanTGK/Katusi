@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3d0d62">
+<title><%= room.name %> – Giriş kodu</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Rubik',Segoe UI,Arial,sans-serif;background:#3d0d62;color:#fff;padding:86px 12px 30px;min-height:100vh;}
+.wrap{max-width:415px;margin:0 auto;}
+.panel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:22px;padding:22px 18px;}
+h1{font-size:20px;font-weight:900;margin-bottom:6px;}
+.sub{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:16px;}
+input{width:100%;padding:14px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;font-size:20px;font-weight:900;letter-spacing:6px;text-align:center;text-transform:uppercase;font-family:inherit;outline:none;}
+input:focus{border-color:#f5c518;}
+.err{background:rgba(229,57,53,.18);border:1px solid rgba(229,57,53,.5);color:#ffc9c7;font-size:13px;font-weight:700;padding:10px 12px;border-radius:12px;margin-bottom:14px;}
+.btn{width:100%;padding:15px;background:linear-gradient(180deg,#54d57a,#15a62d);color:#fff;font-size:16px;font-weight:900;border:none;border-radius:16px;cursor:pointer;font-family:inherit;margin-top:12px;}
+.back{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.75);text-decoration:none;font-size:13px;font-weight:700;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+<div class="wrap">
+  <a class="back" href="/"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> Ana səhifə</a>
+  <div class="panel">
+    <h1><%= room.name %></h1>
+    <div class="sub">Bu şəxsi otaqdır. Daxil olmaq üçün giriş kodunu yazın.</div>
+    <% if (error) { %><div class="err"><%= error %></div><% } %>
+    <form method="POST" action="/room/<%= room._id %>/code">
+      <input type="text" name="code" maxlength="12" required placeholder="KOD" autocomplete="off">
+      <button class="btn" type="submit">Otağa gir</button>
+    </form>
+  </div>
+</div>
+<%- include('partials/footer', { activePage: 'home' }) %>
+</body>
+</html>
