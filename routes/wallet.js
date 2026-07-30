@@ -4,13 +4,14 @@ const path    = require('path');
 const fs      = require('fs');
 const multer  = require('multer');
 const crypto  = require('crypto');
-const mongoose = require('mongoose');
 
 const User           = require('../models/User');
 const Transaction    = require('../models/Transaction');
 const DepositCounter = require('../models/DepositCounter');
+const PaymentMethod  = require('../models/PaymentMethod');
 const { requireLogin } = require('../middleware/auth');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/telegramBot');
+const { LOCALES, normalizeLocale } = require('../services/paymentMethods');
 
 // ── Receipt (qəbz) upload: /public/uploads/dekont-<rand>.jpg ──
 const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
@@ -33,77 +34,96 @@ const upload = multer({
   }
 });
 
-// Bütün istifadəçi əməliyyatları + balans
-async function loadWalletContext(userId) {
-  const [user, transactions, counter] = await Promise.all([
-    User.findById(userId),
-    Transaction.find({ userId }).sort({ createdAt: -1 }).limit(30),
-    DepositCounter.findOne({ userId })
-  ]);
-  return { user, transactions, counter: counter || { firstDepositAt: null, firstWithdrawAt: null, depositCount: 0, withdrawCount: 0 } };
+const DEPOSIT_MIN = 5,  DEPOSIT_MAX = 3000;
+const WITHDRAW_MIN = 30, WITHDRAW_MAX = 2000;
+
+/** İstifadəçinin aktiv dili — dil dəstəyi əlavə olunanda burada oxunacaq */
+function currentLocale(req) {
+  return normalizeLocale(req.query.lang || req.body.lang || req.session.locale || 'az');
 }
 
-function fmtAmount(amt) {
-  const v = Math.abs(Number(amt || 0));
-  return v.toFixed(2);
+// Bütün istifadəçi əməliyyatları + balans + ödəniş üsulları
+async function loadWalletContext(req) {
+  const userId = req.session.userId;
+  const locale = currentLocale(req);
+  const [user, transactions, counter, methods] = await Promise.all([
+    User.findById(userId),
+    Transaction.find({ userId }).sort({ createdAt: -1 }).limit(30),
+    DepositCounter.findOne({ userId }),
+    PaymentMethod.find({ locale, active: true }).sort({ sortOrder: 1 })
+  ]);
+  return {
+    user,
+    transactions,
+    counter: counter || { firstDepositAt: null, firstWithdrawAt: null, depositCount: 0, withdrawCount: 0, totalDeposits: 0, totalWithdraws: 0 },
+    locale,
+    locales: LOCALES,
+    depositMethods:  methods.filter((m) => m.forDeposit),
+    withdrawMethods: methods.filter((m) => m.forWithdraw),
+    limits: { depositMin: DEPOSIT_MIN, depositMax: DEPOSIT_MAX, withdrawMin: WITHDRAW_MIN, withdrawMax: WITHDRAW_MAX },
+    firstDepositAmount: 30,
+    firstWithdrawAmount: 100
+  };
+}
+
+/** Hər render eyni dəyişən dəstini alır — EJS-də "undefined variable" xətası olmasın */
+async function renderWallet(req, res, extra = {}) {
+  const ctx = await loadWalletContext(req);
+  return res.render('wallet', {
+    ...ctx,
+    tab: extra.tab || req.query.tab || 'deposit',
+    error: extra.error || null,
+    success: extra.success || null
+  });
 }
 
 // ── Əsas səhifə ──
 router.get('/', requireLogin, async (req, res) => {
   try {
-    const { user, transactions, counter } = await loadWalletContext(req.session.userId);
-    res.render('wallet', {
-      user, transactions, counter,
-      firstDepositAmount:  counter.firstDepositAt ? 30 : 30, // ilk depozit üçün başlanğıc göstəriş
-      firstWithdrawAmount: counter.firstWithdrawAt ? 100 : 100,
-      error: null, success: null
-    });
+    if (req.query.lang) req.session.locale = normalizeLocale(req.query.lang);
+    await renderWallet(req, res);
   } catch (e) {
-    console.error(e);
+    console.error('Wallet page err:', e);
     res.status(500).send('Xəta baş verdi');
   }
 });
 
-// ── DEPOSIT addımları ──
-// Addım 1: yalnız məbləğ daxil edilir, ilk dəfədirsə 30 ₼ göstəriş
+// ── DEPOSIT (bank kartı / IBAN / transfer) ──
 router.post('/deposit', requireLogin, upload.single('receipt'), async (req, res) => {
   try {
     const { method, amount, cardNumber, cardHolder, cardExpiry } = req.body;
     const amt = parseFloat(amount);
 
     const user = await User.findById(req.session.userId);
-    if (!user) return res.status(401).send('Giriş tələb olunur');
+    if (!user) return res.redirect('/login');
 
-    if (!method) {
-      const ctx = await loadWalletContext(req.session.userId);
-      return res.render('wallet', { ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-        error: 'Üsul seçilməyib', success: null });
+    if (!method) return renderWallet(req, res, { tab: 'deposit', error: 'Ödəniş üsulu seçilməyib' });
+    if (!amt || amt < DEPOSIT_MIN || amt > DEPOSIT_MAX) {
+      return renderWallet(req, res, { tab: 'deposit', error: `Məbləğ ${DEPOSIT_MIN} – ${DEPOSIT_MAX} arasında olmalıdır` });
     }
-    if (!amt || amt < 5 || amt > 3000) {
-      const ctx = await loadWalletContext(req.session.userId);
-      return res.render('wallet', { ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-        error: 'Məbləğ ₼5 ilə ₼3000 arasında olmalıdır', success: null });
-    }
+
+    const locale = currentLocale(req);
+    const pm = await PaymentMethod.findOne({ key: method, locale, active: true });
+    if (!pm) return renderWallet(req, res, { tab: 'deposit', error: 'Ödəniş üsulu tapılmadı' });
 
     const receiptUrl = req.file ? `/uploads/${req.file.filename}` : '';
+    const cardRaw = String(cardNumber || '').replace(/\s+/g, '');
 
     const txn = new Transaction({
-      userId:        user._id,
-      type:          'deposit',
-      amount:        amt,
-      currency:      'AZN',
-      status:        'pending',
-      method:        method,
-      cardNumber:    cardNumber ? String(cardNumber).slice(-4) || null : null,
-      cardLast4:     cardNumber ? String(cardNumber).replace(/\s+/g, '').slice(-4) : '',
-      cardHolder:    cardHolder || '',
-      cardExpiry:    cardExpiry || '',
-      receiptImage:  receiptUrl,
-      note:          req.body.note || 'Kart vasitəsilə yükləmə'
+      userId:       user._id,
+      type:         'deposit',
+      amount:       amt,
+      currency:     pm.currency || 'AZN',
+      status:       'pending',
+      method:       pm.key,
+      cardLast4:    cardRaw ? cardRaw.slice(-4) : '',
+      cardHolder:   cardHolder || '',
+      cardExpiry:   cardExpiry || '',
+      receiptImage: receiptUrl,
+      note:         `${pm.name} (${locale.toUpperCase()}) vasitəsilə yükləmə`
     });
     await txn.save();
 
-    // İlk deposit sayğacı
     let counter = await DepositCounter.findOne({ userId: user._id });
     if (!counter) counter = await DepositCounter.create({ userId: user._id });
     if (!counter.firstDepositAt) counter.firstDepositAt = new Date();
@@ -111,44 +131,33 @@ router.post('/deposit', requireLogin, upload.single('receipt'), async (req, res)
     counter.depositCount  += 1;
     await counter.save();
 
-    // Telegram bot vasitəsilə admin-ə göndər
     notifyDepositRequest(txn, user).catch((e) => console.error('Telegram notify err:', e.message));
 
-    const ctx = await loadWalletContext(req.session.userId);
-    res.render('wallet', {
-      ...ctx,
-      firstDepositAmount: 30,
-      firstWithdrawAmount: 100,
-      successMsg: 'Ödəniş sorğunuz qəbul edildi. Yoxlama başa çatdıqdan sonra balansınıza yüklənəcək.'
+    return renderWallet(req, res, {
+      tab: 'deposit',
+      success: 'Ödəniş sorğunuz qəbul edildi. Yoxlama başa çatdıqdan sonra balansınıza yüklənəcək.'
     });
   } catch (e) {
     console.error('Deposit err:', e);
-    const ctx = await loadWalletContext(req.session.userId);
-    res.render('wallet', {
-      ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-      error: e.message || 'Xəta baş verdi'
-    });
+    return renderWallet(req, res, { tab: 'deposit', error: e.message || 'Xəta baş verdi' });
   }
 });
 
 // ── DEPOSIT KRİPTO ──
 router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (req, res) => {
   try {
-    const { amount, token, network, walletAddress, note } = req.body;
+    const { amount, method, walletAddress, note } = req.body;
     const amt = parseFloat(amount);
 
     const user = await User.findById(req.session.userId);
-    if (!user) return res.status(401).send('Giriş tələb olunur');
+    if (!user) return res.redirect('/login');
 
-    if (!token || !network) {
-      const ctx = await loadWalletContext(req.session.userId);
-      return res.render('wallet', { ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-        error: 'Token və ya şəbəkə seçilməyib' });
-    }
-    if (!amt || amt < 5 || amt > 50000) {
-      const ctx = await loadWalletContext(req.session.userId);
-      return res.render('wallet', { ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-        error: 'Kripto məbləğ ₼5 – ₼50000 aralığında olmalıdır' });
+    const locale = currentLocale(req);
+    const pm = await PaymentMethod.findOne({ key: method, locale, kind: 'crypto', active: true });
+    if (!pm) return renderWallet(req, res, { tab: 'deposit', error: 'Kripto üsulu tapılmadı' });
+
+    if (!amt || amt < DEPOSIT_MIN || amt > 50000) {
+      return renderWallet(req, res, { tab: 'deposit', error: `Kripto məbləğ ${DEPOSIT_MIN} – 50000 aralığında olmalıdır` });
     }
 
     const receiptUrl = req.file ? `/uploads/${req.file.filename}` : '';
@@ -157,14 +166,14 @@ router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (re
       userId:        user._id,
       type:          'deposit',
       amount:        amt,
-      currency:      'AZN',
+      currency:      pm.currency || 'USDT',
       status:        'pending',
-      method:        `crypto_${token.toLowerCase()}`,
-      cryptoToken:   String(token).toUpperCase(),
-      network:       String(network).toUpperCase(),
+      method:        pm.key,
+      cryptoToken:   String(pm.currency || 'USDT').toUpperCase(),
+      network:       String(pm.network || '').toUpperCase(),
       walletAddress: walletAddress || '',
       receiptImage:  receiptUrl,
-      note:          note || 'Kripto ilə yükləmə'
+      note:          note || `${pm.name} ilə yükləmə`
     });
     await txn.save();
 
@@ -177,65 +186,63 @@ router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (re
 
     notifyDepositRequest(txn, user).catch((e) => console.error('Telegram crypto err:', e.message));
 
-    const ctx = await loadWalletContext(req.session.userId);
-    res.render('wallet', {
-      ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-      successMsg: 'Kripto depozit sorğunuz göndərildi. Yoxlama gözlənilir.'
-    });
+    return renderWallet(req, res, { tab: 'deposit', success: 'Kripto depozit sorğunuz göndərildi. Yoxlama gözlənilir.' });
   } catch (e) {
     console.error('Crypto deposit err:', e);
-    const ctx = await loadWalletContext(req.session.userId);
-    res.render('wallet', {
-      ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-      error: e.message || 'Xəta baş verdi'
-    });
+    return renderWallet(req, res, { tab: 'deposit', error: e.message || 'Xəta baş verdi' });
   }
 });
 
-// ── WITHDRAW addımları ──
+// ── ÇIXARIŞ ──
 router.post('/withdraw', requireLogin, async (req, res) => {
   try {
-    const { amount, cardHolder, cardExpiry, cardNumber } = req.body;
+    const { amount, method, cardHolder, cardExpiry, cardNumber, iban, walletAddress } = req.body;
     const amt = parseFloat(amount);
 
     const user = await User.findById(req.session.userId);
-    if (!user) return res.status(401).send('Giriş tələb olunur');
+    if (!user) return res.redirect('/login');
 
-    if (!amt || amt < 30 || amt > 2000) {
-      const ctx = await loadWalletContext(req.session.userId);
-      return res.render('wallet', { ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-        error: 'Çıxarış ₼30 – ₼2000 aralığında olmalıdır' });
+    if (!amt || amt < WITHDRAW_MIN || amt > WITHDRAW_MAX) {
+      return renderWallet(req, res, { tab: 'withdraw', error: `Çıxarış ${WITHDRAW_MIN} – ${WITHDRAW_MAX} aralığında olmalıdır` });
     }
 
-    if (!cardHolder || !cardNumber || !cardExpiry) {
-      const ctx = await loadWalletContext(req.session.userId);
-      return res.render('wallet', { ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-        error: 'Kart sahibi, nömrə və son istifadə tarixi tələb olunur' });
+    const locale = currentLocale(req);
+    const pm = await PaymentMethod.findOne({ key: method, locale, active: true });
+    if (!pm) return renderWallet(req, res, { tab: 'withdraw', error: 'Çıxarış üsulu seçilməyib' });
+
+    const isCrypto = pm.kind === 'crypto';
+    if (isCrypto) {
+      if (!walletAddress) return renderWallet(req, res, { tab: 'withdraw', error: 'Kripto pulqabı ünvanını yazın' });
+    } else {
+      const dest = String(cardNumber || iban || '').trim();
+      if (!cardHolder || !dest) {
+        return renderWallet(req, res, { tab: 'withdraw', error: 'Hesab sahibi və kart/IBAN nömrəsi tələb olunur' });
+      }
     }
 
-    if (user.balance < amt) {
-      const ctx = await loadWalletContext(req.session.userId);
-      return res.render('wallet', { ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-        error: 'Balansınız kifayət etmir' });
+    if (Number(user.balance || 0) < amt) {
+      return renderWallet(req, res, { tab: 'withdraw', error: 'Balansınız kifayət etmir' });
     }
 
-    // Balansı blokla: çıxarış pending olduğu üçün balansdan çıxılır,
-    // admin rədd edərsə geri qaytarılır.
-    user.balance -= amt;
+    // Balansı blokla: admin rədd edərsə geri qaytarılır.
+    user.balance = Number(user.balance) - amt;
     await user.save();
 
-    const cardRaw = String(cardNumber).replace(/\s+/g, '');
+    const cardRaw = String(cardNumber || iban || '').replace(/\s+/g, '');
     const txn = new Transaction({
-      userId:     user._id,
-      type:       'withdraw',
-      amount:     amt,
-      currency:   'AZN',
-      status:     'pending',
-      method:     'bank_card',
-      cardLast4:  cardRaw.slice(-4),
-      cardHolder: cardHolder,
-      cardExpiry: cardExpiry,
-      note:       req.body.note || 'Bank kartına çıxarış'
+      userId:        user._id,
+      type:          'withdraw',
+      amount:        amt,
+      currency:      pm.currency || 'AZN',
+      status:        'pending',
+      method:        pm.key,
+      cardLast4:     cardRaw ? cardRaw.slice(-4) : '',
+      cardHolder:    cardHolder || '',
+      cardExpiry:    cardExpiry || '',
+      network:       isCrypto ? String(pm.network || '').toUpperCase() : '',
+      cryptoToken:   isCrypto ? String(pm.currency || '').toUpperCase() : '',
+      walletAddress: isCrypto ? (walletAddress || '') : '',
+      note:          `${pm.name} (${locale.toUpperCase()}) üzərinə çıxarış`
     });
     await txn.save();
 
@@ -248,18 +255,10 @@ router.post('/withdraw', requireLogin, async (req, res) => {
 
     notifyWithdrawRequest(txn, user).catch((e) => console.error('Telegram withdraw err:', e.message));
 
-    const ctx = await loadWalletContext(req.session.userId);
-    res.render('wallet', {
-      ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-      successMsg: 'Çıxarış sorğunuz göndərildi. Yoxlama gözlənilir.'
-    });
+    return renderWallet(req, res, { tab: 'withdraw', success: 'Çıxarış sorğunuz göndərildi. Yoxlama gözlənilir.' });
   } catch (e) {
     console.error('Withdraw err:', e);
-    const ctx = await loadWalletContext(req.session.userId);
-    res.render('wallet', {
-      ...ctx, firstDepositAmount: 30, firstWithdrawAmount: 100,
-      error: e.message || 'Xəta baş verdi'
-    });
+    return renderWallet(req, res, { tab: 'withdraw', error: e.message || 'Xəta baş verdi' });
   }
 });
 
