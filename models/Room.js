@@ -10,7 +10,7 @@ const roomSchema = new mongoose.Schema({
   prizeMultiplier: { type: String, default: 'x2' },
   themeColor: { type: String, default: '#1f9b3b' },
   prize:      { type: Number, default: 0 },
-  maxPlayers: { type: Number, default: 50 },
+  maxPlayers: { type: Number, default: 5, max: 5 },
   players:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   jackpotEnabled: { type: Boolean, default: true },
   jackpot:     { type: Number, default: 0 },
@@ -30,6 +30,20 @@ const roomSchema = new mongoose.Schema({
   roundEndsAt: { type: Date, default: null },
   lastDrawAt:  { type: Date, default: null },
   nextGameAt:  { type: Date, default: null },
+  // Real istifadəçi daxil olduqdan sonra süni oyunçuların qoşulma vaxtı (30 san.)
+  botFillAt:   { type: Date, default: null },
+  // Vaxt bitdikdən sonra qalibin göstərilmə müddəti
+  revealAt:    { type: Date, default: null },
+  finalWinnerName:  { type: String, default: null },
+  finalWinnerPrize: { type: Number, default: 0 },
+  finalWinnerNums:  [Number],
+  finalWinnerMarks: { type: Number, default: 0 },
+  roundWinners: [{
+    name:    { type: String },
+    prize:   { type: Number, default: 0 },
+    numbers: { type: [Number], default: [] },
+    isBot:   { type: Boolean, default: false }
+  }],
   sortOrder:   { type: Number, default: 0 },
 
   // ── Botlar ──
@@ -42,6 +56,7 @@ const roomSchema = new mongoose.Schema({
     stake:   { type: Number, default: 0 },
     marked:  { type: [Number], default: [] },
     isWinner:{ type: Boolean, default: false },
+    prize:   { type: Number, default: 0 },
     joinedAt:{ type: Date, default: Date.now }
   }],
   botStake: { type: Number, default: 0 },
