@@ -182,12 +182,48 @@
     filter:blur(2px);
   }
   .ball.pop{ animation: ball-3d-pop .55s cubic-bezier(.2,1.3,.35,1); }
+  /* Axıcı 3D çıxış: fırlanaraq yaxınlaşır, yumşaq oturur */
   @keyframes ball-3d-pop{
-    0%{ transform: scale(.4) rotateY(-180deg); opacity:.2 }
-    60%{ transform: scale(1.14) rotateY(10deg); opacity:1 }
-    100%{ transform: scale(1) rotateY(0); opacity:1 }
+    0%   { transform: perspective(600px) translate3d(0,-38px,-160px) rotateX(-35deg) rotateY(-220deg) scale(.45); opacity:0; filter:blur(3px); }
+    35%  { opacity:1; filter:blur(0); }
+    62%  { transform: perspective(600px) translate3d(0,6px,0) rotateX(6deg) rotateY(-12deg) scale(1.12); }
+    82%  { transform: perspective(600px) translate3d(0,-3px,0) rotateX(-2deg) rotateY(4deg) scale(.98); }
+    100% { transform: perspective(600px) translate3d(0,0,0) rotateX(0) rotateY(0) scale(1); opacity:1; }
   }
-  @keyframes ball-float{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-4px) } }
+  /* Fasiləsiz yumşaq süzülmə (donmadan) */
+  @keyframes ball-float{
+    0%   { transform: perspective(600px) translateY(0)    rotateY(0deg)   rotateX(0deg); }
+    25%  { transform: perspective(600px) translateY(-5px) rotateY(8deg)   rotateX(3deg); }
+    50%  { transform: perspective(600px) translateY(-7px) rotateY(0deg)   rotateX(0deg); }
+    75%  { transform: perspective(600px) translateY(-5px) rotateY(-8deg)  rotateX(-3deg); }
+    100% { transform: perspective(600px) translateY(0)    rotateY(0deg)   rotateX(0deg); }
+  }
+  .ball{ will-change: transform; }
+  .draw-item{ animation: draw-in .35s cubic-bezier(.2,1.2,.35,1) both; }
+  @keyframes draw-in{ from{ transform: translateY(-8px) scale(.6); opacity:0 } to{ transform:none; opacity:1 } }
+  /* ── Vaxtında qoyulmayan daş: qırmızı X, bloklanıb ── */
+  .cell.missed{
+    position:relative; color:#d33 !important;
+    background:#ffe1e1 !important; box-shadow:inset 0 0 0 2px rgba(214,58,58,.55) !important;
+    cursor:not-allowed; opacity:.95;
+  }
+  .cell.missed::before,
+  .cell.missed::after{
+    content:''; position:absolute; left:12%; top:50%; width:76%; height:3px; border-radius:3px;
+    background:#e03131;
+  }
+  .cell.missed::before{ transform: translateY(-50%) rotate(45deg); }
+  .cell.missed::after{  transform: translateY(-50%) rotate(-45deg); }
+  /* ── daşın qalan vaxtı (biletdə) ── */
+  .cell.drawn.clickable{ animation: cell-urge 1s ease-in-out infinite; }
+  @keyframes cell-urge{ 0%,100%{ box-shadow: inset 0 0 0 2px rgba(245,197,24,.75); } 50%{ box-shadow: inset 0 0 0 2px rgba(245,197,24,.25); } }
+  /* ── oyun haqqında məlumat ── */
+  .info-body{ font-size:14px; line-height:1.62; color:rgba(255,255,255,.86); font-weight:600; }
+  .info-body h4{ margin:14px 0 6px; font-size:15px; font-weight:900; color:#f5c518; }
+  .info-body ul{ margin:6px 0 0 18px; padding:0; }
+  .info-body li{ margin-bottom:6px; }
+  .info-body b{ color:#fff; }
+  .info-note{ margin-top:14px; background:rgba(245,197,24,.1); border:1px solid rgba(245,197,24,.28); border-radius:14px; padding:10px 12px; font-size:13px; }
   .cell.marked{
     background: radial-gradient(circle at 32% 26%, #b9f7c8 0%, #45d766 40%, #16a62d 72%, #0a6a1e 100%) !important;
     box-shadow: inset 0 -3px 5px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.5), 0 2px 5px rgba(0,0,0,.25) !important;
@@ -210,6 +246,45 @@
   <a href="/"><span class="material-symbols-outlined">home</span>Ana səhifə</a>
   <a href="/winners"><span class="material-symbols-outlined">emoji_events</span>Qaliblər</a>
   <button type="button" id="leaveBtn"><span class="material-symbols-outlined">logout</span>Oyundan çıx</button>
+  <button type="button" id="infoBtn"><span class="material-symbols-outlined">help</span>Oyun haqqında məlumat</button>
+</div>
+
+<!-- Oyun haqqında tam məlumat -->
+<div class="sheet-back" id="infoSheet">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div class="sheet-title">Oyun haqqında məlumat</div>
+      <button class="sheet-x" id="infoClose" type="button" aria-label="Bağla"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="info-body">
+      <h4>Oyun necə oynanılır?</h4>
+      <ul>
+        <li>Hər otaqda <b>5 oyunçu</b> iştirak edir. Otaq dolduqda oyun avtomatik başlayır və eyni mərcli <b>yeni boş otaq</b> açılır. Başlamış oyuna sonradan heç kim daxil ola bilməz.</li>
+        <li>Bilet <b>3 sıradan (linya)</b> ibarətdir, hər sırada <b>5 rəqəm</b>, cəmi <b>15 rəqəm</b> var. Bir oyunda maksimum <b>5 bilet</b> ala bilərsiniz.</li>
+        <li>Oyun başlayanda hər bir neçə saniyədən bir <b>daş (1–90)</b> çıxır. Çıxan daş sizin biletinizdə varsa, üzərinə toxunub <b>özünüz yerləşdirməlisiniz</b>.</li>
+        <li>Daşı yerləşdirmək üçün <b>məhdud vaxtınız</b> var. Vaxtında vurmasanız xana <b>qırmızı X</b> ilə bloklanır və həmin daş sizin üçün <b>sayılmır</b>.</li>
+      </ul>
+
+      <h4>Qazanc necə hesablanır?</h4>
+      <ul>
+        <li>Otaqdakı bütün oyunçuların mərcləri <b>ümumi banka</b> yığılır (yuxarıdakı kubok işarəsinin yanındakı əsas mərc).</li>
+        <li><b>1-ci linyanı</b> tam dolduran ilk oyunçu bankın <b>8%-ini</b> qazanır.</li>
+        <li><b>2-ci linya</b> üçün <b>16%</b>, <b>3-cü linya</b> üçün <b>24%</b> ödənilir.</li>
+        <li>Hər linya uduşu dərhal həmin oyunçunun <b>balansına köçürülür</b> və eyni məbləğ ortadakı <b>bankdan çıxılır</b>.</li>
+        <li>Bileti <b>tam dolduran ilk oyunçu qalibdir</b> və bankda qalan <b>bütün məbləği</b> qazanır.</li>
+        <li>Vaxt bitənədək heç kim bileti tam doldurmasa, <b>ən çox linya və daş</b> yığan oyunçu qalib sayılır və qalan bankı alır.</li>
+      </ul>
+
+      <h4>Otaq qaydaları</h4>
+      <ul>
+        <li>Otaqda <b>3 və daha çox real oyunçu</b> olarsa, oyun bitənədək otağa <b>bot əlavə olunmur</b> — yalnız real istifadəçilər oynayır.</li>
+        <li>Oyundan vaxtından əvvəl çıxsanız mərcinizin <b>70%-i komissiya</b> kimi tutulur, <b>30%-i</b> balansınıza qaytarılır.</li>
+        <li>Oyun bitdikdən sonra otaq avtomatik təmizlənir və yeni raunda hazırlanır.</li>
+      </ul>
+
+      <div class="info-note">Məsləhət: səsi açıq saxlayın — hər yeni daş çıxanda siqnal verilir və daşı vaxtında yerləşdirmək asanlaşır.</div>
+    </div>
+  </div>
 </div>
 
 <div class="confirm-back" id="leaveConfirm">
@@ -255,7 +330,6 @@
   <div id="ticketList"></div>
 
   <div class="win-banner" id="winBanner" style="display:none"></div>
-  <div class="hint">Çıxan daşı biletdə vurub yerləşdir. 1-ci linya <b>8%</b>, 2-ci <b>16%</b>, 3-cü <b>24%</b> uduş verir. Bileti tam dolduran ilk oyunçu qalibdir.</div>
 </div>
 
 <div class="bottombar">
@@ -297,12 +371,13 @@
 <script src="/assets/js/loto-sound.js"></script>
 <script>
 var ROOM_ID = '<%= room._id %>';
-var cards = <%- JSON.stringify(cards.map(function(c){ return { id: String(c._id), numbers: c.numbers, marked: c.markedNumbers || [], isWinner: !!c.isWinner, lineWins: Number(c.lineWins || 0), prize: Number(c.prize || 0) }; })) %>;
+var cards = <%- JSON.stringify(cards.map(function(c){ return { id: String(c._id), numbers: c.numbers, marked: c.markedNumbers || [], missed: [], isWinner: !!c.isWinner, lineWins: Number(c.lineWins || 0), prize: Number(c.prize || 0) }; })) %>;
 var drawnNumbers = <%- JSON.stringify(room.drawnNumbers || []) %>;
 var lastBall = <%- JSON.stringify(room.currentNumber || null) %>;
 var lastRound = <%= Number(room.currentRoundId || 1) %>;
 var MY_NAME = <%- JSON.stringify(user.username) %>;
-var missedNumbers = {};   // vaxtında qeyd edilməyən daşlar (biletdə qırmızı X)
+var GRACE_MS = 12000;     // daşı biletə qoymaq üçün verilən vaxt
+var seenAt   = {};        // daşın ilk görünmə vaxtı (client)
 var lastStake = Number('<%= Number(totalStake || 0) %>') || 0;
 var roster = [];
 
@@ -334,8 +409,40 @@ function renderDrawList(){
   box.scrollLeft = box.scrollWidth;
 }
 
-/* Çıxmış bütün daşlar istənilən vaxt vurula bilər — heç bir daş bağlanmır */
-function lockMissed(){ missedNumbers = {}; }
+/* ── Daş vaxtı: vaxtında vurulmayan daş bloklanır (qırmızı X) ── */
+function trackDrawn(){
+  var now = Date.now();
+  drawnNumbers.forEach(function(n){ if (!seenAt[n]) seenAt[n] = now; });
+}
+function isExpired(n){
+  var t = seenAt[n];
+  return !!t && (Date.now() - t) > GRACE_MS;
+}
+function isMissed(card, n){
+  if (!n) return false;
+  if ((card.marked || []).indexOf(n) >= 0) return false;
+  if (drawnNumbers.indexOf(n) < 0) return false;
+  if ((card.missed || []).indexOf(n) >= 0) return true;
+  return isExpired(n);
+}
+/* Xanaların vəziyyətini saniyəlik yenilə (yenidən qurmadan) */
+function refreshCellStates(){
+  var list = document.getElementById('ticketList');
+  if (!list) return;
+  cards.forEach(function(card){
+    var box = list.querySelector('[data-card-id="' + card.id + '"]');
+    if (!box) return;
+    box.querySelectorAll('.cell').forEach(function(cell){
+      var n = Number(cell.dataset.number || 0);
+      if (!n || cell.classList.contains('marked')) return;
+      if (isMissed(card, n)){
+        cell.classList.remove('clickable', 'drawn');
+        cell.classList.add('missed');
+      }
+    });
+  });
+}
+setInterval(refreshCellStates, 500);
 
 /* ── Oyunçular siyahısı (person düyməsi) ── */
 function renderPlayers(data){
@@ -440,6 +547,14 @@ function setTicketChip(n){
   if (!btn || !pop) return;
   btn.addEventListener('click', function(e){ e.stopPropagation(); pop.classList.toggle('show'); });
   document.addEventListener('click', function(e){ if (!pop.contains(e.target) && e.target !== btn) pop.classList.remove('show'); });
+  var info = document.getElementById('infoBtn');
+  var infoBack = document.getElementById('infoSheet');
+  var infoClose = document.getElementById('infoClose');
+  if (info && infoBack){
+    info.addEventListener('click', function(){ pop.classList.remove('show'); infoBack.classList.add('show'); });
+    infoClose.addEventListener('click', function(){ infoBack.classList.remove('show'); });
+    infoBack.addEventListener('click', function(e){ if (e.target === infoBack) infoBack.classList.remove('show'); });
+  }
   leave.addEventListener('click', function(){ pop.classList.remove('show'); back.classList.add('show'); });
   cancel.addEventListener('click', function(){ back.classList.remove('show'); });
   back.addEventListener('click', function(e){ if (e.target === back) back.classList.remove('show'); });
@@ -479,12 +594,12 @@ function ticketNode(card, index){
       var cell = document.createElement('div');
       var isDrawn = n && drawnNumbers.indexOf(n) >= 0;
       var isMarked = n && markedSet[n];
-      var isMissed = false;
+      var missed = !!n && !isMarked && isMissed(card, n);
       if (n) { total++; if (isMarked) marks++; }
       cell.className = 'cell' + (n ? '' : ' empty') +
-        (isDrawn && !isMarked && !isMissed ? ' drawn clickable' : '') +
+        (isDrawn && !isMarked && !missed ? ' drawn clickable' : '') +
         (isMarked ? ' marked' : '') +
-        (isMissed ? ' missed' : '');
+        (missed ? ' missed' : '');
       cell.dataset.number = n || '';
       cell.textContent = n || '';
       grid.appendChild(cell);
@@ -503,6 +618,7 @@ function ticketNode(card, index){
     var cell = e.target.closest('.cell.clickable');
     if (!cell || !cell.dataset.number) return;
     var number = Number(cell.dataset.number);
+    if (isMissed(card, number)) { toast('Vaxt bitdi — bu daş bloklandı'); return; }
     cell.classList.remove('clickable', 'drawn');
     cell.classList.add('marked');
     LotoSound.place();
@@ -511,7 +627,11 @@ function ticketNode(card, index){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ number: number, cardId: card.id })
     }).then(function(r){ return r.json(); }).then(function(res){
-      if (res.error) { toast(res.error); return poll(); }
+      if (res.error) {
+        toast(res.error);
+        if (res.missed) { card.missed = (card.missed || []).concat([number]); renderTickets(); }
+        return poll();
+      }
       if (res.card) { card.marked = res.card.marked_numbers || []; }
       if (typeof res.balance === 'number' && window.animateBalance) window.animateBalance(res.balance);
       if (res.card) { card.isWinner = !!res.card.is_winner; card.lineWins = Number(res.card.line_wins || 0); card.prize = Number(res.card.prize || 0); }
@@ -568,6 +688,7 @@ function syncState(data){
   document.getElementById('playerCount').textContent = data.player_count;
   setStake(Number(data.total_stake || 0));
   document.getElementById('ticketPrize').textContent = Number(data.ticket_prize || 0).toFixed(2);
+  if (Number(data.mark_grace_sec || 0) > 0) GRACE_MS = Number(data.mark_grace_sec) * 1000;
   document.getElementById('statusText').textContent = statusLabel(data.status);
   document.getElementById('timer').dataset.secs = data.secs_left || 0;
 
@@ -582,6 +703,7 @@ function syncState(data){
   }
 
   drawnNumbers = data.drawn_numbers || drawnNumbers;
+  trackDrawn();
   renderDrawList();
   renderPlayers(data);
   if (typeof data.balance === 'number' && window.animateBalance && Math.abs(window.getBalance() - data.balance) >= 0.005) {
@@ -590,10 +712,9 @@ function syncState(data){
 
   if (Array.isArray(data.cards) && data.cards.length) {
     cards = data.cards.map(function(c){
-      return { id: c.id, numbers: c.numbers, marked: c.marked_numbers || [], isWinner: !!c.is_winner, lineWins: Number(c.line_wins || 0), prize: Number(c.prize || 0) };
+      return { id: c.id, numbers: c.numbers, marked: c.marked_numbers || [], missed: c.missed_numbers || [], isWinner: !!c.is_winner, lineWins: Number(c.line_wins || 0), prize: Number(c.prize || 0) };
     });
   }
-  lockMissed();
   renderTickets();
 
   if (data.status === 'ended' && data.final_winner) showFinalWinner(data.final_winner);
@@ -617,7 +738,7 @@ function poll(){
 })();
 
 renderDrawList();
-lockMissed();
+trackDrawn();
 renderTickets();
 poll();
 setInterval(poll, 2000);
