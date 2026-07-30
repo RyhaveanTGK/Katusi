@@ -6,13 +6,13 @@ const GameCard = require('../models/GameCard');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const { requireLogin } = require('../middleware/auth');
-const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount } = require('../services/gameEngine');
+const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, START_PLAYERS, slotsLeft, botEngine } = require('../services/gameEngine');
 const { hasRoomAccess } = require('./rooms');
 
 function generateCard() {
   const cols = [
     [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
-    [50, 59], [60, 69], [70, 79], [80, 100]
+    [50, 59], [60, 69], [70, 79], [80, 90]
   ];
   const card = [new Array(9).fill(0), new Array(9).fill(0), new Array(9).fill(0)];
   const used = Array.from({ length: 9 }, () => new Set());
@@ -62,6 +62,8 @@ router.get('/', requireLogin, async (req, res) => {
   const roomsData = rooms.map((room) => ({
     ...room.toObject(),
     playerCount: visiblePlayerCount(room),
+    roomSize: START_PLAYERS,
+    slotsLeft: slotsLeft(room),
     botCount: (room.bots || []).length,
     hasJoined: room.players.map((p) => p.toString()).includes(req.session.userId),
     displayStatus: getDisplayStatus(room, now),
@@ -84,6 +86,8 @@ router.get('/join/:roomId', requireLogin, async (req, res) => {
       user,
       room,
       maxTickets: MAX_TICKETS,
+      roomSize: START_PLAYERS,
+      playerCount: visiblePlayerCount(room),
       ticketPrize: ticketPrize(room),
       previewCards: Array.from({ length: MAX_TICKETS }, () => generateCardNumbers()),
       displayStatus: getDisplayStatus(room),
@@ -101,6 +105,8 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
       user, room,
       error: message,
       maxTickets: MAX_TICKETS,
+      roomSize: START_PLAYERS,
+      playerCount: visiblePlayerCount(room),
       ticketPrize: ticketPrize(room),
       previewCards: Array.from({ length: MAX_TICKETS }, () => generateCardNumbers()),
       displayStatus: getDisplayStatus(room),
@@ -117,7 +123,16 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
     if (existing.length) return res.redirect('/gamestart/' + room._id);
 
     if (!hasRoomAccess(req, room)) return res.redirect('/room/' + room._id + '/code');
-    if (room.players.length >= room.maxPlayers) return renderErr('Otaq doludur');
+
+    // Real istifadəçiyə yer açmaq üçün lazım olsa süni oyunçu otaqdan çıxarılır
+    if (room.status !== 'started') {
+      while (visiblePlayerCount(room) >= START_PLAYERS && (room.bots || []).length) {
+        room.bots.pop();
+        room.markModified('bots');
+      }
+      if ((room.bots || []).length !== undefined) botEngine.recalcBotStake(room);
+    }
+    if (room.players.length >= START_PLAYERS) return renderErr('Otaq doludur');
 
     let tickets = null;
     if (req.body.tickets) {
@@ -190,6 +205,9 @@ router.get('/gamestart/:roomId', requireLogin, async (req, res) => {
       cards,
       card: cards[0],
       maxTickets: MAX_TICKETS,
+      roomSize: START_PLAYERS,
+      playerCount: visiblePlayerCount(room),
+      totalStake: Number(room.prize || 0),
       ticketPrize: ticketPrize(room),
       displayStatus: getDisplayStatus(room),
       secsLeft: getSecsLeft(room)
