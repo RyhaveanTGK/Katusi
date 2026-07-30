@@ -75,7 +75,19 @@ function _unusedGenerateCard() {
 }
 
 router.get('/rooms-status', apiAuth, async (req, res) => {
-  const rooms = await Room.find({}).sort({ sortOrder: 1, createdAt: 1 });
+  // ÖNƏMLİ: ana səhifə (routes/game.js "/") yalnız istifadəçinin görə bildiyi
+  // otaqları render edir. Əvvəl burada BÜTÜN otaqlar qaytarılırdı; başqa
+  // istifadəçinin özəl otağı üçün səhifədə kart tapılmadığından client
+  // "yeni otaq var" sanaraq hər 3 saniyədən bir səhifəni yeniləyirdi
+  // (sonsuz reload döngüsü). İndi eyni görünürlük filtri tətbiq olunur.
+  const unlocked = (req.session.unlockedRooms || []);
+  const rooms = await Room.find({
+    $or: [
+      { isCustom: { $ne: true } },
+      { ownerId: req.session.userId },
+      { _id: { $in: unlocked } }
+    ]
+  }).sort({ sortOrder: 1, createdAt: 1 });
   const now = Date.now();
   const data = rooms.map((r) => {
     // Başlamış / bitmiş otaqlar ana səhifədən silinir
