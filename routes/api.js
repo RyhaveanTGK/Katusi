@@ -5,7 +5,7 @@ const GameCard = require('../models/GameCard');
 const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
 const DepositCounter = require('../models/DepositCounter');
-const { flatCardNumbers, isCardComplete, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS } = require('../services/gameEngine');
+const { flatCardNumbers, isCardComplete, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 
 const apiAuth = (req, res, next) => {
@@ -75,7 +75,8 @@ router.get('/rooms-status', apiAuth, async (req, res) => {
       id:         r._id.toString(),
       status:     getDisplayStatus(r, now),
       raw_status: r.status,
-      player_count: r.players.length,
+      player_count: visiblePlayerCount(r),
+      bot_count:    (r.bots || []).length,
       prize:      Number(r.prize || 0),
       jackpot:    r.jackpotEnabled ? Number(r.jackpot || 0) : null,
       jackpot_ratio: Number(r.jackpotRatio || 1),
@@ -131,7 +132,9 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     ticket_label:    room.ticketLabel || 'TAM BİLET',
     status:          getDisplayStatus(room, now),
     raw_status:      room.status,
-    player_count:    room.players.length,
+    player_count:    visiblePlayerCount(room),
+    bot_count:       (room.bots || []).length,
+    bot_players:     (room.bots || []).map((b) => ({ name: b.name, marked: (b.marked || []).length })),
     prize:           Number(room.prize || 0),
     ticket_prize:    ticketPrize(room),
     entry_fee:       Number(room.entryFee || 0),
