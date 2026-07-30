@@ -6,7 +6,7 @@ const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const DepositCounter = require('../models/DepositCounter');
-const { flatCardNumbers, isCardComplete, isCardFull, linePrize, computeStakeTotal, LEAVE_COMMISSION, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake, canMarkNumber, missedNumbersFor, basePotOf, findJoinableRoom, MARK_GRACE_SEC } = require('../services/gameEngine');
+const { flatCardNumbers, isCardComplete, isCardFull, linePrize, computeStakeTotal, LEAVE_COMMISSION, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake, canMarkNumber, missedNumbersFor, basePotOf, findJoinableRoom, MARK_GRACE_SEC, capacityOf, startsInSec } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 
 const apiAuth = (req, res, next) => {
@@ -78,13 +78,16 @@ router.get('/rooms-status', apiAuth, async (req, res) => {
   const rooms = await Room.find({}).sort({ sortOrder: 1, createdAt: 1 });
   const now = Date.now();
   const data = rooms.map((r) => {
+    // Başlamış / bitmiş otaqlar ana səhifədən silinir
+    if (r.status !== 'waiting') return { id: r._id.toString(), removed: true };
     return {
       id:         r._id.toString(),
       status:     getDisplayStatus(r, now),
       raw_status: r.status,
       player_count: visiblePlayerCount(r),
-      room_size:    START_PLAYERS,
+      room_size:    capacityOf(r),
       slots_left:   slotsLeft(r),
+      starts_in:    startsInSec(r, now),
       bot_count:    (r.bots || []).length,
       prize:      Number(r.prize || 0),
       jackpot:    r.jackpotEnabled ? Number(r.jackpot || 0) : null,
@@ -141,8 +144,9 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     status:          getDisplayStatus(room, now),
     raw_status:      room.status,
     player_count:    visiblePlayerCount(room),
-    room_size:       START_PLAYERS,
+    room_size:       capacityOf(room),
     slots_left:      slotsLeft(room),
+    starts_in:       startsInSec(room, now),
     players:         roster,
     // Ortadakı ƏSAS mərc: linya uduşları ödəndikcə azalır
     total_stake:     Number(Number(room.prize || 0).toFixed(2)),
