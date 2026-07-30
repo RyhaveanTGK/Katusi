@@ -23,6 +23,10 @@ const MIN_SEED_BOTS = 2;          // hər otaqda ən azı 2 süni oyunçu
 const MAX_SEED_BOTS = 4;          // ilkin maksimum 4 süni oyunçu
 const MAX_TICKETS_PER_BOT = 3;
 
+// Otaqda bu qədər (və daha çox) real oyunçu varsa süni oyunçu OLMUR —
+// oyun bitənədək otaqda yalnız real istifadəçilər oynayır.
+const REAL_ONLY_THRESHOLD = 3;
+
 function rnd(max) { return Math.floor(Math.random() * max); }
 function pick(arr) { return arr[rnd(arr.length)]; }
 
@@ -47,6 +51,8 @@ function realPlayerCount(room) {
 function allowBots(room, roomSize = DEFAULT_ROOM_SIZE) {
   if (room.isCustom) return false;
   if (room.botsEnabled === false) return false;
+  // 3+ real oyunçu → botsuz oyun
+  if (realPlayerCount(room) >= REAL_ONLY_THRESHOLD) return false;
   return realPlayerCount(room) < roomSize;
 }
 
@@ -313,6 +319,7 @@ module.exports = {
   BOT_FAVOR_CHANCE,
   MIN_SEED_BOTS,
   MAX_SEED_BOTS,
+  REAL_ONLY_THRESHOLD,
   botWinningRow,
   botCompletedRows,
   botFullCardIndex,
