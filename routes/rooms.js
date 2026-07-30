@@ -5,7 +5,7 @@ const User    = require('../models/User');
 const Room    = require('../models/Room');
 const { requireLogin } = require('../middleware/auth');
 
-const MAX_CUSTOM_PLAYERS = 10;
+const MAX_CUSTOM_PLAYERS = 5;
 
 function randomCode(len = 6) {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -75,11 +75,11 @@ router.post('/room/create', requireLogin, async (req, res) => {
     sortOrder: 100,
     currentRoundId: 1,
     isCustom: true,
-    botsEnabled: true,
+    botsEnabled: false,
     ownerId: user._id,
     accessCode,
     inviteToken,
-    nextGameAt: new Date(Date.now() + 15000)
+    nextGameAt: null
   }).save();
 
   unlockRoom(req, room);
