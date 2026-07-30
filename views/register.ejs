@@ -83,7 +83,8 @@ body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background-color:#3
       <div class="form-title">Hesab yaradın</div>
       <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
       <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
-      <form method="POST" action="/register">
+      <form method="POST" action="/register" id="regForm">
+        <input type="hidden" name="deviceId" id="deviceId" value="">
         <% if (typeof query !== 'undefined' && query.ref) { %><input type="hidden" name="ref" value="<%= query.ref %>"><% } %>
         <div class="form-group">
           <label class="form-label">İstifadəçi adı</label>
@@ -128,5 +129,27 @@ body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background-color:#3
 function togglePwd(id,icId){const i=document.getElementById(id),ic=document.getElementById(icId),show=i.type==='password';i.type=show?'text':'password';ic.innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}
 </script>
 <script src="/assets/js/noselect.js"></script>
+<script>
+// ── Cihaz barmaq izi: referal bonusunun eyni cihazda təkrarlanmasının qarşısını alır ──
+(function(){
+  function fp(){
+    try{
+      var k='katusi_device_id';
+      var v=localStorage.getItem(k);
+      if(!v){
+        var seed=[navigator.userAgent,navigator.language,screen.width+'x'+screen.height,
+                  screen.colorDepth,new Date().getTimezoneOffset(),
+                  (navigator.hardwareConcurrency||0),(navigator.deviceMemory||0)].join('|');
+        var h=0; for(var i=0;i<seed.length;i++){ h=((h<<5)-h+seed.charCodeAt(i))|0; }
+        v = Math.abs(h).toString(36)+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+        localStorage.setItem(k,v);
+      }
+      return v;
+    }catch(e){ return ''; }
+  }
+  var el=document.getElementById('deviceId');
+  if(el) el.value=fp();
+})();
+</script>
 </body>
 </html>
