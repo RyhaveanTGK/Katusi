@@ -38,7 +38,27 @@
   box-shadow: 0 4px 12px -4px rgba(0,0,0,.45);
 }
 .balance-box .b-label{ font-size:12px; color:rgba(255,255,255,.75); font-weight:600; }
-.balance-box .b-value{ font-size:16px; font-weight:900; color:#f5c518; display:flex; align-items:center; gap:4px; }
+.balance-box .b-value{ font-size:16px; font-weight:900; color:#f5c518; display:flex; align-items:center; gap:4px; transition: color .25s ease, transform .25s ease; }
+.balance-box.bal-up .b-value{ color:#4ce07a; transform: scale(1.12); }
+.balance-box.bal-down .b-value{ color:#ff7a7a; transform: scale(.94); }
+.balance-box{ position:relative; }
+.bal-float{
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  font-size:13px; font-weight:900; pointer-events:none; opacity:0;
+  text-shadow:0 2px 6px rgba(0,0,0,.6); white-space:nowrap;
+}
+.bal-float.up{ color:#4ce07a; animation: bal-fly-up 1.15s ease forwards; }
+.bal-float.down{ color:#ff7a7a; animation: bal-fly-down 1.15s ease forwards; }
+@keyframes bal-fly-up{
+  0%{ opacity:0; transform:translateY(-10%) scale(.8); }
+  25%{ opacity:1; transform:translateY(-90%) scale(1.05); }
+  100%{ opacity:0; transform:translateY(-190%) scale(1); }
+}
+@keyframes bal-fly-down{
+  0%{ opacity:0; transform:translateY(-90%) scale(.8); }
+  25%{ opacity:1; transform:translateY(-10%) scale(1.05); }
+  100%{ opacity:0; transform:translateY(70%) scale(1); }
+}
 .coin-icon{ font-size:16px; color:#f5c518; line-height:1; }
 img.emoji{ height:1em; width:1em; margin:0 .05em 0 .1em; vertical-align:-0.12em; display:inline-block; }
 @media (max-width: 360px){
@@ -55,15 +75,78 @@ img.emoji{ height:1em; width:1em; margin:0 .05em 0 .1em; vertical-align:-0.12em;
       <span class="lg-chip" aria-hidden="true"></span>
       <span class="lg-one">One</span><span class="lg-loto">Loto</span>
     </a>
-    <a class="balance-box" href="/wallet">
+    <a class="balance-box" id="balanceBox" href="/wallet" data-balance="<%= user ? Number(user.balance || 0).toFixed(2) : '0.00' %>">
       <span class="b-label">Balans:</span>
       <span class="b-value">
-        <%= user ? user.balance.toFixed(2) : '0.00' %>
+        <span id="balanceValue"><%= user ? Number(user.balance || 0).toFixed(2) : '0.00' %></span>
         <span class="coin-icon">₼</span>
       </span>
     </a>
   </div>
 </div>
+
+<script>
+/* ── Balans animasiyası: pul əlavə olunduqda / çıxdıqda hərəkətli sayğac ── */
+(function(){
+  var box = document.getElementById('balanceBox');
+  var el  = document.getElementById('balanceValue');
+  if (!box || !el) return;
+
+  var current = parseFloat(box.dataset.balance || '0') || 0;
+  var raf = null;
+
+  function paint(v){ el.textContent = (Math.round(v * 100) / 100).toFixed(2); }
+
+  function floatLabel(delta){
+    var f = document.createElement('span');
+    f.className = 'bal-float ' + (delta > 0 ? 'up' : 'down');
+    f.textContent = (delta > 0 ? '+' : '−') + Math.abs(delta).toFixed(2) + ' ₼';
+    box.appendChild(f);
+    setTimeout(function(){ if (f.parentNode) f.parentNode.removeChild(f); }, 1300);
+  }
+
+  window.animateBalance = function(target, opts){
+    target = Number(target);
+    if (!isFinite(target)) return;
+    var from = current;
+    var delta = Number((target - from).toFixed(2));
+    current = target;
+    box.dataset.balance = target.toFixed(2);
+    try { localStorage.setItem('ol_balance', target.toFixed(2)); } catch(e){}
+    if (Math.abs(delta) < 0.005) { paint(target); return; }
+
+    box.classList.remove('bal-up','bal-down');
+    void box.offsetWidth;
+    box.classList.add(delta > 0 ? 'bal-up' : 'bal-down');
+    if (!opts || opts.label !== false) floatLabel(delta);
+
+    var start = performance.now(), dur = 900;
+    if (raf) cancelAnimationFrame(raf);
+    (function step(now){
+      var t = Math.min(1, (now - start) / dur);
+      var e = 1 - Math.pow(1 - t, 3);
+      paint(from + delta * e);
+      if (t < 1) raf = requestAnimationFrame(step);
+      else { paint(target); setTimeout(function(){ box.classList.remove('bal-up','bal-down'); }, 250); }
+    })(start);
+  };
+
+  window.getBalance = function(){ return current; };
+
+  // Səhifə keçidlərində (bilet alışı, uduş) fərqi animasiya ilə göstər
+  try {
+    var prev = parseFloat(localStorage.getItem('ol_balance'));
+    if (isFinite(prev) && Math.abs(prev - current) >= 0.005) {
+      var real = current;
+      current = prev;
+      paint(prev);
+      setTimeout(function(){ window.animateBalance(real); }, 260);
+    } else {
+      localStorage.setItem('ol_balance', current.toFixed(2));
+    }
+  } catch(e){}
+})();
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <script>
