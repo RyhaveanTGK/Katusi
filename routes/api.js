@@ -4,8 +4,9 @@ const Room    = require('../models/Room');
 const GameCard = require('../models/GameCard');
 const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
+const WinnerLog = require('../models/WinnerLog');
 const DepositCounter = require('../models/DepositCounter');
-const { flatCardNumbers, isCardComplete, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount } = require('../services/gameEngine');
+const { flatCardNumbers, isCardComplete, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 
 const apiAuth = (req, res, next) => {
@@ -44,7 +45,7 @@ function generateCard() { // legacy wrapper
 function _unusedGenerateCard() {
   const cols = [
     [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
-    [50, 59], [60, 69], [70, 79], [80, 90]
+    [50, 59], [60, 69], [70, 79], [80, 100]
   ];
   const card = [new Array(9).fill(0), new Array(9).fill(0), new Array(9).fill(0)];
   const used = Array.from({ length: 9 }, () => new Set());
@@ -98,16 +99,12 @@ router.get('/rooms-status', apiAuth, async (req, res) => {
 // Bütün otaqlardan ən son qazanan oyunçuların adı və məbləği.
 router.get('/latest-winners', async (req, res) => {
   try {
-    const games = await GameCard.find({ isWinner: true, claimedAt: { $ne: null } })
-      .sort({ claimedAt: -1 })
-      .limit(15)
-      .populate('userId', 'username')
-      .populate('roomId', 'name');
+    const games = await WinnerLog.find({}).sort({ createdAt: -1 }).limit(15);
     const out = games.map((g) => ({
-      name: g.userId ? g.userId.username : 'Oyunçu',
-      room: g.roomId ? g.roomId.name : 'Otaq',
+      name: g.name || 'Oyunçu',
+      room: g.roomName || 'Otaq',
       prize: Number(g.prize || 0),
-      at: g.claimedAt
+      at: g.createdAt
     }));
     res.json(out);
   } catch (e) {
@@ -126,6 +123,9 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     roundId: room.currentRoundId
   }).sort({ ticketIndex: 1, playedAt: 1 });
 
+  const roster = await roomRoster(room);
+  const me = await User.findById(req.session.userId).select('balance stars');
+
   res.json({
     id:              room._id.toString(),
     room_name:       room.name,
@@ -133,8 +133,10 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     status:          getDisplayStatus(room, now),
     raw_status:      room.status,
     player_count:    visiblePlayerCount(room),
-    bot_count:       (room.bots || []).length,
-    bot_players:     (room.bots || []).map((b) => ({ name: b.name, marked: (b.marked || []).length })),
+    players:         roster,
+    total_stake:     totalStake(room),
+    balance:         Number((me && me.balance) || 0),
+    stars:           Number((me && me.stars) || 0),
     prize:           Number(room.prize || 0),
     ticket_prize:    ticketPrize(room),
     entry_fee:       Number(room.entryFee || 0),
@@ -170,6 +172,12 @@ router.post('/card/:roomId/toggle', apiAuth, async (req, res) => {
   if (!flatCardNumbers(card).includes(number)) return res.status(400).json({ error: 'Bu rəqəm biletdə yoxdur' });
   if (!(room.drawnNumbers || []).includes(number)) return res.status(400).json({ error: 'Bu daş hələ çıxmayıb' });
 
+  const marksNow = new Set((card.markedNumbers || []).map(Number));
+  // Vaxtında qeyd edilməyən daş bağlanır: yalnız ən son çıxan daş qeyd oluna bilər
+  if (!marksNow.has(number) && Number(room.currentNumber) !== number) {
+    return res.status(400).json({ error: 'Bu daşın vaxtı keçdi' });
+  }
+
   const marks = new Set((card.markedNumbers || []).map(Number));
   if (marks.has(number)) marks.delete(number);
   else marks.add(number);
@@ -179,7 +187,15 @@ router.post('/card/:roomId/toggle', apiAuth, async (req, res) => {
 
   const result = await claimRoomWin(room._id, req.session.userId, card._id);
   const fresh = await GameCard.findById(card._id);
-  res.json({ ok: true, won: result.won, prize: result.prize, card: cardToClient(fresh || card, room) });
+  const me = await User.findById(req.session.userId).select('balance stars');
+  res.json({
+    ok: true,
+    won: result.won,
+    prize: result.prize,
+    balance: Number((me && me.balance) || 0),
+    stars: Number((me && me.stars) || 0),
+    card: cardToClient(fresh || card, room)
+  });
 });
 
 // Auto rejim tamamilə söndürülüb.
