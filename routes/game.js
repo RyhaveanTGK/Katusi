@@ -6,7 +6,7 @@ const GameCard = require('../models/GameCard');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const { requireLogin } = require('../middleware/auth');
-const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, START_PLAYERS, slotsLeft, botEngine, findJoinableRoom } = require('../services/gameEngine');
+const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, START_PLAYERS, slotsLeft, botEngine, findJoinableRoom, capacityOf, startsInSec } = require('../services/gameEngine');
 const { hasRoomAccess } = require('./rooms');
 
 function generateCard() {
@@ -59,10 +59,15 @@ router.get('/', requireLogin, async (req, res) => {
   }).sort({ sortOrder: 1, createdAt: 1 });
   const now = Date.now();
 
-  const roomsData = rooms.map((room) => ({
+  // Başlamış (və bitmiş) otaqlar ana səhifədə göstərilmir —
+  // yalnız yeni və dolmaqda olan otaqlar siyahıda qalır.
+  const visibleRooms = rooms.filter((room) => room.status === 'waiting');
+
+  const roomsData = visibleRooms.map((room) => ({
     ...room.toObject(),
     playerCount: visiblePlayerCount(room),
-    roomSize: START_PLAYERS,
+    roomSize: capacityOf(room),
+    startsIn: startsInSec(room, now),
     slotsLeft: slotsLeft(room),
     botCount: (room.bots || []).length,
     hasJoined: room.players.map((p) => p.toString()).includes(req.session.userId),
@@ -83,7 +88,7 @@ router.get('/join/:roomId', requireLogin, async (req, res) => {
     if (cards.length) return res.redirect('/gamestart/' + room._id);
 
     // Gedən oyuna qoşulmaq olmaz — boş (yeni) otağa yönləndirilir
-    if (room.status !== 'waiting' || visiblePlayerCount(room) >= START_PLAYERS) {
+    if (room.status !== 'waiting' || visiblePlayerCount(room) >= capacityOf(room)) {
       const open = await findJoinableRoom(room);
       if (open && String(open._id) !== String(room._id)) return res.redirect('/join/' + open._id);
       return res.redirect('/');
@@ -93,7 +98,7 @@ router.get('/join/:roomId', requireLogin, async (req, res) => {
       user,
       room,
       maxTickets: MAX_TICKETS,
-      roomSize: START_PLAYERS,
+      roomSize: capacityOf(room),
       playerCount: visiblePlayerCount(room),
       ticketPrize: ticketPrize(room),
       previewCards: Array.from({ length: MAX_TICKETS }, () => generateCardNumbers()),
@@ -112,7 +117,7 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
       user, room,
       error: message,
       maxTickets: MAX_TICKETS,
-      roomSize: START_PLAYERS,
+      roomSize: capacityOf(room),
       playerCount: visiblePlayerCount(room),
       ticketPrize: ticketPrize(room),
       previewCards: Array.from({ length: MAX_TICKETS }, () => generateCardNumbers()),
@@ -141,7 +146,7 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
     // Real istifadəçiyə yer açmaq üçün lazım olsa süni oyunçu otaqdan çıxarılır
     if (room.status !== 'started') {
       const alreadyIn = room.players.map(String).includes(String(user._id));
-      while ((room.players.length + (alreadyIn ? 0 : 1) + (room.bots || []).length) > START_PLAYERS && (room.bots || []).length) {
+      while ((room.players.length + (alreadyIn ? 0 : 1) + (room.bots || []).length) > capacityOf(room) && (room.bots || []).length) {
         room.bots.pop();
         room.markModified('bots');
       }
@@ -152,7 +157,7 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
       }
       botEngine.recalcBotStake(room);
     }
-    if (room.players.length >= START_PLAYERS) return renderErr('Otaq doludur');
+    if (room.players.length >= capacityOf(room)) return renderErr('Otaq doludur');
 
     let tickets = null;
     if (req.body.tickets) {
@@ -226,7 +231,7 @@ router.get('/gamestart/:roomId', requireLogin, async (req, res) => {
       cards,
       card: cards[0],
       maxTickets: MAX_TICKETS,
-      roomSize: START_PLAYERS,
+      roomSize: capacityOf(room),
       playerCount: visiblePlayerCount(room),
       // Ortadakı ƏSAS mərc — linya uduşları ödəndikcə azalır
       totalStake: Number(Number(room.prize || 0).toFixed(2)),
