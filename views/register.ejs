@@ -48,6 +48,23 @@ body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background-color:#3
 .btn-qeydiyyat{background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);color:#fff;font-weight:800;font-size:13px;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;}
 .footer-bar{background:rgba(20,5,35,.7);border-top:1px solid rgba(255,255,255,.1);padding:16px 16px 12px;margin-top:20px;}
 .footer-copy{text-align:center;font-size:10px;color:rgba(255,255,255,.4);padding:8px 0 4px;}
+.section-sep{display:flex;align-items:center;gap:10px;margin:20px 0 14px;}
+.section-sep span{font-size:11px;font-weight:900;letter-spacing:1px;color:#f5c518;text-transform:uppercase;white-space:nowrap;}
+.section-sep i{flex:1;height:1px;background:rgba(255,255,255,.18);}
+.file-drop{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px dashed rgba(255,255,255,.28);border-radius:14px;background:rgba(255,255,255,.06);cursor:pointer;transition:border-color .2s,background .2s;}
+.file-drop:hover{border-color:#f5c518;background:rgba(245,197,24,.08);}
+.file-drop.filled{border-style:solid;border-color:#60e0a0;background:rgba(0,200,100,.1);}
+.file-drop input{display:none;}
+.fd-ico{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 40px;}
+.fd-txt{min-width:0;}
+.fd-t{font-size:13px;font-weight:800;}
+.fd-s{font-size:11px;color:rgba(255,255,255,.5);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fd-prev{width:44px;height:44px;border-radius:10px;object-fit:cover;margin-left:auto;display:none;border:1px solid rgba(255,255,255,.25);}
+.fd-prev.show{display:block;}
+.age-note{font-size:11px;font-weight:700;color:rgba(255,255,255,.55);margin-top:6px;}
+.age-note.bad{color:#ff8080;}
+.age-note.good{color:#60e0a0;}
+input[type="date"].form-input{color-scheme:dark;}
 .age18{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.4);font-size:8px;font-weight:700;color:rgba(255,255,255,.5);display:inline-flex;align-items:center;justify-content:center;margin-right:4px;vertical-align:middle;}
 </style>
 </head>
@@ -76,14 +93,14 @@ body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background-color:#3
   <div class="content-wrap">
     <div class="logo-center">
       <div class="logo-main">
-        <span class="red">Bır</span><span class="logo-ball"></span><span class="white">loto.com</span>
+        <span class="red">One</span><span class="logo-ball"></span><span class="white">Loto.com</span>
       </div>
     </div>
     <div class="form-card">
       <div class="form-title">Hesab yaradın</div>
       <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
       <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
-      <form method="POST" action="/register" id="regForm">
+      <form method="POST" action="/register" id="regForm" enctype="multipart/form-data">
         <input type="hidden" name="deviceId" id="deviceId" value="">
         <% if (typeof query !== 'undefined' && query.ref) { %><input type="hidden" name="ref" value="<%= query.ref %>"><% } %>
         <div class="form-group">
@@ -116,6 +133,46 @@ body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background-color:#3
             </button>
           </div>
         </div>
+        <div class="section-sep"><i></i><span>Şəxsiyyət məlumatları</span><i></i></div>
+
+        <div class="form-group">
+          <label class="form-label">Real Ad Soyad</label>
+          <input class="form-input" type="text" name="fullName" placeholder="Ad və soyadınız" required minlength="5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Doğum tarixi</label>
+          <input class="form-input" type="date" name="birthDate" id="birthDate" required>
+          <div class="age-note" id="ageNote">Qeydiyyat yalnız 18 yaşdan yuxarı şəxslər üçündür.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passport nömrəsi</label>
+          <input class="form-input" type="text" name="passportNumber" placeholder="məs. AZE1234567" required minlength="5" style="text-transform:uppercase">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passport şəkili</label>
+          <label class="file-drop" id="drop-passport">
+            <span class="fd-ico">🪪</span>
+            <span class="fd-txt">
+              <span class="fd-t">Passport şəkilini əlavə et</span>
+              <span class="fd-s" id="name-passport">JPG / PNG · maks. 6 MB</span>
+            </span>
+            <img class="fd-prev" id="prev-passport" alt="">
+            <input type="file" name="passportPhoto" id="file-passport" accept="image/*" required>
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Üz şəkili</label>
+          <label class="file-drop" id="drop-face">
+            <span class="fd-ico">🤳</span>
+            <span class="fd-txt">
+              <span class="fd-t">Üz şəkilinizi əlavə et</span>
+              <span class="fd-s" id="name-face">JPG / PNG · maks. 6 MB</span>
+            </span>
+            <img class="fd-prev" id="prev-face" alt="">
+            <input type="file" name="facePhoto" id="file-face" accept="image/*" capture="user" required>
+          </label>
+        </div>
+
         <button type="submit" class="btn-register">Qeydiyyatdan keç</button>
       </form>
       <div class="login-note">Hesabınız var? <a href="/login">Giriş edin</a></div>
@@ -149,6 +206,62 @@ function togglePwd(id,icId){const i=document.getElementById(id),ic=document.getE
   }
   var el=document.getElementById('deviceId');
   if(el) el.value=fp();
+})();
+
+/* ── Yaş yoxlaması: 18-dən kiçiklər qeydiyyatdan keçə bilməz ── */
+(function(){
+  var bd = document.getElementById('birthDate');
+  var note = document.getElementById('ageNote');
+  var form = document.getElementById('regForm');
+  if (!bd || !form) return;
+
+  var max = new Date(); max.setFullYear(max.getFullYear() - 18);
+  bd.max = max.toISOString().slice(0,10);
+
+  function ageOf(v){
+    var d = new Date(v); if (isNaN(d.getTime())) return null;
+    var n = new Date(), a = n.getFullYear() - d.getFullYear(), m = n.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && n.getDate() < d.getDate())) a--;
+    return a;
+  }
+  function check(silent){
+    var a = ageOf(bd.value);
+    note.classList.remove('bad','good');
+    if (a === null){ note.textContent = 'Qeydiyyat yalnız 18 yaşdan yuxarı şəxslər üçündür.'; return false; }
+    if (a < 18){ note.classList.add('bad'); note.textContent = 'Yaşınız ' + a + ' — 18 yaşdan kiçik şəxslər qeydiyyatdan keçə bilməz.'; return false; }
+    note.classList.add('good'); note.textContent = 'Yaş təsdiqləndi (' + a + ').';
+    return true;
+  }
+  bd.addEventListener('change', function(){ check(); });
+  bd.addEventListener('input', function(){ check(); });
+  form.addEventListener('submit', function(e){
+    if (!check()){ e.preventDefault(); bd.focus(); }
+  });
+})();
+
+/* ── Şəkil seçimi: ad + kiçik önizləmə ── */
+(function(){
+  [['passport','file-passport'],['face','file-face']].forEach(function(pair){
+    var key = pair[0];
+    var input = document.getElementById(pair[1]);
+    var drop  = document.getElementById('drop-' + key);
+    var nameEl= document.getElementById('name-' + key);
+    var prev  = document.getElementById('prev-' + key);
+    if (!input) return;
+    input.addEventListener('change', function(){
+      var f = input.files && input.files[0];
+      if (!f){ drop.classList.remove('filled'); prev.classList.remove('show'); return; }
+      if (f.size > 6 * 1024 * 1024){
+        alert('Şəkil 6 MB-dan böyük olmamalıdır'); input.value = '';
+        drop.classList.remove('filled'); prev.classList.remove('show'); return;
+      }
+      drop.classList.add('filled');
+      nameEl.textContent = f.name;
+      var r = new FileReader();
+      r.onload = function(ev){ prev.src = ev.target.result; prev.classList.add('show'); };
+      r.readAsDataURL(f);
+    });
+  });
 })();
 </script>
 </body>
