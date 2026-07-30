@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const { ensureDefaultRooms, startGameLoop } = require('./services/gameEngine');
 const { startBotPolling } = require('./services/telegramBot');
+const { ensureDefaultPaymentMethods } = require('./services/paymentMethods');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -122,6 +123,7 @@ async function connectDB(attempt = 1) {
     await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
     console.log('MongoDB connected');
     await ensureDefaultRooms();
+    await ensureDefaultPaymentMethods();
     startGameLoop();
     try { startBotPolling(); } catch (e) { console.error('Telegram polling start failed:', e.message); }
   } catch (e) {
