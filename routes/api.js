@@ -6,7 +6,7 @@ const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const DepositCounter = require('../models/DepositCounter');
-const { flatCardNumbers, isCardComplete, isCardFull, linePrize, computeStakeTotal, LEAVE_COMMISSION, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake } = require('../services/gameEngine');
+const { flatCardNumbers, isCardComplete, isCardFull, linePrize, computeStakeTotal, LEAVE_COMMISSION, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake, canMarkNumber, missedNumbersFor, basePotOf, findJoinableRoom, MARK_GRACE_SEC } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 
 const apiAuth = (req, res, next) => {
@@ -24,6 +24,9 @@ function cardToClient(card, room) {
   const drawn = new Set((room.drawnNumbers || []).map(Number));
   const allNumbers = flatCardNumbers(card);
   const marks = new Set((card.markedNumbers || []).map(Number));
+  const now = Date.now();
+  const missed = missedNumbersFor(room, card, now);
+  const missedSet = new Set(missed.map(Number));
   return {
     id: card._id.toString(),
     round_id: card.roundId,
@@ -37,7 +40,8 @@ function cardToClient(card, room) {
     prize: Number(card.prize || 0),
     ticket_index: Number(card.ticketIndex || 1),
     matched_numbers: allNumbers.filter((n) => drawn.has(Number(n))),
-    unmarked_drawn_numbers: allNumbers.filter((n) => drawn.has(Number(n)) && !marks.has(Number(n)))
+    missed_numbers: missed,
+    unmarked_drawn_numbers: allNumbers.filter((n) => drawn.has(Number(n)) && !marks.has(Number(n)) && !missedSet.has(Number(n)))
   };
 }
 
@@ -140,10 +144,10 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     room_size:       START_PLAYERS,
     slots_left:      slotsLeft(room),
     players:         roster,
-    total_stake:     Number(Math.max(
-      roster.reduce((sum, p) => sum + Number(p.stake || 0), 0),
-      totalStake(room)
-    ).toFixed(2)),
+    // Ortadakı ƏSAS mərc: linya uduşları ödəndikcə azalır
+    total_stake:     Number(Number(room.prize || 0).toFixed(2)),
+    base_pot:        basePotOf(room),
+    mark_grace_sec:  Number(room.markGraceSec || MARK_GRACE_SEC),
     balance:         Number((me && me.balance) || 0),
     stars:           Number((me && me.stars) || 0),
     prize:           Number(room.prize || 0),
@@ -188,6 +192,11 @@ router.post('/card/:roomId/toggle', apiAuth, async (req, res) => {
   const number = Number(req.body.number);
   if (!flatCardNumbers(card).includes(number)) return res.status(400).json({ error: 'Bu rəqəm biletdə yoxdur' });
   if (!(room.drawnNumbers || []).includes(number)) return res.status(400).json({ error: 'Bu daş hələ çıxmayıb' });
+  const alreadyMarked = (card.markedNumbers || []).map(Number).includes(number);
+  // Vaxtında qoyulmayan daş bloklanır və sayılmır
+  if (!alreadyMarked && !canMarkNumber(room, number)) {
+    return res.status(400).json({ error: 'Vaxt bitdi — bu daş bloklandı', missed: true, card: cardToClient(card, room) });
+  }
 
   // Çıxmış istənilən daş istənilən vaxt qoyula bilər (1-ci linyadan sonra da).
   const marks = new Set((card.markedNumbers || []).map(Number));
@@ -280,6 +289,11 @@ router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
 
     const user = await User.findById(req.session.userId);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    if (room.status !== 'waiting') {
+      const open = await findJoinableRoom(room);
+      return res.status(400).json({ error: 'Oyun başlayıb — yeni otağa keçin', redirect: open ? '/join/' + open._id : '/' });
+    }
 
     const incoming = Array.isArray(req.body.tickets) ? req.body.tickets : null;
     let quantity = incoming ? incoming.length : (parseInt(req.body.quantity, 10) || 1);
