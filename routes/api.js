@@ -5,7 +5,7 @@ const GameCard = require('../models/GameCard');
 const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
 const DepositCounter = require('../models/DepositCounter');
-const { flatCardNumbers, isCardComplete, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound } = require('../services/gameEngine');
+const { flatCardNumbers, isCardComplete, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 
 const apiAuth = (req, res, next) => {
@@ -30,12 +30,18 @@ function cardToClient(card, room) {
     marked_numbers: card.markedNumbers || [],
     auto_daub: !!card.autoDaub,
     is_complete: isCardComplete(card),
+    is_winner: !!card.isWinner,
+    prize: Number(card.prize || 0),
+    ticket_index: Number(card.ticketIndex || 1),
     matched_numbers: allNumbers.filter((n) => drawn.has(Number(n))),
     unmarked_drawn_numbers: allNumbers.filter((n) => drawn.has(Number(n)) && !marks.has(Number(n)))
   };
 }
 
-function generateCard() {
+function generateCard() { // legacy wrapper
+  return generateCardNumbers();
+}
+function _unusedGenerateCard() {
   const cols = [
     [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
     [50, 59], [60, 69], [70, 79], [80, 90]
@@ -112,35 +118,13 @@ router.get('/room/:id', apiAuth, async (req, res) => {
   const room = await Room.findById(req.params.id);
   if (!room) return res.status(404).json({ error: 'Not found' });
 
-  const card = await GameCard.findOne({ userId: req.session.userId, roomId: room._id, roundId: room.currentRoundId }).sort({ playedAt: -1 });
   const now = Date.now();
+  const cards = await GameCard.find({
+    userId: req.session.userId,
+    roomId: room._id,
+    roundId: room.currentRoundId
+  }).sort({ ticketIndex: 1, playedAt: 1 });
 
-  // İstifadəçi qoşulmayıbsa və round başlayıbsa, avtomatik kart ver
-  let autoJoin = false;
-  if (!card && (room.status === 'started' || getDisplayStatus(room, now) === 'starting')) {
-    const user = await User.findById(req.session.userId);
-    if (user && user.balance >= Number(room.entryFee || 0) && user.balance > 0) {
-      user.balance -= Number(room.entryFee || 0);
-      user.gamesPlayed += 1;
-      await user.save();
-      room.players.push(user._id);
-      room.prize = Number(room.prize || 0) + Number(room.entryFee || 0);
-      if (room.jackpotEnabled) room.jackpot = Number(room.jackpot || 0) + Number(room.entryFee || 0);
-      await room.save();
-      const newCard = new GameCard({
-        userId: user._id,
-        roomId: room._id,
-        roundId: room.currentRoundId,
-        numbers: generateCard(),
-        markedNumbers: [],
-        autoDaub: false
-      });
-      await newCard.save();
-      autoJoin = true;
-    }
-  }
-
-  const finalCard = card || await GameCard.findOne({ userId: req.session.userId, roomId: room._id, roundId: room.currentRoundId }).sort({ playedAt: -1 });
   res.json({
     id:              room._id.toString(),
     room_name:       room.name,
@@ -149,6 +133,8 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     raw_status:      room.status,
     player_count:    room.players.length,
     prize:           Number(room.prize || 0),
+    ticket_prize:    ticketPrize(room),
+    entry_fee:       Number(room.entryFee || 0),
     jackpot:         room.jackpotEnabled ? Number(room.jackpot || 0) : null,
     jackpot_ratio:   Number(room.jackpotRatio || 1),
     secs_left:       getSecsLeft(room, now),
@@ -160,21 +146,26 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     star_prize:      Number(room.starPrize || 0),
     multiplier:      room.prizeMultiplier || 'x2',
     current_round_id: Number(room.currentRoundId || 1),
-    auto_joined:     autoJoin,
-    card:            cardToClient(finalCard, room)
+    max_tickets:     MAX_TICKETS,
+    cards:           cards.map((c) => cardToClient(c, room)),
+    card:            cards.length ? cardToClient(cards[0], room) : null
   });
 });
 
+// Daşı bilete qoy / götür. Bilet tam dolduqda avtomatik qazanılır.
 router.post('/card/:roomId/toggle', apiAuth, async (req, res) => {
   const room = await Room.findById(req.params.roomId);
   if (!room) return res.status(404).json({ error: 'Room not found' });
 
-  const card = await GameCard.findOne({ userId: req.session.userId, roomId: room._id, roundId: room.currentRoundId }).sort({ playedAt: -1 });
-  if (!card) return res.status(404).json({ error: 'Card not found' });
+  const query = { userId: req.session.userId, roomId: room._id, roundId: room.currentRoundId };
+  if (req.body.cardId) query._id = req.body.cardId;
+  const card = await GameCard.findOne(query).sort({ ticketIndex: 1, playedAt: 1 });
+  if (!card) return res.status(404).json({ error: 'Bilet tapılmadı' });
+  if (card.isWinner) return res.json({ ok: true, won: false, card: cardToClient(card, room) });
 
   const number = Number(req.body.number);
-  if (!flatCardNumbers(card).includes(number)) return res.status(400).json({ error: 'Number is not on card' });
-  if (!(room.drawnNumbers || []).includes(number)) return res.status(400).json({ error: 'Number has not been drawn yet' });
+  if (!flatCardNumbers(card).includes(number)) return res.status(400).json({ error: 'Bu rəqəm biletdə yoxdur' });
+  if (!(room.drawnNumbers || []).includes(number)) return res.status(400).json({ error: 'Bu daş hələ çıxmayıb' });
 
   const marks = new Set((card.markedNumbers || []).map(Number));
   if (marks.has(number)) marks.delete(number);
@@ -183,49 +174,30 @@ router.post('/card/:roomId/toggle', apiAuth, async (req, res) => {
   card.completedAt = isCardComplete(card) ? (card.completedAt || new Date()) : null;
   await card.save();
 
-  const won = await claimRoomWin(room._id, req.session.userId);
-  res.json({ ok: true, won, card: cardToClient(card, room) });
+  const result = await claimRoomWin(room._id, req.session.userId, card._id);
+  const fresh = await GameCard.findById(card._id);
+  res.json({ ok: true, won: result.won, prize: result.prize, card: cardToClient(fresh || card, room) });
 });
 
+// Auto rejim tamamilə söndürülüb.
 router.post('/card/:roomId/auto', apiAuth, async (req, res) => {
-  const room = await Room.findById(req.params.roomId);
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-
-  const card = await GameCard.findOne({ userId: req.session.userId, roomId: room._id, roundId: room.currentRoundId }).sort({ playedAt: -1 });
-  if (!card) return res.status(404).json({ error: 'Card not found' });
-
-  const enabled = typeof req.body.enabled === 'boolean' ? req.body.enabled : String(req.body.enabled) === 'true';
-  card.autoDaub = enabled;
-
-  if (enabled) {
-    const drawn = new Set((room.drawnNumbers || []).map(Number));
-    const merged = new Set((card.markedNumbers || []).map(Number));
-    flatCardNumbers(card).forEach((n) => { if (drawn.has(Number(n))) merged.add(Number(n)); });
-    card.markedNumbers = [...merged].sort((a, b) => a - b);
-    card.completedAt = isCardComplete(card) ? (card.completedAt || new Date()) : null;
-  }
-
-  await card.save();
-  const won = await claimRoomWin(room._id, req.session.userId);
-  res.json({ ok: true, won, card: cardToClient(card, room) });
+  res.status(410).json({ error: 'Avto rejim aktiv deyil' });
 });
 
-// Yeni round başladıqda köhnə kartı bazadan götürür, yeni kart yaradır.
+
+// Biletin rəqəmlərini yenilə (yalnız oyun başlamazdan əvvəl mümkündür deyil — istənilən vaxt round-un öz bileti üçün)
 router.post('/card/:roomId/regenerate', apiAuth, async (req, res) => {
   try {
     const room = await Room.findById(req.params.roomId);
     if (!room) return res.status(404).json({ error: 'Room not found' });
 
-    // Round hələ başlamayıbsa → yeni kart; başlayıbsa server özü yeni round-da verəcək.
-    const existing = await GameCard.findOne({
-      userId: req.session.userId,
-      roomId: room._id,
-      roundId: room.currentRoundId
-    }).sort({ playedAt: -1 });
+    const query = { userId: req.session.userId, roomId: room._id, roundId: room.currentRoundId };
+    if (req.body.cardId) query._id = req.body.cardId;
+    const existing = await GameCard.findOne(query).sort({ ticketIndex: 1, playedAt: 1 });
+    if (!existing) return res.status(404).json({ error: 'Bilet tapılmadı' });
+    if (existing.isWinner) return res.status(400).json({ error: 'Qazanan bileti dəyişmək olmaz' });
 
-    if (!existing) return res.status(404).json({ error: 'Card not found' });
-
-    existing.numbers = generateCard();
+    existing.numbers = generateCardNumbers();
     existing.markedNumbers = [];
     existing.completedAt = null;
     await existing.save();
@@ -241,13 +213,10 @@ router.post('/card/:roomId/reset-marks', apiAuth, async (req, res) => {
     const room = await Room.findById(req.params.roomId);
     if (!room) return res.status(404).json({ error: 'Room not found' });
 
-    const card = await GameCard.findOne({
-      userId: req.session.userId,
-      roomId: room._id,
-      roundId: room.currentRoundId
-    }).sort({ playedAt: -1 });
-
-    if (!card) return res.status(404).json({ error: 'Card not found' });
+    const query = { userId: req.session.userId, roomId: room._id, roundId: room.currentRoundId };
+    if (req.body.cardId) query._id = req.body.cardId;
+    const card = await GameCard.findOne(query).sort({ ticketIndex: 1, playedAt: 1 });
+    if (!card) return res.status(404).json({ error: 'Bilet tapılmadı' });
 
     card.markedNumbers = [];
     card.completedAt = null;
@@ -259,24 +228,45 @@ router.post('/card/:roomId/reset-marks', apiAuth, async (req, res) => {
   }
 });
 
+/**
+ * Bilet al — maksimum 5 ədəd.
+ * body: { quantity: 1..5, tickets?: [[[..9],[..9],[..9]], ...] }
+ * Lobbidə "yenilə / dəyiş" ilə seçilmiş bilet rəqəmləri göndərilə bilər.
+ */
 router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
   try {
     const room = await Room.findById(req.params.roomId);
-    if (!room) return res.status(404).json({ error: 'Room not found' });
+    if (!room) return res.status(404).json({ error: 'Otaq tapılmadı' });
 
-    const quantity = Math.max(1, Math.min(10, parseInt(req.body.quantity, 10) || 1));
     const user = await User.findById(req.session.userId);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const feePerCard = Number(room.entryFee || 0);
-    const totalFee = feePerCard * quantity;
+    const incoming = Array.isArray(req.body.tickets) ? req.body.tickets : null;
+    let quantity = incoming ? incoming.length : (parseInt(req.body.quantity, 10) || 1);
+    quantity = Math.max(1, Math.min(MAX_TICKETS, quantity));
 
-    if (user.balance < totalFee) {
+    const owned = await GameCard.countDocuments({
+      userId: user._id, roomId: room._id, roundId: room.currentRoundId
+    });
+    if (owned >= MAX_TICKETS) {
+      return res.status(400).json({ error: `Maksimum ${MAX_TICKETS} bilet ala bilərsiniz` });
+    }
+    quantity = Math.min(quantity, MAX_TICKETS - owned);
+
+    const feePerCard = Number(room.entryFee || 0);
+    const totalFee = Number((feePerCard * quantity).toFixed(2));
+    const isStars = room.type === 'stars';
+
+    if (isStars && Number(user.stars || 0) < totalFee) {
+      return res.status(400).json({ error: 'Ulduzlarınız kifayət etmir' });
+    }
+    if (!isStars && Number(user.balance || 0) < totalFee) {
       return res.status(400).json({ error: 'Balans kifayət deyil' });
     }
 
-    user.balance -= totalFee;
-    user.gamesPlayed += quantity;
+    if (isStars) user.stars = Number(user.stars || 0) - totalFee;
+    else user.balance = Number(user.balance || 0) - totalFee;
+    user.gamesPlayed = Number(user.gamesPlayed || 0) + quantity;
     await user.save();
 
     if (!room.players.map(String).includes(String(user._id))) {
@@ -286,39 +276,44 @@ router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
     if (room.jackpotEnabled) room.jackpot = Number(room.jackpot || 0) + totalFee;
     await room.save();
 
-    let baseCard = await GameCard.findOne({
-      userId: user._id, roomId: room._id, roundId: room.currentRoundId
-    }).sort({ playedAt: -1 });
-
-    if (!baseCard) {
-      baseCard = new GameCard({
-        userId: user._id, roomId: room._id, roundId: room.currentRoundId,
-        numbers: generateCard(), markedNumbers: [], autoDaub: false
+    const created = [];
+    for (let i = 0; i < quantity; i++) {
+      const numbers = incoming && Array.isArray(incoming[i]) && incoming[i].length === 3
+        ? incoming[i].map((row) => row.map((n) => Number(n) || 0))
+        : generateCardNumbers();
+      const card = new GameCard({
+        userId: user._id,
+        roomId: room._id,
+        roundId: room.currentRoundId,
+        ticketIndex: owned + i + 1,
+        numbers,
+        markedNumbers: [],
+        autoDaub: false
       });
-    } else {
-      baseCard.numbers = generateCard();
-      baseCard.markedNumbers = [];
-      baseCard.completedAt = null;
+      await card.save();
+      created.push(cardToClient(card, room));
     }
-    await baseCard.save();
 
-    await new Transaction({
-      userId: user._id,
-      type: 'game_join',
-      amount: -totalFee,
-      status: 'completed',
-      note: `${room.name} otağına ${quantity} bilet`
-    }).save();
+    if (!isStars) {
+      await new Transaction({
+        userId: user._id,
+        type: 'game_join',
+        amount: -totalFee,
+        status: 'completed',
+        note: `${room.name} otağına ${quantity} bilet`
+      }).save();
+    }
 
-    res.json({ ok: true, quantity, total: totalFee, card: cardToClient(baseCard, room) });
+    res.json({ ok: true, quantity, total: totalFee, cards: created, card: created[0] || null, balance: Number(user.balance || 0) });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
+
 router.post('/room/:id/claim-win', apiAuth, async (req, res) => {
-  const won = await claimRoomWin(req.params.id, req.session.userId);
-  res.json({ ok: true, won });
+  const result = await claimRoomWin(req.params.id, req.session.userId, req.body && req.body.cardId);
+  res.json({ ok: true, won: result.won, prize: result.prize });
 });
 
 // Oyunçu hazırkı round-da oynamır, amma növbəti round avtomatik
@@ -366,15 +361,6 @@ router.post('/admin/rooms/:id/draw', apiAdmin, async (req, res) => {
   room.currentNumber = num;
   room.lastDrawAt = new Date();
   await room.save();
-
-  const autoCards = await GameCard.find({ roomId: room._id, roundId: room.currentRoundId, autoDaub: true });
-  for (const card of autoCards) {
-    if (flatCardNumbers(card).includes(num) && !(card.markedNumbers || []).includes(num)) {
-      card.markedNumbers = [...new Set([...(card.markedNumbers || []), num])];
-      card.completedAt = isCardComplete(card) ? (card.completedAt || new Date()) : null;
-      await card.save();
-    }
-  }
 
   res.json({ ok: true, number: num, all: room.drawnNumbers });
 });
