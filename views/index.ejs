@@ -461,7 +461,13 @@ function applyState(card, info){
           if (!card){ needsReload = true; return; }   // yeni açılan otaq
           applyState(card, info);
         });
+        // Təhlükəsizlik: hər hansı uyğunsuzluq halında səhifə sonsuz
+        // yenilənməsin — bir səhifə açılışında maksimum 1 dəfə reload.
         if (needsReload && !window.__reloading){
+          var lastReload = 0;
+          try { lastReload = Number(sessionStorage.getItem('roomsReloadAt') || 0); } catch(e){}
+          if (Date.now() - lastReload < 15000) return;
+          try { sessionStorage.setItem('roomsReloadAt', String(Date.now())); } catch(e){}
           window.__reloading = true;
           setTimeout(function(){ window.location.reload(); }, 400);
         }
