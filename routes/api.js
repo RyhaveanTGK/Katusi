@@ -6,7 +6,7 @@ const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const DepositCounter = require('../models/DepositCounter');
-const { flatCardNumbers, isCardComplete, START_PLAYERS, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake } = require('../services/gameEngine');
+const { flatCardNumbers, isCardComplete, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 
 const apiAuth = (req, res, next) => {
@@ -85,13 +85,13 @@ router.get('/rooms-status', apiAuth, async (req, res) => {
       jackpot_ratio: Number(r.jackpotRatio || 1),
       secs_left:  getSecsLeft(r, now),
       win_count:  Number(r.winCount || 0),
-      winner_nums: r.winnerNums || [],
-      winner_prize: Number(r.winnerPrize || 0),
+      winner_nums: winnerVisible(r) ? (r.winnerNums || []) : [],
+      winner_prize: winnerVisible(r) ? Number(r.winnerPrize || 0) : 0,
       current_number: r.currentNumber,
       star_prize:  Number(r.starPrize || 0),
       multiplier:  r.prizeMultiplier || 'x2',
-      last_winner_name: r.lastWinnerName || null,
-      last_winner_nums: r.lastWinnerNums || []
+      last_winner_name: winnerVisible(r) ? (r.lastWinnerName || null) : null,
+      last_winner_nums: winnerVisible(r) ? (r.lastWinnerNums || []) : []
     };
   });
   res.json(data);
@@ -148,8 +148,15 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     jackpot_ratio:   Number(room.jackpotRatio || 1),
     secs_left:       getSecsLeft(room, now),
     win_count:       Number(room.winCount || 0),
-    winner_nums:     room.winnerNums || [],
-    winner_prize:    Number(room.winnerPrize || 0),
+    // Qalib yalnız vaxt bitdikdən sonra açıqlanır
+    winner_nums:     winnerVisible(room) ? (room.winnerNums || []) : [],
+    winner_prize:    winnerVisible(room) ? Number(room.winnerPrize || 0) : 0,
+    final_winner:    winnerVisible(room) && room.finalWinnerName ? {
+      name:  room.finalWinnerName,
+      prize: Number(room.finalWinnerPrize || 0),
+      marks: Number(room.finalWinnerMarks || 0),
+      numbers: room.finalWinnerNums || []
+    } : null,
     drawn_numbers:   room.drawnNumbers || [],
     current_number:  room.currentNumber,
     star_prize:      Number(room.starPrize || 0),
