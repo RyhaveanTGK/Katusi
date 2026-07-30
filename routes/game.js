@@ -5,7 +5,8 @@ const Room    = require('../models/Room');
 const GameCard = require('../models/GameCard');
 const Transaction = require('../models/Transaction');
 const { requireLogin } = require('../middleware/auth');
-const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS } = require('../services/gameEngine');
+const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount } = require('../services/gameEngine');
+const { hasRoomAccess } = require('./rooms');
 
 function generateCard() {
   const cols = [
@@ -47,12 +48,20 @@ async function getRoomAndUser(req) {
 
 router.get('/', requireLogin, async (req, res) => {
   const user = await User.findById(req.session.userId);
-  const rooms = await Room.find({}).sort({ sortOrder: 1, createdAt: 1 });
+  const unlocked = (req.session.unlockedRooms || []);
+  const rooms = await Room.find({
+    $or: [
+      { isCustom: { $ne: true } },
+      { ownerId: user._id },
+      { _id: { $in: unlocked } }
+    ]
+  }).sort({ sortOrder: 1, createdAt: 1 });
   const now = Date.now();
 
   const roomsData = rooms.map((room) => ({
     ...room.toObject(),
-    playerCount: room.players.length,
+    playerCount: visiblePlayerCount(room),
+    botCount: (room.bots || []).length,
     hasJoined: room.players.map((p) => p.toString()).includes(req.session.userId),
     displayStatus: getDisplayStatus(room, now),
     secsLeft: getSecsLeft(room, now)
@@ -65,6 +74,7 @@ router.get('/join/:roomId', requireLogin, async (req, res) => {
   try {
     const { user, room } = await getRoomAndUser(req);
     if (!room || !user) return res.redirect('/');
+    if (!hasRoomAccess(req, room)) return res.redirect('/room/' + room._id + '/code');
 
     const cards = await GameCard.find({ userId: user._id, roomId: room._id, roundId: room.currentRoundId });
     if (cards.length) return res.redirect('/gamestart/' + room._id);
@@ -105,6 +115,7 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
     const existing = await GameCard.find({ userId: user._id, roomId: room._id, roundId: room.currentRoundId });
     if (existing.length) return res.redirect('/gamestart/' + room._id);
 
+    if (!hasRoomAccess(req, room)) return res.redirect('/room/' + room._id + '/code');
     if (room.players.length >= room.maxPlayers) return renderErr('Otaq doludur');
 
     let tickets = null;
