@@ -36,6 +36,9 @@ router.post('/rooms/create', requireAdmin, async (req, res) => {
       entryFee:    parseFloat(entryFee) || 1,
       maxPlayers:  Math.min(5, parseInt(maxPlayers) || 5),
       jackpotEnabled: jackpotEnabled === 'on',
+      // Admin tərəfindən yaradılan bütün otaqlarda süni oyunçular aktivdir
+      botsEnabled: true,
+      isCustom:    false,
       starPrize:   parseFloat(starPrize) || 20,
       prizeMultiplier: prizeMultiplier || 'x2',
       sortOrder:   parseInt(sortOrder) || 0
