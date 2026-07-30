@@ -1,3 +1,4 @@
+<script src="/assets/js/loto-sound.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
@@ -136,6 +137,8 @@ img.emoji{ height:1em; width:1em; margin:0 .05em 0 .1em; vertical-align:-0.12em;
     void box.offsetWidth;
     box.classList.add(delta > 0 ? 'bal-up' : 'bal-down');
     if (!opts || opts.label !== false) floatLabel(delta);
+    // Balans artdıqda qəpik səsi
+    if (delta > 0 && window.LotoSound && LotoSound.coin) { try { LotoSound.coin(); } catch(e){} }
 
     var start = performance.now(), dur = 900;
     if (raf) cancelAnimationFrame(raf);
