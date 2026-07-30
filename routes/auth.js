@@ -6,7 +6,50 @@ const BonusCode = require('../models/BonusCode');
 const Transaction = require('../models/Transaction');
 const { requireLogin, requireGuest } = require('../middleware/auth');
 const crypto = require('crypto');
+const path   = require('path');
+const fs     = require('fs');
+const multer = require('multer');
 const Device = require('../models/Device');
+
+// ── Qeydiyyat sənədləri üçün fayl yükləmə (passport + üz şəkili) ──
+const kycDir = path.join(__dirname, '..', 'public', 'uploads', 'kyc');
+if (!fs.existsSync(kycDir)) fs.mkdirSync(kycDir, { recursive: true });
+
+const kycStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, kycDir),
+  filename: (_req, file, cb) => {
+    const ext = (path.extname(file.originalname || '') || '.jpg').toLowerCase();
+    const safeExt = ['.jpg', '.jpeg', '.png', '.webp'].includes(ext) ? ext : '.jpg';
+    cb(null, `${file.fieldname}-${crypto.randomBytes(8).toString('hex')}${safeExt}`);
+  }
+});
+const kycUpload = multer({
+  storage: kycStorage,
+  limits: { fileSize: 6 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (/^image\//.test(file.mimetype)) cb(null, true);
+    else cb(new Error('Yalnız şəkil yükləyə bilərsiniz'));
+  }
+}).fields([{ name: 'passportPhoto', maxCount: 1 }, { name: 'facePhoto', maxCount: 1 }]);
+
+/** Multer xətası qeydiyyatı dayandırmasın — səhifə mesajla göstərilsin */
+function kycUploadSafe(req, res, next) {
+  kycUpload(req, res, (err) => {
+    if (err) req.uploadError = err.message || 'Şəkil yüklənmədi';
+    next();
+  });
+}
+
+/** Doğum tarixinə görə yaşı hesablayır */
+function ageFrom(birthDate) {
+  const d = new Date(birthDate);
+  if (isNaN(d.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+  return age;
+}
 
 const REFERRAL_BONUS = 0.5; // 0.50 ₼
 
@@ -93,15 +136,42 @@ router.get('/register', requireGuest, (req, res) => {
   res.render('register', { error: null, success: null, query: req.query });
 });
 
-router.post('/register', requireGuest, async (req, res) => {
+router.post('/register', requireGuest, kycUploadSafe, async (req, res) => {
   try {
     const { username, email, password, password2, ref } = req.body;
-    if (!username || !email || !password) return res.render('register', { error: 'Bütün sahələri doldurun', success: null, query: req.body });
-    if (password !== password2) return res.render('register', { error: 'Şifrələr uyğun gəlmir', success: null, query: req.body });
-    if (password.length < 6) return res.render('register', { error: 'Şifrə ən az 6 simvol olmalıdır', success: null, query: req.body });
+    const fullName       = String(req.body.fullName || '').trim();
+    const birthDate      = String(req.body.birthDate || '').trim();
+    const passportNumber = String(req.body.passportNumber || '').trim().toUpperCase();
+
+    const files = req.files || {};
+    const passportFile = (files.passportPhoto || [])[0] || null;
+    const faceFile     = (files.facePhoto || [])[0] || null;
+    const cleanup = () => {
+      [passportFile, faceFile].forEach((f) => { if (f) { try { fs.unlinkSync(f.path); } catch (e) {} } });
+    };
+    const fail = (msg) => { cleanup(); return res.render('register', { error: msg, success: null, query: req.body }); };
+
+    if (req.uploadError) return fail(req.uploadError);
+    if (!username || !email || !password) return fail('Bütün sahələri doldurun');
+    if (password !== password2) return fail('Şifrələr uyğun gəlmir');
+    if (password.length < 6) return fail('Şifrə ən az 6 simvol olmalıdır');
+
+    // ── Şəxsiyyət məlumatları ──
+    if (!fullName || fullName.split(/\s+/).length < 2) return fail('Real ad və soyadınızı tam yazın');
+    if (!birthDate) return fail('Doğum tarixini daxil edin');
+    const age = ageFrom(birthDate);
+    if (age === null) return fail('Doğum tarixi düzgün deyil');
+    if (age < 18) return fail('Qeydiyyat yalnız 18 yaşdan yuxarı şəxslər üçündür');
+    if (age > 100) return fail('Doğum tarixi düzgün deyil');
+    if (!passportNumber || passportNumber.length < 5) return fail('Passport nömrəsini düzgün daxil edin');
+    if (!passportFile) return fail('Passport şəkilini əlavə edin');
+    if (!faceFile) return fail('Üz şəkilinizi əlavə edin');
 
     const exists = await User.findOne({ $or: [{ email: email.toLowerCase() }, { username }] });
-    if (exists) return res.render('register', { error: 'Bu e-poçt və ya istifadəçi adı artıq mövcuddur', success: null, query: req.body });
+    if (exists) return fail('Bu e-poçt və ya istifadəçi adı artıq mövcuddur');
+
+    const passportExists = await User.findOne({ passportNumber });
+    if (passportExists) return fail('Bu passport nömrəsi ilə artıq hesab mövcuddur');
 
     const referralCode = nanoid();
     let referredBy = null;
@@ -130,7 +200,14 @@ router.post('/register', requireGuest, async (req, res) => {
       if (r) referredBy = r._id;
     }
 
-    const user = new User({ username, email: email.toLowerCase(), password, referralCode, referredBy });
+    const user = new User({
+      username, email: email.toLowerCase(), password, referralCode, referredBy,
+      fullName,
+      birthDate: new Date(birthDate),
+      passportNumber,
+      passportPhoto: `/uploads/kyc/${passportFile.filename}`,
+      facePhoto: `/uploads/kyc/${faceFile.filename}`
+    });
     await user.save();
 
     if (referrer && !device.referralUsed) {
