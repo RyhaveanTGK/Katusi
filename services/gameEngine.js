@@ -2,6 +2,7 @@ const Room = require('../models/Room');
 const GameCard = require('../models/GameCard');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
+const WinnerLog = require('../models/WinnerLog');
 const bots = require('./botEngine');
 
 
@@ -11,6 +12,7 @@ const DRAW_INTERVAL_SEC = Number(process.env.GAME_DRAW_INTERVAL_SEC || 5);
 const ROUND_DURATION_SEC = Number(process.env.GAME_ROUND_DURATION_SEC || 360);
 
 const MAX_TICKETS = 5;
+const MAX_BALL = 100;   // daşlar 1–100 arasında random çıxır, təkrar olmur
 
 let loopHandle = null;
 let ticking = false;
@@ -49,7 +51,7 @@ function ticketPrize(room) {
 function generateCardNumbers() {
   const cols = [
     [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
-    [50, 59], [60, 69], [70, 79], [80, 90]
+    [50, 59], [60, 69], [70, 79], [80, 100]
   ];
   const card = [new Array(9).fill(0), new Array(9).fill(0), new Array(9).fill(0)];
   const used = Array.from({ length: 9 }, () => new Set());
@@ -157,7 +159,19 @@ async function resetRoomForNextRound(room) {
   room.winnerUser = null;
   room.winnerNums = [];
   room.winnerPrize = 0;
-  room.bots = [];
+  room.bots = (room.bots || []).map((b) => ({
+    name: b.name,
+    numbers: b.numbers,
+    cards: b.cards,
+    tickets: b.tickets,
+    stake: b.stake,
+    marked: [],
+    isWinner: false,
+    joinedAt: b.joinedAt
+  }));
+  room.botStake = 0;
+  bots.recalcBotStake(room);
+  room.markModified('bots');
   room.botWinIntended = false;
   room.currentRoundId = Number(room.currentRoundId || 1) + 1;
   room.nextGameAt = new Date(Date.now() + WAITING_SEC * 1000);
@@ -203,6 +217,16 @@ async function settleCard(room, card) {
   room.lastWinnerNums = winnerNums;
   room.prize = Math.max(0, Number(room.prize || 0) - prize);
   await room.save();
+
+  await new WinnerLog({
+    name: user.username,
+    userId: user._id,
+    roomId: room._id,
+    roomName: room.name,
+    prize,
+    numbers: winnerNums,
+    synthetic: false
+  }).save();
 
   if (room.type !== 'stars') {
     await new Transaction({
@@ -255,7 +279,7 @@ async function claimRoomWin(roomId, userId, cardId = null) {
 async function drawNextNumber(room) {
   const drawn = new Set((room.drawnNumbers || []).map(Number));
   const available = [];
-  for (let i = 1; i <= 90; i++) {
+  for (let i = 1; i <= MAX_BALL; i++) {
     if (!drawn.has(i)) available.push(i);
   }
 
@@ -300,6 +324,17 @@ async function settleBotWin(room, bot) {
   room.lastWinnerNums = nums;
   await room.save();
 
+  // Qalib siyahısına düşsün
+  await new WinnerLog({
+    name: bot.name,
+    userId: null,
+    roomId: room._id,
+    roomName: room.name,
+    prize: room.winnerPrize,
+    numbers: nums,
+    synthetic: true
+  }).save();
+
   await resetRoomForNextRound(room);
 }
 
@@ -340,6 +375,8 @@ async function tick() {
       }
       if (nextGameAt <= now) {
         await startRoom(room);
+      } else if (bots.driftBots(room, generateCardNumbers)) {
+        await room.save();
       }
     }
   } finally {
@@ -357,12 +394,44 @@ function startGameLoop() {
   }, 800);
 }
 
-/** Otaqda görünən ümumi oyunçu sayı (real + bot) */
+/** Otaqda görünən ümumi oyunçu sayı */
 function visiblePlayerCount(room) {
   return (room.players || []).length + ((room.bots || []).length);
 }
 
+/** Otaqdakı bütün oyunçular və mərcləri (real + digər onlayn oyunçular) */
+async function roomRoster(room) {
+  const User = require('../models/User');
+  const GameCard = require('../models/GameCard');
+  const fee = Number(room.entryFee || 0);
+  const out = [];
+
+  const users = await User.find({ _id: { $in: room.players || [] } }).select('username');
+  for (const u of users) {
+    const tickets = await GameCard.countDocuments({
+      userId: u._id, roomId: room._id, roundId: room.currentRoundId
+    });
+    out.push({
+      name: u.username,
+      tickets: tickets || 1,
+      stake: Number((fee * (tickets || 1)).toFixed(2))
+    });
+  }
+
+  bots.botRoster(room).forEach((b) => out.push({ name: b.name, tickets: b.tickets, stake: b.stake }));
+  out.sort((a, b) => b.stake - a.stake);
+  return out;
+}
+
+/** Otaqda qoyulan ümumi mərc */
+function totalStake(room) {
+  return Number(Number(room.prize || 0).toFixed(2));
+}
+
 module.exports = {
+  MAX_BALL,
+  roomRoster,
+  totalStake,
   WAITING_SEC,
   STARTING_SEC,
   DRAW_INTERVAL_SEC,
