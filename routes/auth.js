@@ -5,6 +5,21 @@ const User    = require('../models/User');
 const BonusCode = require('../models/BonusCode');
 const Transaction = require('../models/Transaction');
 const { requireLogin, requireGuest } = require('../middleware/auth');
+const crypto = require('crypto');
+const Device = require('../models/Device');
+
+const REFERRAL_BONUS = 0.5; // 0.50 ₼
+
+/** Cihazı tanımaq üçün stabil hash: brauzer barmaq izi + IP + user-agent */
+function deviceHashOf(req) {
+  const fp = String(req.body.deviceId || req.cookies_deviceId || '').trim();
+  const ua = String(req.get('user-agent') || '');
+  const ip = String(
+    (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || ''
+  );
+  const base = fp ? `fp:${fp}` : `ipua:${ip}|${ua}`;
+  return { hash: crypto.createHash('sha256').update(base).digest('hex'), fp, ua, ip };
+}
 
 const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 8);
 
@@ -91,21 +106,62 @@ router.post('/register', requireGuest, async (req, res) => {
     const referralCode = nanoid();
     let referredBy = null;
 
-    if (ref) {
-      const referrer = await User.findOne({ referralCode: ref });
-      if (referrer) {
-        referredBy = referrer._id;
-        referrer.balance += 0.5;
-        await referrer.save();
-      }
+    // ── Cihaz tanınması: eyni cihazda referal linki yalnız 1 dəfə işləyir ──
+    const dev = deviceHashOf(req);
+    let device = await Device.findOne({ deviceHash: dev.hash });
+    if (!device) {
+      device = new Device({
+        deviceHash: dev.hash,
+        fingerprint: dev.fp,
+        ip: dev.ip,
+        userAgent: dev.ua
+      });
+    }
+
+    let referrer = null;
+    const refCodeIn = String(ref || '').trim();
+    if (refCodeIn && !device.referralUsed) {
+      referrer = await User.findOne({ referralCode: refCodeIn });
+      if (referrer) referredBy = referrer._id;
+    } else if (refCodeIn && device.referralUsed) {
+      // Bu cihaz artıq bir dəfə referal bonusu yaradıb — bonus verilmir,
+      // amma qeydiyyat davam edir.
+      const r = await User.findOne({ referralCode: refCodeIn });
+      if (r) referredBy = r._id;
     }
 
     const user = new User({ username, email: email.toLowerCase(), password, referralCode, referredBy });
     await user.save();
 
+    if (referrer && !device.referralUsed) {
+      referrer.balance = Number(referrer.balance || 0) + REFERRAL_BONUS;
+      await referrer.save();
+      device.referralUsed = true;
+      device.referralCode = refCodeIn;
+      try {
+        await new Transaction({
+          userId: referrer._id,
+          type: 'referral',
+          amount: REFERRAL_BONUS,
+          status: 'completed',
+          note: `Dost dəvəti bonusu: ${user.username}`
+        }).save();
+      } catch (e) {}
+    }
+
+    device.accounts.push(user._id);
+    device.lastSeenAt = new Date();
+    device.ip = dev.ip; device.userAgent = dev.ua;
+    try { await device.save(); } catch (e) {}
+
     req.session.userId   = user._id.toString();
     req.session.username = user.username;
     req.session.isAdmin  = user.isAdmin;
+    if (req.session.pendingInvite) {
+      const token = req.session.pendingInvite;
+      req.session.pendingInvite = null;
+      return res.redirect('/r/' + token);
+    }
     res.redirect('/');
   } catch (e) {
     console.error(e);
