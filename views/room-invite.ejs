@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3d0d62">
+<title><%= room.name %> – Dəvət</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Rubik',Segoe UI,Arial,sans-serif;background:#3d0d62;color:#fff;padding:86px 12px 30px;min-height:100vh;}
+.wrap{max-width:415px;margin:0 auto;}
+.panel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:22px;padding:22px 18px;margin-bottom:14px;}
+h1{font-size:20px;font-weight:900;margin-bottom:6px;}
+.meta{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:16px;}
+.lbl{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:6px;}
+.code{font-size:30px;font-weight:900;letter-spacing:7px;color:#f5c518;text-align:center;padding:14px;background:rgba(0,0,0,.25);border-radius:16px;border:1px dashed rgba(245,197,24,.5);}
+.linkbox{display:flex;gap:8px;margin-top:8px;}
+.linkbox input{flex:1;padding:12px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:12px;font-weight:600;font-family:inherit;}
+.cp{background:#f5c518;color:#3d0d62;border:none;border-radius:12px;padding:0 14px;font-weight:900;cursor:pointer;font-family:inherit;}
+.note{font-size:12px;color:rgba(255,255,255,.6);margin-top:10px;line-height:1.5;}
+.btn{display:block;text-align:center;text-decoration:none;width:100%;padding:15px;background:linear-gradient(180deg,#54d57a,#15a62d);color:#fff;font-size:16px;font-weight:900;border-radius:16px;margin-top:6px;}
+.back{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.75);text-decoration:none;font-size:13px;font-weight:700;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+<div class="wrap">
+  <a class="back" href="/"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> Ana səhifə</a>
+  <div class="panel">
+    <h1><%= room.name %></h1>
+    <div class="meta">Bilet: <b><%= Number(room.entryFee).toFixed(2) %> ₼</b> · Maksimum <b><%= room.maxPlayers %></b> nəfər</div>
+    <div class="lbl">Otağa giriş kodu</div>
+    <div class="code"><%= room.accessCode %></div>
+  </div>
+  <div class="panel">
+    <div class="lbl">Dost dəvət linki</div>
+    <div class="linkbox">
+      <input id="inv" readonly value="<%= inviteLink %>">
+      <button class="cp" onclick="cp('inv',this)">Kopyala</button>
+    </div>
+    <div class="note">
+      Bu linklə qeydiyyatdan keçən dostunuz üçün balansınıza <b>+0.50 ₼</b> bonus yazılır.
+      Bonus hər cihaz üçün yalnız <b>1 dəfə</b> verilir — eyni cihazda yenidən hesab açıldıqda təkrarlanmır.
+    </div>
+  </div>
+  <a class="btn" href="/join/<%= room._id %>">Otağa daxil ol</a>
+</div>
+<%- include('partials/footer', { activePage: 'home' }) %>
+<script>
+function cp(id,btn){
+  var el=document.getElementById(id); el.select(); el.setSelectionRange(0,99999);
+  try{ document.execCommand('copy'); }catch(e){}
+  if(navigator.clipboard){ navigator.clipboard.writeText(el.value).catch(function(){}); }
+  var t=btn.textContent; btn.textContent='Kopyalandı'; setTimeout(function(){btn.textContent=t;},1500);
+}
+</script>
+</body>
+</html>
