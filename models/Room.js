@@ -38,10 +38,15 @@ const roomSchema = new mongoose.Schema({
   finalWinnerPrize: { type: Number, default: 0 },
   finalWinnerNums:  [Number],
   finalWinnerMarks: { type: Number, default: 0 },
+  finalWinnerLines: { type: Number, default: 0 },
+  finalWinnerFull:  { type: Boolean, default: false },
+  // Otaqda toplanan ümumi mərc (uduşlar çıxılmadan)
+  stakeTotal:  { type: Number, default: 0 },
   roundWinners: [{
     name:    { type: String },
     prize:   { type: Number, default: 0 },
     numbers: { type: [Number], default: [] },
+    line:    { type: Number, default: 1 },
     isBot:   { type: Boolean, default: false }
   }],
   sortOrder:   { type: Number, default: 0 },
@@ -55,6 +60,9 @@ const roomSchema = new mongoose.Schema({
     tickets: { type: Number, default: 1 },
     stake:   { type: Number, default: 0 },
     marked:  { type: [Number], default: [] },
+    wonRows: { type: [String], default: [] },
+    lineWins:{ type: Number, default: 0 },
+    fullCard:{ type: Boolean, default: false },
     isWinner:{ type: Boolean, default: false },
     prize:   { type: Number, default: 0 },
     joinedAt:{ type: Date, default: Date.now }
