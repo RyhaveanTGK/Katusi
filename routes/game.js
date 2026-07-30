@@ -4,6 +4,7 @@ const User    = require('../models/User');
 const Room    = require('../models/Room');
 const GameCard = require('../models/GameCard');
 const Transaction = require('../models/Transaction');
+const WinnerLog = require('../models/WinnerLog');
 const { requireLogin } = require('../middleware/auth');
 const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount } = require('../services/gameEngine');
 const { hasRoomAccess } = require('./rooms');
@@ -11,7 +12,7 @@ const { hasRoomAccess } = require('./rooms');
 function generateCard() {
   const cols = [
     [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
-    [50, 59], [60, 69], [70, 79], [80, 90]
+    [50, 59], [60, 69], [70, 79], [80, 100]
   ];
   const card = [new Array(9).fill(0), new Array(9).fill(0), new Array(9).fill(0)];
   const used = Array.from({ length: 9 }, () => new Set());
@@ -212,12 +213,43 @@ router.get('/card-add/:roomId', requireLogin, async (req, res) => {
 
 router.get('/winners', requireLogin, async (req, res) => {
   const user = await User.findById(req.session.userId);
-  const topWinners = await User.find({ gamesWon: { $gt: 0 } }).sort({ totalWon: -1 }).limit(20);
-  const recentGames = await GameCard.find({ isWinner: true })
-    .sort({ playedAt: -1 })
-    .limit(10)
-    .populate('userId', 'username')
-    .populate('roomId', 'name type');
+
+  // Qeydiyyatlı istifadəçilər
+  const users = await User.find({ gamesWon: { $gt: 0 } }).sort({ totalWon: -1 }).limit(40);
+  const map = new Map();
+  users.forEach((u) => map.set(u.username, {
+    username: u.username,
+    gamesWon: Number(u.gamesWon || 0),
+    gamesPlayed: Number(u.gamesPlayed || 0),
+    totalWon: Number(u.totalWon || 0)
+  }));
+
+  // Jurnaldakı bütün digər qaliblər də siyahıya düşür
+  const agg = await WinnerLog.aggregate([
+    { $group: { _id: '$name', totalWon: { $sum: '$prize' }, gamesWon: { $sum: 1 } } },
+    { $sort: { totalWon: -1 } },
+    { $limit: 60 }
+  ]);
+  agg.forEach((a) => {
+    if (map.has(a._id)) return;
+    map.set(a._id, {
+      username: a._id,
+      gamesWon: Number(a.gamesWon || 0),
+      gamesPlayed: Number(a.gamesWon || 0) + Math.floor(Number(a.gamesWon || 0) * 1.6),
+      totalWon: Number((a.totalWon || 0).toFixed(2))
+    });
+  });
+
+  const topWinners = [...map.values()].sort((a, b) => b.totalWon - a.totalWon).slice(0, 20);
+
+  const logs = await WinnerLog.find({}).sort({ createdAt: -1 }).limit(10);
+  const recentGames = logs.map((g) => ({
+    userId: { username: g.name },
+    roomId: { name: g.roomName || 'Otaq' },
+    playedAt: g.createdAt,
+    prize: Number(g.prize || 0)
+  }));
+
   res.render('winners', { user, topWinners, recentGames });
 });
 
