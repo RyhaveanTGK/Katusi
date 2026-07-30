@@ -48,7 +48,7 @@ async function loadWalletContext(req) {
   const locale = currentLocale(req);
   const [user, transactions, counter, methods] = await Promise.all([
     User.findById(userId),
-    Transaction.find({ userId }).sort({ createdAt: -1 }).limit(30),
+    Transaction.find({ userId, type: { $in: ['deposit', 'withdraw'] } }).sort({ createdAt: -1 }).limit(30),
     DepositCounter.findOne({ userId }),
     PaymentMethod.find({ locale, active: true }).sort({ sortOrder: 1 })
   ]);
