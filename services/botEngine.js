@@ -2,10 +2,10 @@
 // Otaqlarda süni oyunçular üçün məntiq.
 //
 // Qaydalar:
-//  1) Otaqda 3 və ya daha çox REAL istifadəçi varsa — yalnız real istifadəçilər oynayır.
-//  2) 3-dən az real istifadəçi varsa — otağa əlavə oyunçular qoşulur və normal oyun gedir.
-//  3) Belə raundlarda qazanma şansı: 80% süni oyunçu, 20% real istifadəçi.
-//  4) Oyunçular otaqlara random şəkildə girib-çıxır, mərcləri ümumi banka daxil olur.
+//  1) Otağa yalnız REAL istifadəçi daxil olduqdan 30 saniyə sonra süni oyunçu qoşulur.
+//  2) Süni oyunçular yalnız gözləmə mərhələsində, tək-tək qoşulur (gedən oyuna qoşulmurlar).
+//  3) Şəxsi (istifadəçi tərəfindən yaradılmış) otaqlarda süni oyunçu OLMUR.
+//  4) Bir sıranı (5 daş) dolduran hər kəs mərcinin 2 mislini qazanır.
 
 const BOT_NAMES = [
   'Elvin_07', 'Nigar__', 'Rashad.M', 'AynurX', 'Tural99', 'Leyla_ist',
@@ -15,12 +15,10 @@ const BOT_NAMES = [
   'Ramin__', 'Gunay.S', 'Elnur55', 'Nezrin_', 'Fuad.A', 'Aytac__'
 ];
 
-const DEFAULT_ROOM_SIZE = 5;   // otaq 5 iştirakçı ilə dolur və oyun dərhal başlayır
-const BOT_WIN_CHANCE = 0.65;   // süni oyunçuların qazanma şansı: 65%
-const REAL_WIN_CHANCE = 0.45;  // real istifadəçilərin qazanma şansı: 45%
+const DEFAULT_ROOM_SIZE = 5;   // bütün otaqlar 5 iştirakçı ilə dolur
+const BOT_WIN_CHANCE = 0.65;
+const REAL_WIN_CHANCE = 0.45;
 const MAX_TICKETS_PER_BOT = 3;
-
-const JOIN_CHANCE = 0.55;      // gözləmə anında yeni oyunçu qoşulma şansı
 
 function rnd(max) { return Math.floor(Math.random() * max); }
 function pick(arr) { return arr[rnd(arr.length)]; }
@@ -43,13 +41,25 @@ function realPlayerCount(room) {
   return (room.players || []).length;
 }
 
-/** Bu otaqda süni oyunçu ola bilərmi? (otaq dolana qədər — real + bot qarışıq) */
-function shouldHaveBots(room, roomSize = DEFAULT_ROOM_SIZE) {
+/**
+ * Bu otaqda süni oyunçu ola bilərmi?
+ *  - şəxsi otaqlarda heç vaxt olmur
+ *  - botsEnabled === false olduqda olmur
+ *  - otaqda ən azı 1 real istifadəçi olmalıdır
+ *  - otaq dolmamış olmalıdır
+ */
+function allowBots(room, roomSize = DEFAULT_ROOM_SIZE) {
+  if (room.isCustom) return false;
   if (room.botsEnabled === false) return false;
+  if (realPlayerCount(room) < 1) return false;
   return realPlayerCount(room) < roomSize;
 }
 
-/** Bir sıradakı 5 rəqəmin hamısı çıxıbsa — sıra tamdır */
+function shouldHaveBots(room, roomSize = DEFAULT_ROOM_SIZE) {
+  return allowBots(room, roomSize);
+}
+
+/** Bir sıradakı rəqəmlər */
 function rowsOf(card) {
   return (card || []).map((row) => (row || []).filter(Boolean).map(Number)).filter((r) => r.length);
 }
@@ -66,11 +76,12 @@ function createBot(room, name, generateCardNumbers) {
     stake: Number((Number(room.entryFee || 0) * tickets).toFixed(2)),
     marked: [],
     isWinner: false,
+    prize: 0,
     joinedAt: new Date()
   };
 }
 
-/** Otağın bank məbləğini real + süni oyunçuların mərcinə görə yenilə */
+/** Otağın bank məbləğini süni oyunçuların mərcinə görə yenilə */
 function recalcBotStake(room) {
   const total = (room.bots || []).reduce((sum, b) => sum + Number(b.stake || 0), 0);
   const prev = Number(room.botStake || 0);
@@ -83,99 +94,69 @@ function recalcBotStake(room) {
 
 function botCapacity(room, roomSize = DEFAULT_ROOM_SIZE) {
   const size = Math.min(Number(room.maxPlayers || roomSize), roomSize);
-  return Math.max(0, size - realPlayerCount(room));
+  return Math.max(0, size - realPlayerCount(room) - (room.bots || []).length);
+}
+
+/** Otaqdaki bütün süni oyunçuları silir */
+function clearBots(room) {
+  if (!(room.bots || []).length) return false;
+  room.bots = [];
+  recalcBotStake(room);
+  room.markModified('bots');
+  return true;
 }
 
 /**
- * Gözləmə mərhələsində oyunçuların random girib-çıxması.
- * Hər tick-də çağırılır; dəyişiklik olubsa true qaytarır.
+ * Otağa TƏK bir süni oyunçu qoşur (gözləmə mərhələsində, 30 saniyə keçdikdən sonra).
+ * @returns {boolean} dəyişiklik olubsa true
  */
-function driftBots(room, generateCardNumbers, roomSize = DEFAULT_ROOM_SIZE) {
-  if (!shouldHaveBots(room, roomSize)) {
-    if ((room.bots || []).length) {
-      room.bots = [];
-      recalcBotStake(room);
-      room.markModified('bots');
-      return true;
-    }
-    return false;
-  }
+function addOneBot(room, generateCardNumbers, roomSize = DEFAULT_ROOM_SIZE) {
+  if (!allowBots(room, roomSize)) return clearBots(room);
+  if (botCapacity(room, roomSize) <= 0) return false;
 
-  const capacity = botCapacity(room, roomSize);
-  if (capacity <= 0) return false;
-
-  let changed = false;
   const list = room.bots || [];
+  const name = pickBotNames(1, list.map((b) => b.name))[0];
+  if (!name) return false;
 
-  // giriş — otaq dolana qədər oyunçular qoşulur (çıxış yoxdur ki, otaq dolsun)
-  if (list.length < capacity && Math.random() < JOIN_CHANCE) {
-    const used = list.map((b) => b.name);
-    const name = pickBotNames(1, used)[0];
-    if (name) {
-      list.push(createBot(room, name, generateCardNumbers));
-      changed = true;
-    }
-  }
+  list.push(createBot(room, name, generateCardNumbers));
+  room.bots = list;
+  recalcBotStake(room);
+  room.markModified('bots');
+  return true;
+}
 
-  if (changed) {
-    room.bots = list;
-    recalcBotStake(room);
-    room.markModified('bots');
-  }
-  return changed;
+/** Köhnə adla uyğunluq: artıq yalnız tək-tək qoşulma var */
+function driftBots(room, generateCardNumbers, roomSize = DEFAULT_ROOM_SIZE) {
+  return addOneBot(room, generateCardNumbers, roomSize);
 }
 
 /**
  * Raund başlamazdan əvvəl heyəti yekunlaşdırır.
+ * Yeni bot ƏLAVƏ ETMİR — yalnız mərcləri və qazanma meylini hesablayır.
  */
-function syncBots(room, generateCardNumbers, roomSize = DEFAULT_ROOM_SIZE) {
-  if (!shouldHaveBots(room, roomSize)) {
-    room.bots = [];
-    room.botWinIntended = false;
-    recalcBotStake(room);
-    return room;
-  }
-
-  const capacity = botCapacity(room, roomSize);
-  if (capacity <= 0) {
-    room.bots = [];
-    room.botWinIntended = false;
-    recalcBotStake(room);
-    return room;
-  }
-
+function finalizeBots(room) {
   const list = (room.bots || []).filter((b) => b && b.name);
-
-  // otaq tam dolur: real + süni oyunçu = roomSize
-  let target = capacity;
-  if (list.length > target) list.length = target;
-
-  const names = pickBotNames(target - list.length, list.map((b) => b.name));
-  names.forEach((name) => list.push(createBot(room, name, generateCardNumbers)));
-
-  // hər raundda biletlər yenilənir
-  room.bots = list.map((b) => {
-    const tickets = Number(b.tickets || 1);
-    const cards = Array.from({ length: tickets }, () => generateCardNumbers());
-    return {
-      name: b.name,
-      numbers: cards[0],
-      cards,
-      tickets,
-      stake: Number((Number(room.entryFee || 0) * tickets).toFixed(2)),
-      marked: [],
-      isWinner: false,
-      joinedAt: b.joinedAt || new Date()
-    };
-  });
-
+  room.bots = list.map((b) => ({
+    name: b.name,
+    numbers: b.numbers,
+    cards: (Array.isArray(b.cards) && b.cards.length) ? b.cards : [b.numbers],
+    tickets: Number(b.tickets || 1),
+    stake: Number(b.stake || 0),
+    marked: [],
+    isWinner: false,
+    prize: 0,
+    joinedAt: b.joinedAt || new Date()
+  }));
   recalcBotStake(room);
   room.markModified('bots');
 
-  // Qazanma şansı: süni oyunçular 65%, real istifadəçilər 45%
   const total = BOT_WIN_CHANCE + REAL_WIN_CHANCE;
   room.botWinIntended = Math.random() < (BOT_WIN_CHANCE / total);
   return room;
+}
+
+function syncBots(room) {
+  return finalizeBots(room);
 }
 
 /** Bir oyunçunun bütün biletlərinin rəqəmləri */
@@ -184,7 +165,7 @@ function botNumbers(bot) {
   return flat(bot.numbers);
 }
 
-/** Bir botun hələ çıxmamış rəqəmləri (ən yaxın biletinə görə) */
+/** Bir botun hələ çıxmamış rəqəmləri (ən yaxın sırasına görə) */
 function botRemaining(bot, drawnSet) {
   const cards = (Array.isArray(bot.cards) && bot.cards.length) ? bot.cards : [bot.numbers];
   let best = null;
@@ -209,10 +190,7 @@ function botWinningRow(bot, drawnNumbers) {
   return (bot.marked || []).slice(-5);
 }
 
-/**
- * Növbəti daşı seçir. Nəticə 80/20 qaydasına uyğun yönləndirilir.
- * Çıxmış daş təkrar seçilmir (`available` artıq süzülmüş gəlir).
- */
+/** Növbəti daşı seçir. */
 function pickNextNumber(room, realCards, available) {
   if (!available.length) return null;
   const bots = room.bots || [];
@@ -220,7 +198,6 @@ function pickNextNumber(room, realCards, available) {
 
   const drawnSet = new Set((room.drawnNumbers || []).map(Number));
 
-  // Lider oyunçu — ən az rəqəmi qalan
   let leader = null;
   let leaderRemaining = [];
   for (const bot of bots) {
@@ -232,7 +209,6 @@ function pickNextNumber(room, realCards, available) {
     }
   }
 
-  // Real biletlərin qalan ehtiyacları
   const realNeeds = [];
   for (const card of realCards) {
     if (card.isWinner) continue;
@@ -260,7 +236,6 @@ function pickNextNumber(room, realCards, available) {
     return pick(available);
   }
 
-  // 20% hal: real istifadəçiyə şans veririk
   const blockedBot = new Set();
   if (leader && leaderRemaining.length <= 3) leaderRemaining.forEach((n) => blockedBot.add(n));
 
@@ -274,36 +249,35 @@ function pickNextNumber(room, realCards, available) {
 }
 
 /**
- * Çıxan daşı oyunçuların biletlərinə işarələyir.
- * @returns {object|null} biletini tam dolduran oyunçu
+ * Çıxan daşı süni oyunçuların biletlərinə işarələyir.
+ * @returns {Array} bu daşla sıranı tamamlayan (yeni qalib olan) oyunçular
  */
 function applyDrawToBots(room, number) {
   const bots = room.bots || [];
-  if (!bots.length) return null;
+  if (!bots.length) return [];
   const drawnSet = new Set((room.drawnNumbers || []).map(Number));
 
-  let winner = null;
+  const winners = [];
   for (const bot of bots) {
-    if (bot.isWinner) continue;
     const nums = botNumbers(bot);
     if (nums.includes(Number(number))) {
       const marks = new Set((bot.marked || []).map(Number));
       marks.add(Number(number));
       bot.marked = [...marks].sort((a, b) => a - b);
     }
+    if (bot.isWinner) continue;
     const cards = (Array.isArray(bot.cards) && bot.cards.length) ? bot.cards : [bot.numbers];
-    // Qalibiyyət: bir sıranın (5 daş) tam düzülməsi
     const done = cards.some((card) => rowsOf(card).some((row) => row.every((n) => drawnSet.has(n))));
     if (done) {
       bot.isWinner = true;
-      if (!winner) winner = bot;
+      winners.push(bot);
     }
   }
   room.markModified('bots');
-  return winner;
+  return winners;
 }
 
-/** Otaqda görünən oyunçu siyahısı (real + süni, fərq bildirilmir) */
+/** Otaqda görünən süni oyunçu siyahısı */
 function botRoster(room) {
   return (room.bots || []).map((b) => ({
     name: b.name,
@@ -319,8 +293,13 @@ module.exports = {
   BOT_WIN_CHANCE,
   REAL_WIN_CHANCE,
   botWinningRow,
+  botNumbers,
   realPlayerCount,
+  allowBots,
   shouldHaveBots,
+  clearBots,
+  addOneBot,
+  finalizeBots,
   syncBots,
   driftBots,
   recalcBotStake,
