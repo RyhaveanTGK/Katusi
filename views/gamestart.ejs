@@ -173,7 +173,7 @@
       0 0 0 2px rgba(255,255,255,.08);
     text-shadow:0 1px 0 rgba(255,255,255,.6), 0 -1px 0 rgba(0,0,0,.25);
     transform-style:preserve-3d;
-    animation: ball-float 3.4s ease-in-out infinite;
+    animation: ball-float 4s linear infinite;
   }
   .ball::after{
     content:''; position:absolute; left:50%; bottom:-12px; transform:translateX(-50%);
@@ -181,7 +181,7 @@
     background:radial-gradient(ellipse, rgba(0,0,0,.45), transparent 70%);
     filter:blur(2px);
   }
-  .ball.pop{ animation: ball-3d-pop .55s cubic-bezier(.2,1.3,.35,1); }
+  .ball.pop{ animation: ball-3d-pop .5s cubic-bezier(.22,.9,.25,1) both; }
   /* Axıcı 3D çıxış: fırlanaraq yaxınlaşır, yumşaq oturur */
   @keyframes ball-3d-pop{
     0%   { transform: perspective(600px) translate3d(0,-38px,-160px) rotateX(-35deg) rotateY(-220deg) scale(.45); opacity:0; filter:blur(3px); }
@@ -198,8 +198,14 @@
     75%  { transform: perspective(600px) translateY(-5px) rotateY(-8deg)  rotateX(-3deg); }
     100% { transform: perspective(600px) translateY(0)    rotateY(0deg)   rotateX(0deg); }
   }
-  .ball{ will-change: transform; }
-  .draw-item{ animation: draw-in .35s cubic-bezier(.2,1.2,.35,1) both; }
+  .ball{ will-change: transform; backface-visibility:hidden; }
+  .cell, .ticket, .draw-item, .prow{ backface-visibility:hidden; transform: translateZ(0); }
+  .cell{ transition: background-color .14s linear, box-shadow .14s linear, color .14s linear; will-change: transform; }
+  .cell.clickable:active{ transform: scale(.9) translateZ(0); }
+  .grid{ contain: layout style paint; }
+  .draw-list{ -webkit-overflow-scrolling: touch; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+  .draw-item{ animation: draw-in .28s cubic-bezier(.2,.9,.3,1) both; will-change: transform, opacity; }
   @keyframes draw-in{ from{ transform: translateY(-8px) scale(.6); opacity:0 } to{ transform:none; opacity:1 } }
   /* ── Vaxtında qoyulmayan daş: qırmızı X, bloklanıb ── */
   .cell.missed{
@@ -259,17 +265,17 @@
     <div class="info-body">
       <h4>Oyun necə oynanılır?</h4>
       <ul>
-        <li>Hər otaqda <b>5 oyunçu</b> iştirak edir. Otaq dolduqda oyun avtomatik başlayır və eyni mərcli <b>yeni boş otaq</b> açılır. Başlamış oyuna sonradan heç kim daxil ola bilməz.</li>
+        <li>Hər otaqda oyunçu limiti qədər iştirakçı olur (standart <b>5 oyunçu</b>). Otaq dolduqda oyun avtomatik başlayır və eyni mərcli <b>yeni boş otaq</b> açılır. Başlamış oyuna sonradan heç kim daxil ola bilməz.</li>
         <li>Bilet <b>3 sıradan (linya)</b> ibarətdir, hər sırada <b>5 rəqəm</b>, cəmi <b>15 rəqəm</b> var. Bir oyunda maksimum <b>5 bilet</b> ala bilərsiniz.</li>
         <li>Oyun başlayanda hər bir neçə saniyədən bir <b>daş (1–90)</b> çıxır. Çıxan daş sizin biletinizdə varsa, üzərinə toxunub <b>özünüz yerləşdirməlisiniz</b>.</li>
-        <li>Daşı yerləşdirmək üçün <b>məhdud vaxtınız</b> var. Vaxtında vurmasanız xana <b>qırmızı X</b> ilə bloklanır və həmin daş sizin üçün <b>sayılmır</b>.</li>
+        <li>Hər daşı <b>növbəti daş çıxana qədər</b> biletə qoymalısınız. Gecikirsinizsə xana <b>qırmızı X</b> ilə bloklanır və həmin daş sizin üçün <b>sayılmır</b>.</li>
       </ul>
 
       <h4>Qazanc necə hesablanır?</h4>
       <ul>
         <li>Otaqdakı bütün oyunçuların mərcləri <b>ümumi banka</b> yığılır (yuxarıdakı kubok işarəsinin yanındakı əsas mərc).</li>
-        <li><b>1-ci linyanı</b> tam dolduran ilk oyunçu bankın <b>8%-ini</b> qazanır.</li>
-        <li><b>2-ci linya</b> üçün <b>16%</b>, <b>3-cü linya</b> üçün <b>24%</b> ödənilir.</li>
+        <li><b>1-ci linyanı</b> tam dolduran ilk oyunçu bankın <b>2.4%-ini</b> qazanır.</li>
+        <li><b>2-ci linya</b> üçün <b>4.8%</b>, <b>3-cü linya</b> üçün <b>7.2%</b> ödənilir.</li>
         <li>Hər linya uduşu dərhal həmin oyunçunun <b>balansına köçürülür</b> və eyni məbləğ ortadakı <b>bankdan çıxılır</b>.</li>
         <li>Bileti <b>tam dolduran ilk oyunçu qalibdir</b> və bankda qalan <b>bütün məbləği</b> qazanır.</li>
         <li>Vaxt bitənədək heç kim bileti tam doldurmasa, <b>ən çox linya və daş</b> yığan oyunçu qalib sayılır və qalan bankı alır.</li>
@@ -277,7 +283,7 @@
 
       <h4>Otaq qaydaları</h4>
       <ul>
-        <li>Otaqda <b>3 və daha çox real oyunçu</b> olarsa, oyun bitənədək otağa <b>bot əlavə olunmur</b> — yalnız real istifadəçilər oynayır.</li>
+        <li>Otaq seçilmiş oyunçu limiti ilə dolan kimi <b>5 saniyəlik geri sayım</b> başlayır və oyun avtomatik start götürür.</li>
         <li>Oyundan vaxtından əvvəl çıxsanız mərcinizin <b>70%-i komissiya</b> kimi tutulur, <b>30%-i</b> balansınıza qaytarılır.</li>
         <li>Oyun bitdikdən sonra otaq avtomatik təmizlənir və yeni raunda hazırlanır.</li>
       </ul>
@@ -320,7 +326,7 @@
     <div class="live-row">
       <div style="display:flex;flex-direction:column;gap:8px;min-width:0;">
         <div class="status-pill"><span class="status-dot"></span><span id="statusText"><%= displayStatus === 'started' ? 'Oyun başladı' : displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir' %></span></div>
-        <div class="timer" id="timer" data-secs="<%= secsLeft %>">00:00</div>
+        <div class="timer" id="timer" data-secs="<%= secsLeft %>" style="display:none">00:00</div>
       </div>
       <div class="ball" id="currentBall"><%= room.currentNumber || '?' %></div>
     </div>
@@ -388,13 +394,8 @@ function toast(msg){
 }
 function fmtTime(s){ s = Math.max(0, parseInt(s || 0, 10)); var m = Math.floor(s/60), ss = s%60; return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss; }
 function statusLabel(s){ return s === 'started' ? 'Oyun başladı' : s === 'ended' ? 'Raund bitdi' : s === 'starting' ? 'Başlayır' : 'Gözləyir'; }
-function renderTimer(){
-  var t = document.getElementById('timer');
-  var v = parseInt(t.dataset.secs || '0', 10);
-  t.textContent = fmtTime(v);
-  if (v > 0) t.dataset.secs = v - 1;
-}
-setInterval(renderTimer, 1000); renderTimer();
+/* Oyun başladıqdan sonra geri sayım göstərilmir */
+function renderTimer(){}
 
 function renderDrawList(){
   var box = document.getElementById('drawList');
@@ -415,8 +416,9 @@ function trackDrawn(){
   drawnNumbers.forEach(function(n){ if (!seenAt[n]) seenAt[n] = now; });
 }
 function isExpired(n){
-  var t = seenAt[n];
-  return !!t && (Date.now() - t) > GRACE_MS;
+  // Yalnız SON çıxan daş qoyula bilər — yeni daş çıxan kimi əvvəlki bloklanır
+  if (!drawnNumbers.length) return false;
+  return Number(drawnNumbers[drawnNumbers.length - 1]) !== Number(n);
 }
 function isMissed(card, n){
   if (!n) return false;
@@ -425,24 +427,59 @@ function isMissed(card, n){
   if ((card.missed || []).indexOf(n) >= 0) return true;
   return isExpired(n);
 }
-/* Xanaların vəziyyətini saniyəlik yenilə (yenidən qurmadan) */
-function refreshCellStates(){
+/* Xanaların vəziyyətini DOM-u yenidən qurmadan yenilə (tam axıcılıq üçün) */
+function syncTicketDom(){
   var list = document.getElementById('ticketList');
   if (!list) return;
   cards.forEach(function(card){
     var box = list.querySelector('[data-card-id="' + card.id + '"]');
     if (!box) return;
+    var markedSet = {};
+    (card.marked || []).forEach(function(n){ markedSet[Number(n)] = true; });
+    var total = 0, marks = 0;
     box.querySelectorAll('.cell').forEach(function(cell){
       var n = Number(cell.dataset.number || 0);
-      if (!n || cell.classList.contains('marked')) return;
-      if (isMissed(card, n)){
-        cell.classList.remove('clickable', 'drawn');
-        cell.classList.add('missed');
+      if (!n) return;
+      total++;
+      if (markedSet[n]){
+        marks++;
+        if (!cell.classList.contains('marked')){
+          cell.classList.remove('clickable', 'drawn', 'missed');
+          cell.classList.add('marked');
+        }
+        return;
       }
+      if (isMissed(card, n)){
+        if (!cell.classList.contains('missed')){
+          cell.classList.remove('clickable', 'drawn');
+          cell.classList.add('missed');
+        }
+        return;
+      }
+      var isDrawn = drawnNumbers.indexOf(n) >= 0;
+      cell.classList.toggle('drawn', isDrawn);
+      cell.classList.toggle('clickable', isDrawn);
+      cell.classList.remove('missed');
     });
+    var foot = box.querySelector('.ticket-foot:last-child');
+    if (foot){
+      var cnt = foot.querySelector('span');
+      var bar = foot.querySelector('.progress i');
+      if (cnt) cnt.textContent = marks + '/' + total;
+      if (bar) bar.style.width = (total ? Math.round(marks / total * 100) : 0) + '%';
+    }
+    box.classList.toggle('won', !!card.isWinner);
   });
 }
-setInterval(refreshCellStates, 500);
+/* rAF ilə yumşaq yeniləmə (yüksək FPS, donma yoxdur) */
+(function(){
+  var last = 0;
+  function loop(t){
+    if (t - last > 220){ last = t; syncTicketDom(); }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
 
 /* ── Oyunçular siyahısı (person düyməsi) ── */
 function renderPlayers(data){
@@ -629,7 +666,7 @@ function ticketNode(card, index){
     }).then(function(r){ return r.json(); }).then(function(res){
       if (res.error) {
         toast(res.error);
-        if (res.missed) { card.missed = (card.missed || []).concat([number]); renderTickets(); }
+        if (res.missed) { card.missed = (card.missed || []).concat([number]); syncTicketDom(); }
         return poll();
       }
       if (res.card) { card.marked = res.card.marked_numbers || []; }
@@ -647,17 +684,25 @@ function ticketNode(card, index){
   return box;
 }
 
-function renderTickets(){
+var ticketSignature = '';
+function renderTickets(force){
   var list = document.getElementById('ticketList');
-  list.innerHTML = '';
-  cards.forEach(function(c, i){ list.appendChild(ticketNode(c, i)); });
+  var sig = cards.map(function(c){ return c.id; }).join(',');
+  if (force || sig !== ticketSignature){
+    ticketSignature = sig;
+    var frag = document.createDocumentFragment();
+    cards.forEach(function(c, i){ frag.appendChild(ticketNode(c, i)); });
+    list.innerHTML = '';
+    list.appendChild(frag);
+  }
+  syncTicketDom();
   document.getElementById('ticketCount').textContent = cards.length;
   setTicketChip(cards.length);
 }
 
 function showWin(prize, lineNo){
   var b = document.getElementById('winBanner');
-  var pct = [8, 16, 24][Math.min(Math.max(1, Number(lineNo || 1)), 3) - 1];
+  var pct = [2.4, 4.8, 7.2][Math.min(Math.max(1, Number(lineNo || 1)), 3) - 1];
   b.style.display = 'block';
   b.innerHTML = Number(lineNo || 1) + '-ci linya doldu! <b>+' + Number(prize || 0).toFixed(2) + ' ₼</b> (' + pct + '%) balansına əlavə olundu.' +
     '<br><span style="font-weight:600;font-size:13px;opacity:.85">Bileti tam doldursanız qalib elan olunursunuz.</span>';
@@ -690,7 +735,6 @@ function syncState(data){
   document.getElementById('ticketPrize').textContent = Number(data.ticket_prize || 0).toFixed(2);
   if (Number(data.mark_grace_sec || 0) > 0) GRACE_MS = Number(data.mark_grace_sec) * 1000;
   document.getElementById('statusText').textContent = statusLabel(data.status);
-  document.getElementById('timer').dataset.secs = data.secs_left || 0;
 
   var ball = document.getElementById('currentBall');
   if (data.current_number && data.current_number !== lastBall) {
