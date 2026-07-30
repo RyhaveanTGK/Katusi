@@ -35,6 +35,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── Health check (Render port yoxlaması üçün) ──
+app.get('/healthz', (req, res) => {
+  res.status(200).json({
+    ok: true,
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'connecting'
+  });
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: '10mb' }));
 
@@ -72,8 +80,10 @@ const profileRoutes = require('./routes/profile');
 const walletRoutes  = require('./routes/wallet');
 const adminRoutes   = require('./routes/admin');
 const apiRoutes     = require('./routes/api');
+const roomRoutes    = require('./routes/rooms');
 
 app.use('/', authRoutes);
+app.use('/', roomRoutes);
 app.use('/', gameRoutes);
 app.use('/profile', profileRoutes);
 app.use('/wallet', walletRoutes);
@@ -97,19 +107,30 @@ app.use((req, res) => {
   return res.redirect('/login');
 });
 
-mongoose.connect(MONGODB_URI)
-  .then(async () => {
+// ── ÖNƏMLİ: portu DƏRHAL dinləyirik ──
+// Render deploy-un uğurlu sayılması üçün proses qısa müddətdə 0.0.0.0:PORT
+// üzərində dinləməlidir. Əvvəl `app.listen` yalnız Mongo qoşulduqdan sonra
+// çağırılırdı; DB gec cavab verəndə Render "Cause of failure could not be
+// determined" xətası ilə deploy-u dayandırırdı.
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`One Loto running on port ${PORT}`);
+});
+server.on('error', (e) => console.error('HTTP server error:', e.message));
+
+async function connectDB(attempt = 1) {
+  try {
+    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
     console.log('MongoDB connected');
     await ensureDefaultRooms();
     startGameLoop();
     try { startBotPolling(); } catch (e) { console.error('Telegram polling start failed:', e.message); }
-    app.listen(PORT, () => console.log(`One Loto running on port ${PORT}`));
-  })
-  .catch((e) => {
-    console.error('MongoDB error:', e.message);
-    if (!IS_PROD) process.exit(1);
-    setTimeout(() => process.exit(1), 5000);
-  });
+  } catch (e) {
+    const wait = Math.min(30000, attempt * 5000);
+    console.error(`MongoDB error (cəhd ${attempt}):`, e.message, `— ${wait / 1000}s sonra yenidən`);
+    setTimeout(() => connectDB(attempt + 1), wait);
+  }
+}
+connectDB();
 
 process.on('unhandledRejection', (e)=>{console.error('UNHANDLED:', e && e.message);});
 process.on('SIGTERM', ()=>{ console.log('SIGTERM received, shutting down'); process.exit(0); });
