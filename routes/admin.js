@@ -4,6 +4,8 @@ const User    = require('../models/User');
 const Room    = require('../models/Room');
 const Transaction = require('../models/Transaction');
 const BonusCode   = require('../models/BonusCode');
+const PaymentMethod = require('../models/PaymentMethod');
+const { LOCALES, normalizeLocale } = require('../services/paymentMethods');
 const { requireAdmin } = require('../middleware/auth');
 const { notifyDecision } = require('../services/telegramBot');
 
@@ -215,6 +217,53 @@ router.get('/live-games', requireAdmin, async (req, res) => {
   const user = await User.findById(req.session.userId);
   const rooms = await Room.find({}).sort({ sortOrder: 1 }).populate('players', 'username balance');
   res.render('admin_live', { user, rooms });
+});
+
+// ── Ödəniş kartları (kart / IBAN nömrələri yalnız buradan idarə olunur) ──
+router.get('/payments', requireAdmin, async (req, res) => {
+  const user   = await User.findById(req.session.userId);
+  const locale = normalizeLocale(req.query.locale);
+  const methods = await PaymentMethod.find({ locale }).sort({ sortOrder: 1 });
+  res.render('admin_payments', { user, methods, locale, locales: LOCALES });
+});
+
+router.post('/payments/create', requireAdmin, async (req, res) => {
+  const locale = normalizeLocale(req.body.locale);
+  try {
+    await PaymentMethod.create({
+      key:      String(req.body.key || '').trim(),
+      locale,
+      name:     String(req.body.name || '').trim(),
+      kind:     req.body.kind || 'bank',
+      logo:     req.body.logo || '',
+      currency: req.body.currency || 'AZN',
+      sortOrder: parseInt(req.body.sortOrder, 10) || 0
+    });
+  } catch (e) { console.error('PaymentMethod create:', e.message); }
+  res.redirect('/admin/payments?locale=' + locale);
+});
+
+router.post('/payments/:id/update', requireAdmin, async (req, res) => {
+  const m = await PaymentMethod.findById(req.params.id);
+  if (!m) return res.redirect('/admin/payments');
+  ['name','bankName','cardNumber','iban','accountHolder','walletAddress','network','currency','logo','note']
+    .forEach((f) => { if (req.body[f] !== undefined) m[f] = String(req.body[f]).trim(); });
+  if (req.body.sortOrder !== undefined) m.sortOrder = parseInt(req.body.sortOrder, 10) || 0;
+  if (req.body.forDeposit  !== undefined) m.forDeposit  = req.body.forDeposit === '1';
+  if (req.body.forWithdraw !== undefined) m.forWithdraw = req.body.forWithdraw === '1';
+  await m.save();
+  res.redirect('/admin/payments?locale=' + m.locale);
+});
+
+router.post('/payments/:id/toggle', requireAdmin, async (req, res) => {
+  const m = await PaymentMethod.findById(req.params.id);
+  if (m) { m.active = !m.active; await m.save(); }
+  res.redirect('/admin/payments?locale=' + (m ? m.locale : 'az'));
+});
+
+router.post('/payments/:id/delete', requireAdmin, async (req, res) => {
+  const m = await PaymentMethod.findByIdAndDelete(req.params.id);
+  res.redirect('/admin/payments?locale=' + (m ? m.locale : 'az'));
 });
 
 module.exports = router;
