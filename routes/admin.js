@@ -9,6 +9,14 @@ const { LOCALES, normalizeLocale } = require('../services/paymentMethods');
 const { requireAdmin } = require('../middleware/auth');
 const { notifyDecision } = require('../services/telegramBot');
 
+// ── Admin paneldən çıxış ──
+router.get('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/admin/login'));
+});
+router.post('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/admin/login'));
+});
+
 // ── Otaqlar ──
 router.get('/', requireAdmin, (req, res) => res.redirect('/admin/users'));
 
@@ -26,7 +34,7 @@ router.post('/rooms/create', requireAdmin, async (req, res) => {
       type,
       ticketLabel: ticketLabel || 'TAM BİLET',
       entryFee:    parseFloat(entryFee) || 1,
-      maxPlayers:  parseInt(maxPlayers) || 50,
+      maxPlayers:  Math.min(5, parseInt(maxPlayers) || 5),
       jackpotEnabled: jackpotEnabled === 'on',
       starPrize:   parseFloat(starPrize) || 20,
       prizeMultiplier: prizeMultiplier || 'x2',
