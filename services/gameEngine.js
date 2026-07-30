@@ -12,46 +12,65 @@ const DRAW_INTERVAL_SEC = Number(process.env.GAME_DRAW_INTERVAL_SEC || 5);
 const ROUND_DURATION_SEC = Number(process.env.GAME_ROUND_DURATION_SEC || 360);
 
 const MAX_TICKETS = 5;
-const MAX_BALL = 100;   // daşlar 1–100 arasında random çıxır, təkrar olmur
+const MAX_BALL = 90;    // daşlar 1–90 arasında random çıxır, təkrar olmur
+
+// ── Otaq dolduqda dərhal başlayır: başlama vaxtı (geri sayım) yoxdur ──
+// 5 iştirakçı (bot və ya real istifadəçi — qarışıq) toplananda oyun start verir.
+const START_PLAYERS = Number(process.env.GAME_START_PLAYERS || 5);
+
+// Bir sıranı (5 daş) tam düzən bilet mərcinin 2 misli qədər uduş alır
+const ROW_WIN_MULTIPLIER = 2;
 
 let loopHandle = null;
 let ticking = false;
 
 const DEFAULT_ROOMS = [
-  { name: 'Classic 0.20 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 0.2, maxPlayers: 50, sortOrder: 1, jackpotEnabled: true, starPrize: 20, prizeMultiplier: 'x4', themeColor: '#1f9b3b' },
-  { name: 'Classic 0.50 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 0.5, maxPlayers: 50, sortOrder: 2, jackpotEnabled: true, starPrize: 50, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
-  { name: 'Classic 1.00 ₼',  ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 1.0, maxPlayers: 50, sortOrder: 3, jackpotEnabled: true, starPrize: 100, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
-  { name: 'Classic 5.00 ₼',  ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 5.0, maxPlayers: 50, sortOrder: 4, jackpotEnabled: true, starPrize: 500, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
-  { name: 'Classic 10.00 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 10.0, maxPlayers: 50, sortOrder: 5, jackpotEnabled: true, starPrize: 1000, prizeMultiplier: 'x2', themeColor: '#1f9b3b' }
+  { name: 'Classic 0.20 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 0.2, maxPlayers: START_PLAYERS, sortOrder: 1, jackpotEnabled: true, starPrize: 20, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
+  { name: 'Classic 0.50 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 0.5, maxPlayers: START_PLAYERS, sortOrder: 2, jackpotEnabled: true, starPrize: 50, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
+  { name: 'Classic 1.00 ₼',  ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 1.0, maxPlayers: START_PLAYERS, sortOrder: 3, jackpotEnabled: true, starPrize: 100, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
+  { name: 'Classic 5.00 ₼',  ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 5.0, maxPlayers: START_PLAYERS, sortOrder: 4, jackpotEnabled: true, starPrize: 500, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
+  { name: 'Classic 10.00 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 10.0, maxPlayers: START_PLAYERS, sortOrder: 5, jackpotEnabled: true, starPrize: 1000, prizeMultiplier: 'x2', themeColor: '#1f9b3b' }
 ];
 
 function flatCardNumbers(card) {
   return (card.numbers || []).flat().filter(Boolean);
 }
 
+/** Biletin sıraları (hər sırada 5 rəqəm) */
+function cardRows(card) {
+  return (card.numbers || []).map((row) => (row || []).filter(Boolean).map(Number)).filter((r) => r.length);
+}
+
+/**
+ * Bilet qazanır: BİR SIRA tam düzüldükdə.
+ * (Bütün otaqlar üçün eynidir — 1 sıra = mərcin 2 misli uduş)
+ */
 function isCardComplete(card) {
   const marks = new Set((card.markedNumbers || []).map(Number));
-  const numbers = flatCardNumbers(card);
-  return numbers.length > 0 && numbers.every((n) => marks.has(Number(n)));
+  return cardRows(card).some((row) => row.every((n) => marks.has(n)));
+}
+
+/** Tam dolan sıranın rəqəmləri */
+function completedRow(card) {
+  const marks = new Set((card.markedNumbers || []).map(Number));
+  return cardRows(card).find((row) => row.every((n) => marks.has(n))) || [];
 }
 
 /** 'x4' → 4, 'x2' → 2 */
 function multiplierOf(room) {
-  const raw = String(room.prizeMultiplier || 'x2').replace(/[^0-9.]/g, '');
-  const num = parseFloat(raw);
-  return Number.isFinite(num) && num > 0 ? num : 2;
+  return ROW_WIN_MULTIPLIER;
 }
 
-/** Bir biletin uduş məbləği (bilet başına) */
+/** Bir biletin uduş məbləği: qoyulan mərcin 2 misli (1 sıra düzüldükdə) */
 function ticketPrize(room) {
-  return Number((Number(room.entryFee || 0) * multiplierOf(room)).toFixed(2));
+  return Number((Number(room.entryFee || 0) * ROW_WIN_MULTIPLIER).toFixed(2));
 }
 
 /** Random 3x9 loto bileti (hər sətirdə 5 rəqəm) */
 function generateCardNumbers() {
   const cols = [
     [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
-    [50, 59], [60, 69], [70, 79], [80, 100]
+    [50, 59], [60, 69], [70, 79], [80, 90]
   ];
   const card = [new Array(9).fill(0), new Array(9).fill(0), new Array(9).fill(0)];
   const used = Array.from({ length: 9 }, () => new Set());
@@ -78,10 +97,8 @@ function generateCardNumbers() {
 function getDisplayStatus(room, now = Date.now()) {
   if (room.status === 'started') return 'started';
   if (room.status === 'ended')   return 'ended';
-  if (room.nextGameAt) {
-    const diff = new Date(room.nextGameAt).getTime() - now;
-    if (diff <= STARTING_SEC * 1000) return 'starting';
-  }
+  // Başlama vaxtı yoxdur: otaq dolmağa yaxınlaşdıqda "başlayır" göstərilir
+  if (visiblePlayerCount(room) >= START_PLAYERS - 1) return 'starting';
   return 'waiting';
 }
 
@@ -89,10 +106,12 @@ function getSecsLeft(room, now = Date.now()) {
   if (room.status === 'started' && room.roundEndsAt) {
     return Math.max(0, Math.round((new Date(room.roundEndsAt).getTime() - now) / 1000));
   }
-  if (room.nextGameAt) {
-    return Math.max(0, Math.round((new Date(room.nextGameAt).getTime() - now) / 1000));
-  }
-  return WAITING_SEC;
+  return 0;   // gözləmə mərhələsində geri sayım yoxdur — otaq dolan kimi başlayır
+}
+
+/** Otağın dolması üçün lazım olan iştirakçı sayı */
+function slotsLeft(room) {
+  return Math.max(0, START_PLAYERS - visiblePlayerCount(room));
 }
 
 async function ensureDefaultRooms() {
@@ -112,12 +131,13 @@ async function ensureDefaultRooms() {
         }
       }
     );
-    await Room.updateMany({ nextGameAt: null, status: { $ne: 'started' } }, { $set: { nextGameAt: new Date(Date.now() + WAITING_SEC * 1000) } });
+    // Başlama vaxtı ləğv edilib — otaqlar yalnız dolduqda başlayır
+    await Room.updateMany({ status: { $ne: 'started' } }, { $set: { nextGameAt: null } });
+    await Room.updateMany({ maxPlayers: { $gt: START_PLAYERS } }, { $set: { maxPlayers: START_PLAYERS } });
     return;
   }
 
-  const startAt = Date.now() + WAITING_SEC * 1000;
-  const rooms = DEFAULT_ROOMS.map((room, i) => ({
+  const rooms = DEFAULT_ROOMS.map((room) => ({
     ...room,
     status: 'waiting',
     prize: 0,
@@ -125,7 +145,7 @@ async function ensureDefaultRooms() {
     currentRoundId: 1,
     drawIntervalSec: DRAW_INTERVAL_SEC,
     roundDurationSec: ROUND_DURATION_SEC,
-    nextGameAt: new Date(startAt + i * Math.max(2000, Math.floor((WAITING_SEC * 1000) / 2)))
+    nextGameAt: null
   }));
   await Room.insertMany(rooms);
 }
@@ -142,7 +162,7 @@ async function startRoom(room) {
   room.winnerNums = [];
   room.winnerPrize = 0;
   // ── Botlar: 3-dən az real oyunçu varsa otağa bot əlavə olunur ──
-  bots.syncBots(room, generateCardNumbers);
+  bots.syncBots(room, generateCardNumbers, START_PLAYERS);
   await room.save();
 }
 
@@ -174,7 +194,7 @@ async function resetRoomForNextRound(room) {
   room.markModified('bots');
   room.botWinIntended = false;
   room.currentRoundId = Number(room.currentRoundId || 1) + 1;
-  room.nextGameAt = new Date(Date.now() + WAITING_SEC * 1000);
+  room.nextGameAt = null;
   await room.save();
 }
 
@@ -190,9 +210,7 @@ async function settleCard(room, card) {
   if (!user) return null;
 
   const prize = ticketPrize(room);
-  const cardNumbers = flatCardNumbers(card);
-  const marked = new Set((card.markedNumbers || []).map(Number));
-  const winnerNums = cardNumbers.filter((n) => marked.has(Number(n))).slice(0, 5);
+  const winnerNums = completedRow(card).slice(0, 5);
 
   if (room.type === 'stars') {
     user.stars = Number(user.stars || 0) + prize;
@@ -315,13 +333,16 @@ async function settleBotWin(room, bot) {
     if (isCardComplete(card)) await settleCard(room, card);
   }
 
-  const nums = (bot.marked || []).slice(-5);
+  const nums = bots.botWinningRow(bot, room.drawnNumbers || []).slice(0, 5);
+  const prize = ticketPrize(room);
   room.winnerUser = null;
   room.winnerNums = nums;
-  room.winnerPrize = ticketPrize(room);
+  room.winnerPrize = prize;
   room.winCount = Number(room.winCount || 0) + 1;
   room.lastWinnerName = bot.name;
   room.lastWinnerNums = nums;
+  // Uduş ümumi mərcdən çıxılır
+  room.prize = Number(Math.max(0, Number(room.prize || 0) - prize).toFixed(2));
   await room.save();
 
   // Qalib siyahısına düşsün
@@ -367,15 +388,12 @@ async function tick() {
         continue;
       }
 
-      const nextGameAt = room.nextGameAt ? new Date(room.nextGameAt).getTime() : 0;
-      if (!nextGameAt) {
-        room.nextGameAt = new Date(now + WAITING_SEC * 1000);
-        await room.save();
-        continue;
-      }
-      if (nextGameAt <= now) {
+      // ── Gözləmə: başlama vaxtı yoxdur, otaq dolan kimi oyun başlayır ──
+      const changed = bots.driftBots(room, generateCardNumbers, START_PLAYERS);
+      if (visiblePlayerCount(room) >= START_PLAYERS) {
         await startRoom(room);
-      } else if (bots.driftBots(room, generateCardNumbers)) {
+      } else if (changed) {
+        room.nextGameAt = null;
         await room.save();
       }
     }
@@ -430,6 +448,11 @@ function totalStake(room) {
 
 module.exports = {
   MAX_BALL,
+  START_PLAYERS,
+  ROW_WIN_MULTIPLIER,
+  slotsLeft,
+  cardRows,
+  completedRow,
   roomRoster,
   totalStake,
   WAITING_SEC,
