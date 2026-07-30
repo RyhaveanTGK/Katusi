@@ -56,6 +56,15 @@
     <div class="draw-list" id="drawList"></div>
   </div>
 
+  <div class="panel players-panel">
+    <div class="panel-title">Onlayn oyunçular</div>
+    <div class="players-list" id="playersList"></div>
+    <div class="players-total">
+      <span>Otaqdakı ümumi mərc</span>
+      <b id="totalStake">0.00 ₼</b>
+    </div>
+  </div>
+
   <div id="ticketList"></div>
 
   <div class="win-banner" id="winBanner" style="display:none"></div>
@@ -81,6 +90,9 @@ var cards = <%- JSON.stringify(cards.map(function(c){ return { id: String(c._id)
 var drawnNumbers = <%- JSON.stringify(room.drawnNumbers || []) %>;
 var lastBall = <%- JSON.stringify(room.currentNumber || null) %>;
 var lastRound = <%= Number(room.currentRoundId || 1) %>;
+var MY_NAME = <%- JSON.stringify(user.username) %>;
+var missedNumbers = {};   // vaxtında qeyd edilməyən daşlar (biletdə qırmızı X)
+var lastStake = null;
 
 function toast(msg){
   var el = document.getElementById('toast');
@@ -100,12 +112,60 @@ setInterval(renderTimer, 1000); renderTimer();
 function renderDrawList(){
   var box = document.getElementById('drawList');
   box.innerHTML = '';
-  drawnNumbers.slice(-14).forEach(function(n, i, arr){
+  // çıxan daşlar alt-alta yox, soldan sağa bir sıra ilə düzülür
+  drawnNumbers.forEach(function(n, i, arr){
     var d = document.createElement('div');
     d.className = 'draw-item' + (i === arr.length - 1 ? ' latest' : '');
     d.textContent = n;
     box.appendChild(d);
   });
+  box.scrollLeft = box.scrollWidth;
+}
+
+/* Yeni daş çıxdıqda əvvəlki çıxmış, amma qeyd edilməmiş xanalar bağlanır */
+function lockMissed(){
+  var current = Number(lastBall || 0);
+  cards.forEach(function(card){
+    var marked = {};
+    (card.marked || []).forEach(function(n){ marked[Number(n)] = true; });
+    (card.numbers || []).forEach(function(row){
+      row.forEach(function(n){
+        n = Number(n);
+        if (!n) return;
+        if (drawnNumbers.indexOf(n) < 0) return;
+        if (marked[n]) return;
+        if (n === current) return;      // cari daş hələ vurula bilər
+        missedNumbers[n] = true;
+      });
+    });
+  });
+}
+
+function renderPlayers(data){
+  var list = document.getElementById('playersList');
+  if (!list) return;
+  var players = (data && data.players) || [];
+  list.innerHTML = '';
+  players.forEach(function(p){
+    var row = document.createElement('div');
+    row.className = 'player-row' + (p.name === MY_NAME ? ' me' : '');
+    row.innerHTML =
+      '<span class="player-av">' + String(p.name || '?').charAt(0).toUpperCase() + '</span>' +
+      '<span class="player-name">' + p.name + '</span>' +
+      '<span class="player-bet">' + Number(p.stake || 0).toFixed(2) + ' ₼<small>' + (p.tickets || 1) + ' bilet</small></span>';
+    list.appendChild(row);
+  });
+  if (!players.length) {
+    list.innerHTML = '<div class="player-row"><span class="player-name" style="opacity:.6">Oyunçular gözlənilir…</span></div>';
+  }
+
+  var total = document.getElementById('totalStake');
+  var stake = Number((data && data.total_stake) || 0);
+  total.textContent = stake.toFixed(2) + ' ₼';
+  if (lastStake !== null && Math.abs(stake - lastStake) >= 0.005) {
+    total.classList.remove('bet-bump'); void total.offsetWidth; total.classList.add('bet-bump');
+  }
+  lastStake = stake;
 }
 
 function ticketNode(card, index){
@@ -131,8 +191,12 @@ function ticketNode(card, index){
       var cell = document.createElement('div');
       var isDrawn = n && drawnNumbers.indexOf(n) >= 0;
       var isMarked = n && markedSet[n];
+      var isMissed = n && !isMarked && !!missedNumbers[n];
       if (n) { total++; if (isMarked) marks++; }
-      cell.className = 'cell' + (n ? '' : ' empty') + (isDrawn && !isMarked ? ' drawn clickable' : '') + (isMarked ? ' marked' : '');
+      cell.className = 'cell' + (n ? '' : ' empty') +
+        (isDrawn && !isMarked && !isMissed ? ' drawn clickable' : '') +
+        (isMarked ? ' marked' : '') +
+        (isMissed ? ' missed' : '');
       cell.dataset.number = n || '';
       cell.textContent = n || '';
       grid.appendChild(cell);
@@ -161,6 +225,7 @@ function ticketNode(card, index){
     }).then(function(r){ return r.json(); }).then(function(res){
       if (res.error) { toast(res.error); return poll(); }
       if (res.card) { card.marked = res.card.marked_numbers || []; }
+      if (typeof res.balance === 'number' && window.animateBalance) window.animateBalance(res.balance);
       if (res.won) {
         card.isWinner = true;
         card.prize = res.prize || 0;
@@ -213,12 +278,17 @@ function syncState(data){
 
   drawnNumbers = data.drawn_numbers || drawnNumbers;
   renderDrawList();
+  renderPlayers(data);
+  if (typeof data.balance === 'number' && window.animateBalance && Math.abs(window.getBalance() - data.balance) >= 0.005) {
+    window.animateBalance(data.balance);
+  }
 
   if (Array.isArray(data.cards) && data.cards.length) {
     cards = data.cards.map(function(c){
       return { id: c.id, numbers: c.numbers, marked: c.marked_numbers || [], isWinner: !!c.is_winner, prize: Number(c.prize || 0) };
     });
   }
+  lockMissed();
   renderTickets();
 }
 
@@ -240,6 +310,7 @@ function poll(){
 })();
 
 renderDrawList();
+lockMissed();
 renderTickets();
 poll();
 setInterval(poll, 2000);
