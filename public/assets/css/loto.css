@@ -76,9 +76,61 @@ body{
 }
 .ball.pop{ animation: ball-pop .4s ease; }
 @keyframes ball-pop{ 0%{ transform: scale(.5) rotate(-15deg); opacity:.3 } 60%{ transform: scale(1.12) } 100%{ transform: scale(1); opacity:1 } }
-.draw-list{ display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; }
-.draw-item{ width:27px; height:27px; border-radius:50%; background:#4d1c7d; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
-.draw-item.latest{ background:#f5c518; color:#5a3000; }
+/* çıxan daşlar: alt-alta düzülmür, tək sıra ilə soldan sağa gedir */
+.draw-list{
+  display:flex; flex-wrap:nowrap; gap:6px; margin-top:10px;
+  overflow-x:auto; overflow-y:hidden; padding-bottom:4px;
+  scroll-behavior:smooth; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.draw-list::-webkit-scrollbar{ display:none; }
+.draw-item{
+  width:29px; height:29px; flex:0 0 29px; border-radius:50%;
+  background:#4d1c7d; display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:800; color:#fff;
+  animation: draw-in .35s ease;
+}
+.draw-item.latest{ background:#f5c518; color:#5a3000; box-shadow:0 0 0 2px rgba(245,197,24,.35); }
+@keyframes draw-in{ from{ transform:scale(.4); opacity:0 } to{ transform:scale(1); opacity:1 } }
+
+/* vaxtında qeyd edilməyən daş: qırmızı X */
+.cell.missed{ position:relative; color:#b9b9b9 !important; background:#f3f3f3 !important; }
+.cell.missed::before,
+.cell.missed::after{
+  content:''; position:absolute; left:15%; right:15%; top:50%; height:2.5px;
+  background:#e02424; border-radius:2px;
+}
+.cell.missed::before{ transform: translateY(-50%) rotate(45deg); }
+.cell.missed::after{  transform: translateY(-50%) rotate(-45deg); }
+
+/* otaqdakı onlayn oyunçular və mərcləri */
+.players-panel{ margin-top:12px; }
+.players-list{ display:flex; flex-direction:column; gap:6px; max-height:190px; overflow-y:auto; }
+.player-row{
+  display:flex; align-items:center; gap:9px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
+  border-radius:12px; padding:8px 11px;
+  animation: player-in .3s ease;
+}
+@keyframes player-in{ from{ opacity:0; transform:translateY(-6px) } to{ opacity:1; transform:none } }
+.player-row.me{ border-color:rgba(245,197,24,.5); background:rgba(245,197,24,.10); }
+.player-av{
+  width:28px; height:28px; border-radius:50%; flex:0 0 28px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:900; color:#2b1200;
+  background: radial-gradient(circle at 35% 30%,#ffe27a,#f5c518 60%,#c8960c);
+}
+.player-name{ flex:1; min-width:0; font-size:13px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.player-bet{ font-size:13px; font-weight:900; color:#f5c518; white-space:nowrap; }
+.player-bet small{ display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,.5); text-align:right; }
+.players-total{
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:9px; padding-top:9px; border-top:1px solid rgba(255,255,255,.1);
+  font-size:13px; font-weight:800;
+}
+.players-total b{ color:#f5c518; font-size:15px; }
+.bet-bump{ animation: bet-bump .5s ease; }
+@keyframes bet-bump{ 0%{ transform:scale(1) } 40%{ transform:scale(1.18); color:#4ce07a } 100%{ transform:scale(1) } }
 
 /* ── bilet kartı ── */
 .ticket{
