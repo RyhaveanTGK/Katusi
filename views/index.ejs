@@ -35,7 +35,8 @@ body{
   animation: fade-in .35s ease both;
 }
 @keyframes fade-in { from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform:none; } }
-.card:active{ transform: scale(.985); }
+.card{ will-change: transform; backface-visibility:hidden; transform: translateZ(0); }
+.card:active{ transform: scale(.985) translateZ(0); }
 .card[data-state="starting"]{ border-color:#e53935; animation: pulse-border 1.4s infinite; }
 .card[data-state="started"]{ border-color:#9aa0a4; }
 @keyframes pulse-border{ 0%,100%{ box-shadow: 0 0 0 0 rgba(229,57,53,.5); } 50%{ box-shadow: 0 0 0 6px rgba(229,57,53,0); } }
@@ -405,7 +406,9 @@ function applyState(card, info){
     // Başlama vaxtı yoxdur: otaq dolan kimi başlayır → gözləmədə iştirakçı sayı göstərilir
     tm.textContent = info.status === 'started'
       ? fmtTime(info.secs_left || 0)
-      : (info.player_count || 0) + '/' + (info.room_size || 5);
+      : (Number(info.starts_in || 0) > 0
+          ? 'Başlayır ' + Number(info.starts_in) + 's'
+          : (info.player_count || 0) + '/' + (info.room_size || 5));
   }
   var tmWrap = card.querySelector('.js-time');
   if (tmWrap) tmWrap.className = 'time js-time st-'+info.status;
@@ -447,10 +450,21 @@ function applyState(card, info){
       .then(function(r){ return r && r.ok ? r.json() : null; })
       .then(function(data){
         if (!Array.isArray(data)) return;
+        var needsReload = false;
         data.forEach(function(info){
           var card = document.querySelector('[data-room-id="'+info.id+'"]');
-          if (card) applyState(card, info);
+          if (info.removed){
+            // Oyunu başlamış otaq ana səhifədən silinir
+            if (card && card.parentNode) card.parentNode.removeChild(card);
+            return;
+          }
+          if (!card){ needsReload = true; return; }   // yeni açılan otaq
+          applyState(card, info);
         });
+        if (needsReload && !window.__reloading){
+          window.__reloading = true;
+          setTimeout(function(){ window.location.reload(); }, 400);
+        }
       })
       .catch(function(){ /* sayt yatır – sessiz */ });
   }
