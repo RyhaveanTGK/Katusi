@@ -5,33 +5,34 @@ services:
     plan: free
     buildCommand: npm install
     startCommand: node server.js
+    healthCheckPath: /healthz
     envVars:
+      # MONGODB_URI dəyərini Render Dashboard → Environment bölməsində əl ilə yazın.
       - key: MONGODB_URI
-        value: *
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000
+      # QEYD: PORT dəyərini BURADA təyin etməyin — Render onu özü verir.
+      # Əl ilə 3000 yazıldıqda proses Render-in gözlədiyi portu dinləmir və
+      # deploy "Cause of failure could not be determined" xətası ilə dayanır.
       # ── Telegram bot inteqrasiyası ──
       - key: TELEGRAM_BOT_TOKEN
         sync: false        # Render Dashboard-dan əl ilə daxil edin
       - key: TELEGRAM_ADMIN_CHAT_ID
         sync: false        # Admin-in şəxsi chat ID-si (bot started olmalıdır)
       # ── Admin panel girişi (ENV əsaslı) ──
-      # Bu iki dəyəri Render Dashboard → Environment bölməsində əl ilə təyin edin.
-      # Sonra sayta /admin/login üzərindən daxil olun.
       - key: ADMIN_USERNAME
         sync: false        # məs: admin
       - key: ADMIN_PASSWORD
         sync: false        # güclü şifrə seçin
       # ── Oyun mühəndisi üçün tuning ──
       - key: GAME_WAITING_SEC
-        value: 5           # Round-lar arası gözləmə artıq 5 saniyədir (75 deyil)
+        value: "5"
       - key: GAME_STARTING_WINDOW_SEC
-        value: 3           # Yeni round başlayanadək görünən "Başlayır" pəncərəsi
+        value: "3"
       - key: GAME_DRAW_INTERVAL_SEC
-        value: 5           # Daş çəkilişi arasında saniyə
+        value: "5"
       - key: GAME_ROUND_DURATION_SEC
-        value: 360         # Round-un ümumi müddəti (saniyə)
+        value: "360"
