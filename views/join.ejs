@@ -2,155 +2,182 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Otağa qoşul – One Loto</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Otaq – One Loto</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-<style>
-*{ box-sizing:border-box; margin:0; padding:0; }
-html, body{ overflow-x:hidden; }
-body{
-  background:#3d0d62; color:#fff;
-  font-family:'Rubik',sans-serif;
-  min-height:100vh;
-  padding-top: 72px;
-  padding-bottom: 24px;
-}
-.wrap{ width:100%; max-width:430px; margin:0 auto; padding:16px 14px 24px; }
-
-.hero{
-  background: linear-gradient(180deg,#7a2db0 0%,#5d1f90 100%);
-  border-radius:24px;
-  padding:18px 16px;
-  box-shadow: 0 10px 22px rgba(0,0,0,.35);
-}
-.status-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-.status-pill{
-  display:inline-flex; align-items:center; gap:8px;
-  background: rgba(0,0,0,.24);
-  padding:8px 12px; border-radius:18px;
-  font-size:12px; font-weight:700;
-}
-.count{ font-size:13px; font-weight:800; color:#f5c518; }
-.timer{ font-size:18px; font-weight:900; color:#fff; font-variant-numeric: tabular-nums; }
-
-.ticket-card{
-  background:#fff; border:3px solid #1d0b33;
-  border-radius:18px; padding:14px;
-  color:#181818; margin-bottom:16px;
-}
-.ticket-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
-.badge-main{
-  background: linear-gradient(180deg,#e4d4a6 0%,#d3b262 100%);
-  color:#fff; border-radius:16px;
-  padding:7px 14px; font-size:15px; font-weight:800;
-}
-.badge-side{
-  background:#2b343b; color:#f8c52e;
-  border-radius:16px; padding:6px 14px;
-  font-size:14px; font-weight:800;
-}
-.big-prize{ display:flex; align-items:center; gap:8px; color:#1ea838; font-size:34px; font-weight:900; line-height:1; }
-.coins{ position:relative; width:32px; height:28px; }
-.coin{ position:absolute; width:20px; height:12px; border-radius:50%; background: linear-gradient(180deg,#ffe27a,#e0a82e); border:1.5px solid #c8901f; }
-.coin.c1{ left:2px; bottom:0; }
-.coin.c2{ left:6px; bottom:7px; }
-.coin.c3{ left:10px; bottom:14px; }
-
-.meta{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
-.meta-box{ background:#f5f5f7; border-radius:14px; padding:12px; }
-.meta-k{ font-size:11px; color:#7b7b85; text-transform:uppercase; font-weight:700; }
-.meta-v{ font-size:16px; font-weight:900; color:#222; margin-top:4px; }
-
-.preview-card{
-  margin-top:16px;
-  background: rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:18px; padding:14px;
-}
-.preview-title{ font-size:12px; font-weight:800; letter-spacing:.5px; color:rgba(255,255,255,.68); text-transform:uppercase; margin-bottom:10px; }
-.grid{ display:grid; grid-template-columns:repeat(9,1fr); gap:3px; }
-.cell{ aspect-ratio:1; border-radius:6px; background: rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
-.cell.empty{ background: rgba(255,255,255,.05); color:transparent; }
-
-.actions{ display:flex; flex-direction:column; gap:10px; margin-top:18px; }
-.btn{
-  width:100%; border:none; border-radius:16px;
-  padding:15px 16px;
-  font-size:16px; font-weight:900;
-  font-family:'Rubik',sans-serif; cursor:pointer;
-}
-.btn-primary{ background: linear-gradient(180deg,#4d86e8,#3f6fd4); color:#fff; box-shadow: 0 4px 14px rgba(77,134,232,.35); }
-.btn-secondary{ background: rgba(255,255,255,.1); color:#fff; text-decoration:none; display:flex; align-items:center; justify-content:center; }
-
-.error-msg{
-  background: rgba(232,0,26,.15); border:1px solid rgba(232,0,26,.3);
-  border-radius:12px; padding:10px 14px; font-size:13px;
-  color:#ff9d9d; margin-bottom:14px;
-}
-.help{ font-size:12px; color:rgba(255,255,255,.68); line-height:1.45; margin-top:10px; }
-
-@media (max-width:370px){
-  .big-prize{ font-size:26px; }
-  .badge-main{ font-size:13px; padding:6px 10px; }
-  .badge-side{ font-size:12px; padding:5px 10px; }
-  .cell{ font-size:11px; }
-}
-@supports (padding: max(0px)) {
-  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
-}
-</style>
+<link rel="stylesheet" href="/assets/css/loto.css">
 </head>
 <body>
 
 <%- include('partials/topnav', { user: user }) %>
 
-<div class="wrap">
-  <% if (typeof error !== 'undefined' && error) { %><div class="error-msg"><%= error %></div><% } %>
-  <div class="hero">
-    <div class="status-row">
-      <div class="status-pill"><span class="material-symbols-outlined">schedule</span><span><%= displayStatus === 'started' ? 'Oyun başladı' : displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir' %></span></div>
-      <div class="timer" id="timer" data-secs="<%= secsLeft %>">00:00</div>
+<div class="gamebar">
+  <div class="statbar">
+    <div class="stat-pill">
+      <div class="bet"><%= Number(room.entryFee || 0).toFixed(2) %><span class="mult"><%= room.prizeMultiplier || 'x2' %></span></div>
+      <div class="item"><span class="material-symbols-outlined">person</span><span id="playerCount"><%= room.players.length %></span></div>
+      <div class="sep"></div>
+      <div class="item"><span class="material-symbols-outlined">emoji_events</span><span id="roomPrize"><%= Number(ticketPrize || 0).toFixed(2) %> ₼</span></div>
     </div>
-    <div class="ticket-card">
-      <div class="ticket-head">
-        <span class="badge-main"><%= room.ticketLabel || 'TAM BİLET' %></span>
-        <span class="badge-side">⭐ <%= room.starPrize || Math.round(room.entryFee * 100) %></span>
-      </div>
-      <div class="big-prize">
-        <div class="coins"><i class="coin c1"></i><i class="coin c2"></i><i class="coin c3"></i></div>
-        <span><%= Number(room.prize || 0).toFixed(2) %></span><span>₼</span>
-      </div>
-      <div class="meta">
-        <div class="meta-box"><div class="meta-k">Giriş haqqı</div><div class="meta-v"><%= Number(room.entryFee || 0).toFixed(2) %> ₼</div></div>
-        <div class="meta-box"><div class="meta-k">Oyunçu</div><div class="meta-v"><%= room.players.length %> / <%= room.maxPlayers %></div></div>
-        <div class="meta-box"><div class="meta-k">Jackpot</div><div class="meta-v"><%= room.jackpotEnabled ? Number(room.jackpot || 0).toFixed(2) + ' ₼' : 'OFF' %></div></div>
-        <div class="meta-box"><div class="meta-k">Bonus</div><div class="meta-v"><%= room.prizeMultiplier || 'x2' %></div></div>
-      </div>
-    </div>
-    <div class="preview-card">
-      <div class="preview-title">Oyuna qoşulduqda sizə avtomatik kart veriləcək</div>
-      <div class="grid">
-        <% [[0,12,0,0,44,0,0,70,0],[5,0,26,0,0,53,0,0,81],[0,18,0,31,0,0,67,0,89]].forEach(function(row){ row.forEach(function(n){ %>
-          <div class="cell <%= n ? '' : 'empty' %>"><%= n || '' %></div>
-        <% }) }) %>
-      </div>
-      <div class="help">Qoşulduqdan sonra daşlar random çıxacaq. Kartı manual işarələyə və ya avto rejimi aktivləşdirə bilərsiniz.</div>
-    </div>
-    <div class="actions">
-      <form method="POST" action="/join/<%= room._id %>"><button type="submit" class="btn btn-primary">Bilet al və oyuna qoşul</button></form>
-      <a href="/" class="btn btn-secondary">Ana səhifəyə qayıt</a>
-    </div>
+    <button class="icon-btn" id="soundBtn" type="button" aria-label="Səs"><span class="material-symbols-outlined" id="soundIcon">volume_up</span></button>
   </div>
 </div>
 
-<%- include('partials/footer', { activePage: 'home' }) %>
+<div class="wrap">
+  <% if (typeof error !== 'undefined' && error) { %><div class="error-msg"><%= error %></div><% } %>
+  <div id="ticketList"></div>
+  <div class="hint">Bilet rəqəmlərini <b>yenilə</b> və ya <b>dəyiş</b> ilə seçin, artıq bileti <b>sil</b>. Maksimum <%= maxTickets %> bilet.</div>
+</div>
 
+<form method="POST" action="/join/<%= room._id %>" id="buyForm">
+  <input type="hidden" name="tickets" id="ticketsField">
+  <input type="hidden" name="quantity" id="quantityField" value="1">
+  <div class="buybar">
+    <div class="buybar-inner">
+      <button class="buy-btn" type="submit" id="buyBtn">
+        <div class="buy-main">BİLET AL <span id="buyTotal"><%= Number(room.entryFee || 0).toFixed(2) %></span> ₼</div>
+        <div class="buy-sub">Qazan ⭐ <%= room.starPrize || 0 %></div>
+      </button>
+      <div class="qty">
+        <button class="qty-btn minus" type="button" id="minusBtn" aria-label="Azalt">−</button>
+        <div class="qty-box">
+          <div class="qty-label">Biletlər</div>
+          <div class="qty-val" id="qtyVal">1</div>
+        </div>
+        <button class="qty-btn plus" type="button" id="plusBtn" aria-label="Artır">+</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="toast" id="toast"></div>
+
+<script src="/assets/js/loto-sound.js"></script>
 <script>
-function fmt(s){s=Math.max(0,parseInt(s||0,10));var m=Math.floor(s/60),ss=s%60;return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
-var t=document.getElementById('timer');
-function tick(){var v=parseInt(t.dataset.secs||'0',10);t.textContent=fmt(v);if(v>0)t.dataset.secs=v-1;}
-tick(); setInterval(tick, 1000);
+var MAX_TICKETS = <%= maxTickets %>;
+var ENTRY_FEE   = <%= Number(room.entryFee || 0) %>;
+var POOL        = <%- JSON.stringify(previewCards) %>;
+var tickets     = [POOL[0]];
+
+function toast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(window.__t); window.__t = setTimeout(function(){ el.classList.remove('show'); }, 2000);
+}
+
+/* ── random bilet generatoru (klient tərəfi önizləmə) ── */
+function genCard(){
+  var cols=[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59],[60,69],[70,79],[80,90]];
+  var card=[[],[],[]], used=[];
+  for(var i=0;i<9;i++) used.push({});
+  for(var r=0;r<3;r++){
+    card[r]=new Array(9).fill(0);
+    var chosen=[];
+    while(chosen.length<5){ var c=Math.floor(Math.random()*9); if(chosen.indexOf(c)<0) chosen.push(c); }
+    chosen.sort(function(a,b){return a-b;});
+    chosen.forEach(function(c){
+      var min=cols[c][0], max=cols[c][1], v;
+      do { v=Math.floor(Math.random()*(max-min+1))+min; } while(used[c][v]);
+      used[c][v]=true; card[r][c]=v;
+    });
+  }
+  return card;
+}
+
+function ticketNode(numbers, index){
+  var box = document.createElement('div');
+  box.className = 'ticket';
+  var tools = document.createElement('div');
+  tools.className = 'ticket-tools';
+  tools.innerHTML =
+    '<button class="tool" data-act="refresh" type="button"><span class="material-symbols-outlined">refresh</span><span class="tool-label">yenilə</span></button>' +
+    '<button class="tool" data-act="delete" type="button"><span class="material-symbols-outlined">delete</span><span class="tool-label">sil</span></button>' +
+    '<button class="tool" data-act="change" type="button"><span class="material-symbols-outlined">edit</span><span class="tool-label">dəyiş</span></button>' +
+    '<span class="ticket-no">#' + (index + 1) + '</span>';
+  box.appendChild(tools);
+
+  var grid = document.createElement('div');
+  grid.className = 'grid';
+  numbers.forEach(function(row){
+    row.forEach(function(n){
+      var cell = document.createElement('div');
+      cell.className = 'cell' + (n ? '' : ' empty');
+      cell.textContent = n || '';
+      grid.appendChild(cell);
+    });
+  });
+  box.appendChild(grid);
+
+  tools.addEventListener('click', function(e){
+    var btn = e.target.closest('.tool');
+    if (!btn) return;
+    var act = btn.dataset.act;
+    if (act === 'delete') {
+      if (tickets.length === 1) return toast('Ən azı 1 bilet olmalıdır');
+      tickets.splice(index, 1);
+      LotoSound.place();
+      render();
+      return toast('Bilet silindi');
+    }
+    tickets[index] = genCard();
+    LotoSound.place();
+    render();
+    toast(act === 'refresh' ? 'Bilet yeniləndi' : 'Bilet dəyişdirildi');
+  });
+
+  return box;
+}
+
+function render(){
+  var list = document.getElementById('ticketList');
+  list.innerHTML = '';
+  tickets.forEach(function(t, i){ list.appendChild(ticketNode(t, i)); });
+  document.getElementById('qtyVal').textContent = tickets.length;
+  document.getElementById('buyTotal').textContent = (ENTRY_FEE * tickets.length).toFixed(2);
+  document.getElementById('minusBtn').disabled = tickets.length <= 1;
+  document.getElementById('plusBtn').disabled  = tickets.length >= MAX_TICKETS;
+  document.getElementById('quantityField').value = tickets.length;
+  document.getElementById('ticketsField').value = JSON.stringify(tickets);
+}
+
+document.getElementById('plusBtn').addEventListener('click', function(){
+  if (tickets.length >= MAX_TICKETS) return toast('Maksimum ' + MAX_TICKETS + ' bilet');
+  tickets.push(POOL[tickets.length] || genCard());
+  LotoSound.place();
+  render();
+});
+document.getElementById('minusBtn').addEventListener('click', function(){
+  if (tickets.length <= 1) return toast('Ən azı 1 bilet olmalıdır');
+  tickets.pop();
+  LotoSound.place();
+  render();
+});
+document.getElementById('buyForm').addEventListener('submit', function(){
+  document.getElementById('buyBtn').disabled = true;
+  document.getElementById('ticketsField').value = JSON.stringify(tickets);
+});
+
+/* ── səs aç/bağla ── */
+(function(){
+  var btn = document.getElementById('soundBtn');
+  var icon = document.getElementById('soundIcon');
+  function paint(){ icon.textContent = LotoSound.isOn() ? 'volume_up' : 'volume_off'; }
+  paint();
+  btn.addEventListener('click', function(){ LotoSound.toggle(); paint(); });
+})();
+
+/* ── canlı otaq statistikası ── */
+function poll(){
+  fetch('/api/room/<%= room._id %>').then(function(r){ return r.json(); }).then(function(d){
+    if (!d || d.error) return;
+    document.getElementById('playerCount').textContent = d.player_count;
+    document.getElementById('roomPrize').textContent = Number(d.ticket_prize || 0).toFixed(2) + ' ₼';
+  }).catch(function(){});
+}
+render();
+poll();
+setInterval(poll, 4000);
 </script>
 </body>
 </html>
