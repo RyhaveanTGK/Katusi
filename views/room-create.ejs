@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3d0d62">
+<title>Otaq yarat – One Loto</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Rubik',Segoe UI,Arial,sans-serif;background:#3d0d62;color:#fff;padding:86px 12px 30px;min-height:100vh;}
+.wrap{max-width:415px;margin:0 auto;}
+.panel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:22px;padding:22px 18px;backdrop-filter:blur(10px);}
+h1{font-size:20px;font-weight:900;margin-bottom:4px;}
+.sub{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:18px;}
+.g{margin-bottom:14px;}
+label{display:block;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:6px;}
+input,select{width:100%;padding:13px 15px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;font-size:15px;font-weight:700;font-family:inherit;outline:none;}
+input:focus,select:focus{border-color:#f5c518;}
+select option{color:#222;}
+.hint{font-size:11px;color:rgba(255,255,255,.5);margin-top:5px;}
+.err{background:rgba(229,57,53,.18);border:1px solid rgba(229,57,53,.5);color:#ffc9c7;font-size:13px;font-weight:700;padding:10px 12px;border-radius:12px;margin-bottom:14px;}
+.btn{width:100%;padding:15px;background:linear-gradient(180deg,#54d57a,#15a62d);color:#fff;font-size:16px;font-weight:900;border:none;border-radius:16px;cursor:pointer;box-shadow:0 4px 14px rgba(21,166,45,.4);font-family:inherit;margin-top:6px;}
+.btn:active{transform:scale(.98);}
+.back{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.75);text-decoration:none;font-size:13px;font-weight:700;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<%- include('partials/topnav', { user: user }) %>
+<div class="wrap">
+  <a class="back" href="/"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span> Ana səhifə</a>
+  <div class="panel">
+    <h1>Şəxsi otaq yarat</h1>
+    <div class="sub">Öz otağını yarat, mərci təyin et və dostlarını dəvət et.</div>
+    <% if (error) { %><div class="err"><%= error %></div><% } %>
+    <form method="POST" action="/room/create">
+      <div class="g">
+        <label>Otaq adı</label>
+        <input type="text" name="name" maxlength="40" required placeholder="məs: Dostlar otağı" value="<%= values.name || '' %>">
+      </div>
+      <div class="g">
+        <label>Mərc — bilet qiyməti (₼)</label>
+        <input type="number" name="entryFee" step="0.10" min="0.10" max="100" required value="<%= values.entryFee || '0.50' %>">
+        <div class="hint">Minimum 0.10 ₼, maksimum 100 ₼</div>
+      </div>
+      <div class="g">
+        <label>Maksimum istifadəçi</label>
+        <select name="maxPlayers">
+          <% for (var i = 2; i <= maxPlayersLimit; i++) { %>
+            <option value="<%= i %>" <%= Number(values.maxPlayers) === i ? 'selected' : '' %>><%= i %> nəfər</option>
+          <% } %>
+        </select>
+        <div class="hint">Ən çox <%= maxPlayersLimit %> nəfər</div>
+      </div>
+      <div class="g">
+        <label>Otağa giriş kodu</label>
+        <input type="text" name="accessCode" maxlength="12" required value="<%= values.accessCode || '' %>" style="letter-spacing:3px;text-transform:uppercase;">
+        <div class="hint">4–12 hərf/rəqəm. Bu kodu dostlarınıza verin.</div>
+      </div>
+      <button class="btn" type="submit">Otağı yarat</button>
+    </form>
+  </div>
+</div>
+<%- include('partials/footer', { activePage: 'home' }) %>
+</body>
+</html>
