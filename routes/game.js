@@ -6,7 +6,7 @@ const GameCard = require('../models/GameCard');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const { requireLogin } = require('../middleware/auth');
-const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, START_PLAYERS, slotsLeft, botEngine } = require('../services/gameEngine');
+const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, START_PLAYERS, slotsLeft, botEngine, findJoinableRoom } = require('../services/gameEngine');
 const { hasRoomAccess } = require('./rooms');
 
 function generateCard() {
@@ -82,6 +82,13 @@ router.get('/join/:roomId', requireLogin, async (req, res) => {
     const cards = await GameCard.find({ userId: user._id, roomId: room._id, roundId: room.currentRoundId });
     if (cards.length) return res.redirect('/gamestart/' + room._id);
 
+    // Gedən oyuna qoşulmaq olmaz — boş (yeni) otağa yönləndirilir
+    if (room.status !== 'waiting' || visiblePlayerCount(room) >= START_PLAYERS) {
+      const open = await findJoinableRoom(room);
+      if (open && String(open._id) !== String(room._id)) return res.redirect('/join/' + open._id);
+      return res.redirect('/');
+    }
+
     res.render('join', {
       user,
       room,
@@ -124,11 +131,23 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
 
     if (!hasRoomAccess(req, room)) return res.redirect('/room/' + room._id + '/code');
 
+    // Oyun artıq başlayıbsa yeni otağa yönləndir
+    if (room.status !== 'waiting') {
+      const open = await findJoinableRoom(room);
+      if (open && String(open._id) !== String(room._id)) return res.redirect('/join/' + open._id);
+      return res.redirect('/');
+    }
+
     // Real istifadəçiyə yer açmaq üçün lazım olsa süni oyunçu otaqdan çıxarılır
     if (room.status !== 'started') {
       const alreadyIn = room.players.map(String).includes(String(user._id));
       while ((room.players.length + (alreadyIn ? 0 : 1) + (room.bots || []).length) > START_PLAYERS && (room.bots || []).length) {
         room.bots.pop();
+        room.markModified('bots');
+      }
+      // 3+ real oyunçu olarsa botlar tamamilə otaqdan çıxarılır
+      if ((room.players.length + (alreadyIn ? 0 : 1)) >= botEngine.REAL_ONLY_THRESHOLD && (room.bots || []).length) {
+        room.bots = [];
         room.markModified('bots');
       }
       botEngine.recalcBotStake(room);
@@ -209,7 +228,8 @@ router.get('/gamestart/:roomId', requireLogin, async (req, res) => {
       maxTickets: MAX_TICKETS,
       roomSize: START_PLAYERS,
       playerCount: visiblePlayerCount(room),
-      totalStake: Number(Math.max(Number(room.stakeTotal || 0), Number(room.prize || 0)).toFixed(2)),
+      // Ortadakı ƏSAS mərc — linya uduşları ödəndikcə azalır
+      totalStake: Number(Number(room.prize || 0).toFixed(2)),
       ticketPrize: ticketPrize(room),
       displayStatus: getDisplayStatus(room),
       secsLeft: getSecsLeft(room)
