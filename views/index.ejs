@@ -336,7 +336,6 @@ body{
       </div>
       <% if (room.lastWinnerName) { %>
       <div class="last-winner">
-        <span>🏆</span>
         <span class="lw-name"><%= room.lastWinnerName %></span>
         <span class="lw-nums"><% (room.lastWinnerNums||[]).slice(0,5).forEach(function(n){ %><i><%= n %></i><% }) %></span>
         <span class="lw-prize"><%= Number(room.winnerPrize || 0).toFixed(2) %>₼</span>
@@ -420,7 +419,7 @@ function applyState(card, info){
   if (info.last_winner_name){
     var nums = (info.last_winner_nums||[]).slice(0,5).map(function(n){ return '<i>'+n+'</i>'; }).join('');
     var prize = (parseFloat(info.winner_prize||0)).toFixed(2);
-    var html = '<span>🏆</span><span class="lw-name">'+info.last_winner_name+'</span>'
+    var html = '<span class="lw-name">'+info.last_winner_name+'</span>'
              + '<span class="lw-nums">'+nums+'</span>'
              + '<span class="lw-prize">'+prize+'₼</span>';
     if (lw){ lw.innerHTML = html; }
