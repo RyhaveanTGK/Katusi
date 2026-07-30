@@ -4,6 +4,7 @@ const bcrypt  = require('bcryptjs');
 const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
 const GameCard    = require('../models/GameCard');
+const BonusCode   = require('../models/BonusCode');
 const { requireLogin } = require('../middleware/auth');
 
 router.get('/', requireLogin, async (req, res) => {
@@ -76,29 +77,45 @@ router.get('/games-played', requireLogin, async (req, res) => {
   res.render('games-played', { user, games });
 });
 
-// ── Bonus kodları (demo) ──
-const BONUS_CODES = {
-  'WELCOME10': 10,
-  'LOTO500':    0.5
-};
+// ── Bonus / promo kodu (admin paneldə yaradılan kodlar) ──
 router.post('/bonus/redeem', requireLogin, async (req, res) => {
+  const render = (data) => res.render('profile', data);
   try {
     const user = await User.findById(req.session.userId);
     const code = String(req.body.code || '').trim().toUpperCase();
-    const reward = BONUS_CODES[code];
-    if (!reward) {
-      return res.render('profile', { user, error: 'Yanlış və ya müddəti bitmiş kod', success: null });
+    if (!code) return render({ user, error: 'Kod boşdur', success: null });
+
+    const bc = await BonusCode.findOne({ code });
+    if (!bc || !bc.active) {
+      return render({ user, error: 'Kod tapılmadı və ya deaktivdir', success: null });
     }
-    user.balance = Number(user.balance || 0) + Number(reward);
+    if (bc.expiresAt && bc.expiresAt < new Date()) {
+      return render({ user, error: 'Kodun vaxtı bitib', success: null });
+    }
+    if (bc.maxUses > 0 && bc.usedCount >= bc.maxUses) {
+      return render({ user, error: 'Kod istifadə limitinə çatıb', success: null });
+    }
+    if ((bc.usedBy || []).some((u) => String(u) === String(user._id))) {
+      return render({ user, error: 'Bu kodu artıq istifadə etmisiniz', success: null });
+    }
+
+    user.balance = Number(user.balance || 0) + Number(bc.amount);
     await user.save();
+
+    bc.usedCount = Number(bc.usedCount || 0) + 1;
+    bc.usedBy.push(user._id);
+    await bc.save();
+
     await new Transaction({
-      userId: user._id, type: 'referral', amount: reward, status: 'completed',
-      note: `Bonus kod: ${code}`
+      userId: user._id, type: 'referral', amount: Number(bc.amount),
+      status: 'completed', method: 'bonus_code', note: `Bonus kod: ${bc.code}`
     }).save();
-    res.render('profile', { user, error: null, success: `+${reward} ₼ balansınıza əlavə edildi` });
+
+    return render({ user, error: null, success: `+${Number(bc.amount).toFixed(2)} ₼ balansınıza əlavə edildi` });
   } catch (e) {
+    console.error('Bonus redeem err:', e);
     const user = await User.findById(req.session.userId);
-    res.render('profile', { user, error: 'Xəta baş verdi', success: null });
+    return render({ user, error: 'Xəta baş verdi', success: null });
   }
 });
 
