@@ -21,6 +21,13 @@ const MAX_BALL = 90;
 const START_PLAYERS = 5;
 const MAX_PLAYERS = START_PLAYERS;
 
+// Otaqda bu qədər real oyunçu olarsa süni oyunçu ÜMUMİYYƏTLƏ olmur
+const REAL_ONLY_THRESHOLD = 3;
+
+// Çıxan daşı biletə qoymaq üçün verilən vaxt (saniyə).
+// Bu vaxtdan sonra daş biletdə qırmızı X ilə bloklanır və sayılmır.
+const MARK_GRACE_SEC = Number(process.env.GAME_MARK_GRACE_SEC || 12);
+
 // Linya (sıra) uduş faizləri — ortadakı ümumi mərcdən götürülür
 const LINE_PERCENTS = [0.08, 0.16, 0.24];
 
@@ -89,9 +96,20 @@ function linePercent(lineNo) {
   return LINE_PERCENTS[Math.min(Math.max(1, lineNo), LINE_PERCENTS.length) - 1];
 }
 
-/** Ortadakı mərcdən linya uduşu */
+/**
+ * Linya faizlərinin hesablandığı SABİT bank.
+ * Raund boyunca dəyişmir — ödənilən uduşlar bunu azaltmır,
+ * yalnız ortadakı canlı bank (room.prize) azalır.
+ */
+function basePotOf(room) {
+  const base = Number(room.basePot || 0);
+  if (base > 0) return base;
+  return Number(Math.max(Number(room.stakeTotal || 0), Number(room.prize || 0)).toFixed(2));
+}
+
+/** Sabit bankdan linya uduşu */
 function linePrize(room, lineNo) {
-  const pot = Number(room.prize || 0);
+  const pot = basePotOf(room);
   return Number(Math.max(0, pot * linePercent(lineNo)).toFixed(2));
 }
 
@@ -134,6 +152,34 @@ function visiblePlayerCount(room) {
 
 function realPlayerCount(room) {
   return (room.players || []).length;
+}
+
+/** Daşın çıxma vaxtı (yoxdursa null) */
+function drawnAtOf(room, number) {
+  const list = room.drawnNumbers || [];
+  const times = room.drawnAt || [];
+  const idx = list.map(Number).lastIndexOf(Number(number));
+  if (idx < 0) return null;
+  const t = times[idx];
+  return t ? new Date(t).getTime() : null;
+}
+
+/** Daşı hələ biletə qoymaq olarmı? (vaxt bitibsə – yox) */
+function canMarkNumber(room, number, now = Date.now()) {
+  const list = (room.drawnNumbers || []).map(Number);
+  if (!list.includes(Number(number))) return false;
+  const at = drawnAtOf(room, number);
+  if (!at) return true; // köhnə raundlar üçün uyğunluq
+  const grace = Number(room.markGraceSec || MARK_GRACE_SEC) * 1000;
+  return now - at <= grace;
+}
+
+/** Biletdə vaxtında qeyd edilmədiyi üçün bloklanan daşlar */
+function missedNumbersFor(room, card, now = Date.now()) {
+  const marks = new Set((card.markedNumbers || []).map(Number));
+  return flatCardNumbers(card)
+    .map(Number)
+    .filter((n) => !marks.has(n) && (room.drawnNumbers || []).map(Number).includes(n) && !canMarkNumber(room, n, now));
 }
 
 function getDisplayStatus(room) {
@@ -185,6 +231,16 @@ async function ensureDefaultRooms() {
     // Şəxsi otaqlarda süni oyunçu olmur, digər bütün otaqlarda olur
     await Room.updateMany({ isCustom: true }, { $set: { botsEnabled: false, bots: [], botStake: 0 } });
     await Room.updateMany({ isCustom: { $ne: true } }, { $set: { botsEnabled: true } });
+    // Yeni sahələri köhnə otaqlara əlavə et
+    await Room.updateMany(
+      { markGraceSec: { $exists: false } },
+      { $set: { markGraceSec: MARK_GRACE_SEC, drawnAt: [], basePot: 0 } }
+    );
+    const all = await Room.find({ isCustom: { $ne: true } });
+    for (const r of all) {
+      const key = `${r.type || 'classic'}:${Number(r.entryFee || 0).toFixed(2)}`;
+      if (r.templateKey !== key) { r.templateKey = key; await r.save(); }
+    }
     return;
   }
 
@@ -196,6 +252,8 @@ async function ensureDefaultRooms() {
     currentRoundId: 1,
     drawIntervalSec: DRAW_INTERVAL_SEC,
     roundDurationSec: ROUND_DURATION_SEC,
+    markGraceSec: MARK_GRACE_SEC,
+    templateKey: `${room.type || 'classic'}:${Number(room.entryFee || 0).toFixed(2)}`,
     nextGameAt: null
   }));
   await Room.insertMany(rooms);
@@ -216,6 +274,7 @@ async function startRoom(room) {
   room.lastDrawAt = null;
   room.currentNumber = null;
   room.drawnNumbers = [];
+  room.drawnAt = [];
   room.nextGameAt = null;
   room.botFillAt = null;
   room.revealAt = null;
@@ -233,7 +292,12 @@ async function startRoom(room) {
   room.lastWinnerNums = [];
   bots.finalizeBots(room);
   room.stakeTotal = await computeStakeTotal(room);
+  // Linya faizləri raund boyunca dəyişməyən bank üzərindən hesablanır
+  room.basePot = Number(Math.max(Number(room.stakeTotal || 0), Number(room.prize || 0)).toFixed(2));
+  room.markGraceSec = Number(room.markGraceSec || MARK_GRACE_SEC);
   await room.save();
+  // Otaq doldu → eyni tipli yeni (boş) otaq açılır
+  await ensureSpareRoom(room);
 }
 
 async function resetRoomForNextRound(room) {
@@ -241,7 +305,9 @@ async function resetRoomForNextRound(room) {
   room.players = [];
   room.prize = 0;
   room.stakeTotal = 0;
+  room.basePot = 0;
   room.drawnNumbers = [];
+  room.drawnAt = [];
   room.currentNumber = null;
   room.startTime = null;
   room.roundEndsAt = null;
@@ -292,7 +358,9 @@ async function settleCard(room, card) {
   let lastNums = [];
   for (const row of pending) {
     const lineNo = Number(card.lineWins || 0) + 1;
-    const prize = linePrize(room, lineNo);
+    // Uduş bankda olan məbləğdən çox ola bilməz
+    const prize = Number(Math.min(linePrize(room, lineNo), Number(room.prize || 0)).toFixed(2));
+    if (prize <= 0) break;
     card.wonRows = [...(card.wonRows || []), row.index];
     card.lineWins = lineNo;
     card.isWinner = true;
@@ -347,7 +415,8 @@ async function settleCard(room, card) {
 async function settleBotLines(room, bot, rows) {
   for (const row of rows) {
     const lineNo = Number(bot.lineWins || 0) + 1;
-    const prize = linePrize(room, lineNo);
+    const prize = Number(Math.min(linePrize(room, lineNo), Number(room.prize || 0)).toFixed(2));
+    if (prize <= 0) break;
     bot.wonRows = [...(bot.wonRows || []), row.key];
     bot.lineWins = lineNo;
     bot.isWinner = true;
@@ -422,6 +491,7 @@ async function drawNextNumber(room) {
   if (!next) next = available[Math.floor(Math.random() * available.length)];
 
   room.drawnNumbers.push(next);
+  room.drawnAt = [...(room.drawnAt || []), new Date()];
   room.currentNumber = next;
   room.lastDrawAt = new Date();
 
@@ -582,19 +652,22 @@ async function tick() {
       }
 
       // ── Gözləmə ──
-      const canBots = bots.allowBots(room, START_PLAYERS);
+      const reals = realPlayerCount(room);
+      // Klon otaqlar real oyunçu gəlməyincə boş qalır (heç vaxt tək botla start etmir)
+      const canBots = bots.allowBots(room, START_PLAYERS) && (!room.isClone || reals > 0);
 
       if (!canBots) {
-        // Şəxsi otaq: yalnız real oyunçular
+        // Şəxsi otaq / 3+ real oyunçu / boş klon otaq: yalnız real oyunçular
         if ((room.bots || []).length) { bots.clearBots(room); await room.save(); }
-        if (realPlayerCount(room) >= START_PLAYERS) { await startRoom(room); continue; }
-        if (realPlayerCount(room) >= 2) {
+        if (reals >= START_PLAYERS) { await startRoom(room); continue; }
+        if (reals >= 2) {
           if (!room.botFillAt) { room.botFillAt = new Date(now + 30000); await room.save(); continue; }
           if (new Date(room.botFillAt).getTime() <= now) await startRoom(room);
         } else if (room.botFillAt) {
           room.botFillAt = null;
           await room.save();
         }
+        await cleanupSpareRooms(room);
         continue;
       }
 
@@ -621,10 +694,106 @@ async function tick() {
 
       if (changed) await room.save();
       if (visiblePlayerCount(room) >= START_PLAYERS) await startRoom(room);
+      await cleanupSpareRooms(room);
     }
   } finally {
     ticking = false;
   }
+}
+
+/** Otağın "şablon" açarı — eyni tipli otaqları qruplaşdırmaq üçün */
+function templateKeyOf(room) {
+  if (room.templateKey) return room.templateKey;
+  return `${room.type || 'classic'}:${Number(room.entryFee || 0).toFixed(2)}`;
+}
+
+/** Bu şablon üzrə hazırda qoşula bilən (gözləyən və dolu olmayan) otaqlar */
+async function openRoomsFor(room) {
+  const key = templateKeyOf(room);
+  const list = await Room.find({
+    isCustom: { $ne: true },
+    status: 'waiting',
+    $or: [{ templateKey: key }, { entryFee: Number(room.entryFee || 0), type: room.type || 'classic' }]
+  }).sort({ isClone: 1, sortOrder: 1, createdAt: 1 });
+  return list.filter((r) => realPlayerCount(r) < START_PLAYERS && visiblePlayerCount(r) < START_PLAYERS);
+}
+
+const MAX_ROOMS_PER_TEMPLATE = 6;
+
+/**
+ * Otaq dolduqda / oyun başlayanda eyni mərcli YENİ boş otaq açır.
+ * Yeni otaq 0 oyunçu ilə başlayır və gedən oyuna heç kim daxil ola bilmir.
+ */
+async function ensureSpareRoom(room) {
+  try {
+    if (!room || room.isCustom) return null;
+    const key = templateKeyOf(room);
+    if (!room.templateKey) { room.templateKey = key; await room.save(); }
+
+    const siblings = await Room.find({
+      isCustom: { $ne: true },
+      $or: [{ templateKey: key }, { entryFee: Number(room.entryFee || 0), type: room.type || 'classic' }]
+    });
+    const openOnes = siblings.filter((r) => r.status === 'waiting' && visiblePlayerCount(r) < START_PLAYERS);
+    if (openOnes.length) return null;
+    if (siblings.length >= MAX_ROOMS_PER_TEMPLATE) return null;
+
+    const baseName = String(room.name || 'Otaq').replace(/\s*#\d+$/, '');
+    const clone = await new Room({
+      name: `${baseName} #${siblings.length + 1}`,
+      ticketLabel: room.ticketLabel || 'TAM BİLET',
+      type: room.type || 'classic',
+      status: 'waiting',
+      entryFee: Number(room.entryFee || 0),
+      starPrize: Number(room.starPrize || 0),
+      prizeMultiplier: room.prizeMultiplier || 'x2',
+      themeColor: room.themeColor || '#1f9b3b',
+      maxPlayers: MAX_PLAYERS,
+      jackpotEnabled: !!room.jackpotEnabled,
+      sortOrder: Number(room.sortOrder || 0),
+      currentRoundId: 1,
+      drawIntervalSec: Number(room.drawIntervalSec || DRAW_INTERVAL_SEC),
+      roundDurationSec: Number(room.roundDurationSec || ROUND_DURATION_SEC),
+      markGraceSec: Number(room.markGraceSec || MARK_GRACE_SEC),
+      botsEnabled: room.botsEnabled !== false,
+      isClone: true,
+      templateKey: key,
+      nextGameAt: null
+    }).save();
+    return clone;
+  } catch (e) {
+    console.error('ensureSpareRoom error:', e.message);
+    return null;
+  }
+}
+
+/** Artıq lazım olmayan boş klon otaqları silir (bir dənə ehtiyat otaq saxlanılır) */
+async function cleanupSpareRooms(room) {
+  try {
+    if (!room || room.isCustom) return;
+    const key = templateKeyOf(room);
+    const clones = await Room.find({ isClone: true, templateKey: key, status: 'waiting' }).sort({ createdAt: 1 });
+    const idle = clones.filter((r) => !realPlayerCount(r) && !(r.bots || []).length);
+    // ən köhnə boş klonu ehtiyat kimi saxla, qalanlarını sil
+    for (const extra of idle.slice(1)) {
+      const cards = await GameCard.countDocuments({ roomId: extra._id });
+      if (!cards) await Room.deleteOne({ _id: extra._id });
+    }
+  } catch (e) {
+    console.error('cleanupSpareRooms error:', e.message);
+  }
+}
+
+/**
+ * İstifadəçini gedən oyuna yox, uyğun BOŞ otağa yönləndirmək üçün.
+ * @returns {Room|null}
+ */
+async function findJoinableRoom(room) {
+  if (!room || room.isCustom) return null;
+  const open = await openRoomsFor(room);
+  const found = open.find((r) => String(r._id) !== String(room._id)) || open[0] || null;
+  if (found) return found;
+  return await ensureSpareRoom(room);
 }
 
 function startGameLoop() {
@@ -672,6 +841,8 @@ module.exports = {
   MAX_TICKETS,
   START_PLAYERS,
   MAX_PLAYERS,
+  REAL_ONLY_THRESHOLD,
+  MARK_GRACE_SEC,
   LINE_PERCENTS,
   LEAVE_COMMISSION,
   ROW_WIN_MULTIPLIER,
@@ -706,6 +877,15 @@ module.exports = {
   ticketPrize,
   linePrize,
   linePercent,
+  basePotOf,
+  canMarkNumber,
+  missedNumbersFor,
+  drawnAtOf,
+  ensureSpareRoom,
+  cleanupSpareRooms,
+  findJoinableRoom,
+  openRoomsFor,
+  templateKeyOf,
   multiplierOf,
   visiblePlayerCount,
   realPlayerCount,
