@@ -41,12 +41,13 @@
 <body>
 <div class="topbar">
   <div class="tb-title">🎰 Admin Panel</div>
-  <div class="tb-user"><%= user.username %> | <a href="/" style="color:#f5c518;text-decoration:none;">Sayta qayıt</a></div>
+  <div class="tb-user"><%= user.username %> &nbsp; <a href="/admin/users" style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,197,24,.16);color:#f5c518;border:1px solid rgba(245,197,24,.4);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:800;text-decoration:none;">← Sayta qayıt</a></div>
 </div>
 <div class="wrap">
   <div class="nav-links">
     <a href="/admin/rooms" class="nav-link active">Otaqlar</a>
     <a href="/admin/transactions" class="nav-link">Əməliyyatlar</a>
+  <a href="/admin/payments" class="nav-link">Ödəniş kartları</a>
   </div>
 
   <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
