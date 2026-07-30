@@ -6,7 +6,7 @@ const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const DepositCounter = require('../models/DepositCounter');
-const { flatCardNumbers, isCardComplete, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake } = require('../services/gameEngine');
+const { flatCardNumbers, isCardComplete, START_PLAYERS, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 
 const apiAuth = (req, res, next) => {
@@ -45,7 +45,7 @@ function generateCard() { // legacy wrapper
 function _unusedGenerateCard() {
   const cols = [
     [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
-    [50, 59], [60, 69], [70, 79], [80, 100]
+    [50, 59], [60, 69], [70, 79], [80, 90]
   ];
   const card = [new Array(9).fill(0), new Array(9).fill(0), new Array(9).fill(0)];
   const used = Array.from({ length: 9 }, () => new Set());
@@ -77,6 +77,8 @@ router.get('/rooms-status', apiAuth, async (req, res) => {
       status:     getDisplayStatus(r, now),
       raw_status: r.status,
       player_count: visiblePlayerCount(r),
+      room_size:    START_PLAYERS,
+      slots_left:   slotsLeft(r),
       bot_count:    (r.bots || []).length,
       prize:      Number(r.prize || 0),
       jackpot:    r.jackpotEnabled ? Number(r.jackpot || 0) : null,
@@ -133,6 +135,8 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     status:          getDisplayStatus(room, now),
     raw_status:      room.status,
     player_count:    visiblePlayerCount(room),
+    room_size:       START_PLAYERS,
+    slots_left:      slotsLeft(room),
     players:         roster,
     total_stake:     totalStake(room),
     balance:         Number((me && me.balance) || 0),
