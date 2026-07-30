@@ -31,6 +31,22 @@ const roomSchema = new mongoose.Schema({
   lastDrawAt:  { type: Date, default: null },
   nextGameAt:  { type: Date, default: null },
   sortOrder:   { type: Number, default: 0 },
+
+  // ── Botlar ──
+  botsEnabled: { type: Boolean, default: true },
+  bots: [{
+    name:    { type: String },
+    numbers: [[Number]],
+    marked:  { type: [Number], default: [] },
+    isWinner:{ type: Boolean, default: false }
+  }],
+  botWinIntended: { type: Boolean, default: false },
+
+  // ── Şəxsi (istifadəçi tərəfindən yaradılan) otaqlar ──
+  isCustom:    { type: Boolean, default: false },
+  ownerId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  accessCode:  { type: String, default: null, index: true },
+  inviteToken: { type: String, default: null, index: true },
   createdAt:   { type: Date, default: Date.now }
 });
 
