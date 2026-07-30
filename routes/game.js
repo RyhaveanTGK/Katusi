@@ -5,7 +5,7 @@ const Room    = require('../models/Room');
 const GameCard = require('../models/GameCard');
 const Transaction = require('../models/Transaction');
 const { requireLogin } = require('../middleware/auth');
-const { getDisplayStatus, getSecsLeft } = require('../services/gameEngine');
+const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS } = require('../services/gameEngine');
 
 function generateCard() {
   const cols = [
@@ -65,12 +65,16 @@ router.get('/join/:roomId', requireLogin, async (req, res) => {
   try {
     const { user, room } = await getRoomAndUser(req);
     if (!room || !user) return res.redirect('/');
-    const hasJoined = room.players.map((p) => p.toString()).includes(req.session.userId);
-    if (hasJoined) return res.redirect('/gamestart/' + room._id);
+
+    const cards = await GameCard.find({ userId: user._id, roomId: room._id, roundId: room.currentRoundId });
+    if (cards.length) return res.redirect('/gamestart/' + room._id);
 
     res.render('join', {
       user,
       room,
+      maxTickets: MAX_TICKETS,
+      ticketPrize: ticketPrize(room),
+      previewCards: Array.from({ length: MAX_TICKETS }, () => generateCardNumbers()),
       displayStatus: getDisplayStatus(room),
       secsLeft: getSecsLeft(room)
     });
@@ -80,62 +84,75 @@ router.get('/join/:roomId', requireLogin, async (req, res) => {
 });
 
 router.post('/join/:roomId', requireLogin, async (req, res) => {
+  const renderErr = async (message) => {
+    const { user, room } = await getRoomAndUser(req);
+    return res.render('join', {
+      user, room,
+      error: message,
+      maxTickets: MAX_TICKETS,
+      ticketPrize: ticketPrize(room),
+      previewCards: Array.from({ length: MAX_TICKETS }, () => generateCardNumbers()),
+      displayStatus: getDisplayStatus(room),
+      secsLeft: getSecsLeft(room)
+    });
+  };
+
   try {
     const { user, room } = await getRoomAndUser(req);
     if (!room || !user) return res.redirect('/');
     if (room.status === 'ended') return res.redirect('/');
 
-    const joinedIds = room.players.map((p) => p.toString());
-    if (joinedIds.includes(req.session.userId)) {
-      return res.redirect('/gamestart/' + room._id);
-    }
-    if (room.players.length >= room.maxPlayers) {
-      return res.render('join', { user, room, error: 'Otaq doludur', displayStatus: getDisplayStatus(room), secsLeft: getSecsLeft(room) });
-    }
+    const existing = await GameCard.find({ userId: user._id, roomId: room._id, roundId: room.currentRoundId });
+    if (existing.length) return res.redirect('/gamestart/' + room._id);
 
-    const existingCard = await GameCard.findOne({ userId: user._id, roomId: room._id, roundId: room.currentRoundId }).sort({ playedAt: -1 });
-    if (existingCard) {
-      if (!joinedIds.includes(req.session.userId)) {
-        room.players.push(user._id);
-        await room.save();
-      }
-      return res.redirect('/gamestart/' + room._id);
+    if (room.players.length >= room.maxPlayers) return renderErr('Otaq doludur');
+
+    let tickets = null;
+    if (req.body.tickets) {
+      try { tickets = JSON.parse(req.body.tickets); } catch (e) { tickets = null; }
     }
+    let quantity = Array.isArray(tickets) ? tickets.length : (parseInt(req.body.quantity, 10) || 1);
+    quantity = Math.max(1, Math.min(MAX_TICKETS, quantity));
 
     const fee = Number(room.entryFee || 0);
-    if (room.type === 'classic' && user.balance < fee) {
-      return res.render('join', { user, room, error: 'Balansınız kifayət etmir', displayStatus: getDisplayStatus(room), secsLeft: getSecsLeft(room) });
-    }
-    if (room.type === 'stars' && user.stars < fee) {
-      return res.render('join', { user, room, error: 'Ulduzlarınız kifayət etmir', displayStatus: getDisplayStatus(room), secsLeft: getSecsLeft(room) });
-    }
+    const total = Number((fee * quantity).toFixed(2));
+    const isStars = room.type === 'stars';
 
-    if (room.type === 'classic') user.balance -= fee;
-    else user.stars -= fee;
-    user.gamesPlayed += 1;
+    if (isStars && Number(user.stars || 0) < total) return renderErr('Ulduzlarınız kifayət etmir');
+    if (!isStars && Number(user.balance || 0) < total) return renderErr('Balansınız kifayət etmir');
+
+    if (isStars) user.stars = Number(user.stars || 0) - total;
+    else user.balance = Number(user.balance || 0) - total;
+    user.gamesPlayed = Number(user.gamesPlayed || 0) + quantity;
     await user.save();
 
-    room.players.push(user._id);
-    room.prize = Number(room.prize || 0) + fee;
-    if (room.jackpotEnabled) room.jackpot = Number(room.jackpot || 0) + fee;
+    if (!room.players.map(String).includes(String(user._id))) room.players.push(user._id);
+    room.prize = Number(room.prize || 0) + total;
+    if (room.jackpotEnabled) room.jackpot = Number(room.jackpot || 0) + total;
     await room.save();
 
-    await new GameCard({
-      userId: user._id,
-      roomId: room._id,
-      roundId: room.currentRoundId,
-      numbers: generateCard(),
-      markedNumbers: [],
-      autoDaub: false
-    }).save();
+    for (let i = 0; i < quantity; i++) {
+      const numbers = Array.isArray(tickets) && Array.isArray(tickets[i]) && tickets[i].length === 3
+        ? tickets[i].map((row) => row.map((n) => Number(n) || 0))
+        : generateCardNumbers();
+      await new GameCard({
+        userId: user._id,
+        roomId: room._id,
+        roundId: room.currentRoundId,
+        ticketIndex: i + 1,
+        numbers,
+        markedNumbers: [],
+        autoDaub: false
+      }).save();
+    }
 
-    if (room.type === 'classic') {
+    if (!isStars) {
       await new Transaction({
         userId: user._id,
         type: 'game_join',
-        amount: -fee,
+        amount: -total,
         status: 'completed',
-        note: `${room.name} otağına qoşulma`
+        note: `${room.name} otağına ${quantity} bilet`
       }).save();
     }
 
@@ -151,14 +168,17 @@ router.get('/gamestart/:roomId', requireLogin, async (req, res) => {
     const { user, room } = await getRoomAndUser(req);
     if (!room || !user) return res.redirect('/');
 
-    const hasJoined = room.players.map((p) => p.toString()).includes(req.session.userId);
-    if (!hasJoined) return res.redirect('/join/' + room._id);
+    const cards = await GameCard.find({ userId: user._id, roomId: room._id, roundId: room.currentRoundId })
+      .sort({ ticketIndex: 1, playedAt: 1 });
+    if (!cards.length) return res.redirect('/join/' + room._id);
 
-    const card = await GameCard.findOne({ userId: user._id, roomId: room._id, roundId: room.currentRoundId }).sort({ playedAt: -1 });
     return res.render('gamestart', {
       user,
       room,
-      card,
+      cards,
+      card: cards[0],
+      maxTickets: MAX_TICKETS,
+      ticketPrize: ticketPrize(room),
       displayStatus: getDisplayStatus(room),
       secsLeft: getSecsLeft(room)
     });
@@ -166,6 +186,7 @@ router.get('/gamestart/:roomId', requireLogin, async (req, res) => {
     res.redirect('/');
   }
 });
+
 
 router.get('/card-add/:roomId', requireLogin, async (req, res) => {
   try {
