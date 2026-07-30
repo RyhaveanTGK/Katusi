@@ -37,9 +37,14 @@ const roomSchema = new mongoose.Schema({
   bots: [{
     name:    { type: String },
     numbers: [[Number]],
+    cards:   { type: [[[Number]]], default: [] },
+    tickets: { type: Number, default: 1 },
+    stake:   { type: Number, default: 0 },
     marked:  { type: [Number], default: [] },
-    isWinner:{ type: Boolean, default: false }
+    isWinner:{ type: Boolean, default: false },
+    joinedAt:{ type: Date, default: Date.now }
   }],
+  botStake: { type: Number, default: 0 },
   botWinIntended: { type: Boolean, default: false },
 
   // ── Şəxsi (istifadəçi tərəfindən yaradılan) otaqlar ──
