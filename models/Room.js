@@ -16,6 +16,8 @@ const roomSchema = new mongoose.Schema({
   jackpot:     { type: Number, default: 0 },
   jackpotRatio:{ type: Number, default: 1.0 },
   drawnNumbers: [Number],
+  // Hər çıxan daşın çıxma vaxtı (drawnNumbers ilə eyni sırada)
+  drawnAt: { type: [Date], default: [] },
   currentNumber: { type: Number, default: null },
   winnerUser:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   winnerNums:  [Number],
@@ -42,6 +44,10 @@ const roomSchema = new mongoose.Schema({
   finalWinnerFull:  { type: Boolean, default: false },
   // Otaqda toplanan ümumi mərc (uduşlar çıxılmadan)
   stakeTotal:  { type: Number, default: 0 },
+  // Raund başlayanda sabitlənən bank — linya faizləri bunun üzərindən hesablanır
+  basePot:     { type: Number, default: 0 },
+  // Daşı biletə qoymaq üçün verilən vaxt (saniyə)
+  markGraceSec:{ type: Number, default: 12 },
   roundWinners: [{
     name:    { type: String },
     prize:   { type: Number, default: 0 },
@@ -72,6 +78,9 @@ const roomSchema = new mongoose.Schema({
 
   // ── Şəxsi (istifadəçi tərəfindən yaradılan) otaqlar ──
   isCustom:    { type: Boolean, default: false },
+  // Otaq dolduqda avtomatik açılan eyni tipli yeni otaq
+  isClone:     { type: Boolean, default: false },
+  templateKey: { type: String, default: null, index: true },
   ownerId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   accessCode:  { type: String, default: null, index: true },
   inviteToken: { type: String, default: null, index: true },
