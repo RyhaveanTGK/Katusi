@@ -6,7 +6,7 @@ const User    = require('../models/User');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const DepositCounter = require('../models/DepositCounter');
-const { flatCardNumbers, isCardComplete, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake } = require('../services/gameEngine');
+const { flatCardNumbers, isCardComplete, isCardFull, linePrize, computeStakeTotal, LEAVE_COMMISSION, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 
 const apiAuth = (req, res, next) => {
@@ -31,6 +31,8 @@ function cardToClient(card, room) {
     marked_numbers: card.markedNumbers || [],
     auto_daub: !!card.autoDaub,
     is_complete: isCardComplete(card),
+    is_full: isCardFull(card),
+    line_wins: Number(card.lineWins || 0),
     is_winner: !!card.isWinner,
     prize: Number(card.prize || 0),
     ticket_index: Number(card.ticketIndex || 1),
@@ -138,7 +140,10 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     room_size:       START_PLAYERS,
     slots_left:      slotsLeft(room),
     players:         roster,
-    total_stake:     totalStake(room),
+    total_stake:     Number(Math.max(
+      roster.reduce((sum, p) => sum + Number(p.stake || 0), 0),
+      totalStake(room)
+    ).toFixed(2)),
     balance:         Number((me && me.balance) || 0),
     stars:           Number((me && me.stars) || 0),
     prize:           Number(room.prize || 0),
@@ -155,6 +160,8 @@ router.get('/room/:id', apiAuth, async (req, res) => {
       name:  room.finalWinnerName,
       prize: Number(room.finalWinnerPrize || 0),
       marks: Number(room.finalWinnerMarks || 0),
+      lines: Number(room.finalWinnerLines || 0),
+      full:  !!room.finalWinnerFull,
       numbers: room.finalWinnerNums || []
     } : null,
     drawn_numbers:   room.drawnNumbers || [],
@@ -177,21 +184,22 @@ router.post('/card/:roomId/toggle', apiAuth, async (req, res) => {
   if (req.body.cardId) query._id = req.body.cardId;
   const card = await GameCard.findOne(query).sort({ ticketIndex: 1, playedAt: 1 });
   if (!card) return res.status(404).json({ error: 'Bilet tapılmadı' });
-  if (card.isWinner) return res.json({ ok: true, won: false, card: cardToClient(card, room) });
 
   const number = Number(req.body.number);
   if (!flatCardNumbers(card).includes(number)) return res.status(400).json({ error: 'Bu rəqəm biletdə yoxdur' });
   if (!(room.drawnNumbers || []).includes(number)) return res.status(400).json({ error: 'Bu daş hələ çıxmayıb' });
 
-  const marksNow = new Set((card.markedNumbers || []).map(Number));
-  // Vaxtında qeyd edilməyən daş bağlanır: yalnız ən son çıxan daş qeyd oluna bilər
-  if (!marksNow.has(number) && Number(room.currentNumber) !== number) {
-    return res.status(400).json({ error: 'Bu daşın vaxtı keçdi' });
-  }
-
+  // Çıxmış istənilən daş istənilən vaxt qoyula bilər (1-ci linyadan sonra da).
   const marks = new Set((card.markedNumbers || []).map(Number));
-  if (marks.has(number)) marks.delete(number);
-  else marks.add(number);
+  const paidRows = new Set((card.wonRows || []).map(Number));
+  const rows = (card.numbers || []).map((r) => (r || []).filter(Boolean).map(Number));
+  const rowIndex = rows.findIndex((r) => r.includes(number));
+  if (marks.has(number)) {
+    // Ödənilmiş linyanın daşı geri götürülə bilməz
+    if (!paidRows.has(rowIndex)) marks.delete(number);
+  } else {
+    marks.add(number);
+  }
   card.markedNumbers = [...marks].sort((a, b) => a - b);
   card.completedAt = isCardComplete(card) ? (card.completedAt || new Date()) : null;
   await card.save();
@@ -203,6 +211,8 @@ router.post('/card/:roomId/toggle', apiAuth, async (req, res) => {
     ok: true,
     won: result.won,
     prize: result.prize,
+    lines: result.lines,
+    full: result.full,
     balance: Number((me && me.balance) || 0),
     stars: Number((me && me.stars) || 0),
     card: cardToClient(fresh || card, room)
@@ -302,7 +312,8 @@ router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
     if (!room.players.map(String).includes(String(user._id))) {
       room.players.push(user._id);
     }
-    room.prize = Number(room.prize || 0) + totalFee;
+    room.prize = Number((Number(room.prize || 0) + totalFee).toFixed(2));
+    room.stakeTotal = Number((Number(room.stakeTotal || 0) + totalFee).toFixed(2));
     if (room.jackpotEnabled) room.jackpot = Number(room.jackpot || 0) + totalFee;
     await room.save();
 
@@ -340,6 +351,50 @@ router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
   }
 });
 
+
+/**
+ * Otaqdan çıxış: mərcin 70%-i komissiya kimi tutulur, 30%-i balansa qaytarılır.
+ */
+router.post('/room/:id/leave', apiAuth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) return res.status(404).json({ error: 'Otaq tapılmadı' });
+    const user = await User.findById(req.session.userId);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const cards = await GameCard.find({ userId: user._id, roomId: room._id, roundId: room.currentRoundId });
+    const fee = Number(room.entryFee || 0);
+    const stake = Number((fee * cards.length).toFixed(2));
+    const refund = Number((stake * (1 - LEAVE_COMMISSION)).toFixed(2));
+    const isStars = room.type === 'stars';
+
+    await GameCard.deleteMany({ _id: { $in: cards.map((c) => c._id) } });
+    room.players = (room.players || []).filter((p) => String(p) !== String(user._id));
+    room.prize = Number(Math.max(0, Number(room.prize || 0) - stake + refund).toFixed(2));
+    room.stakeTotal = Number(Math.max(0, Number(room.stakeTotal || 0) - stake).toFixed(2));
+    if (room.jackpotEnabled) room.jackpot = Number(Math.max(0, Number(room.jackpot || 0) - stake).toFixed(2));
+    await room.save();
+
+    if (refund > 0) {
+      if (isStars) user.stars = Number(user.stars || 0) + refund;
+      else user.balance = Number(user.balance || 0) + refund;
+      await user.save();
+      if (!isStars) {
+        await new Transaction({
+          userId: user._id,
+          type: 'refund',
+          amount: refund,
+          status: 'completed',
+          note: `${room.name} otağından çıxış (70% komissiya)`
+        }).save();
+      }
+    }
+
+    res.json({ ok: true, refund, commission: Number((stake - refund).toFixed(2)), balance: Number(user.balance || 0) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 router.post('/room/:id/claim-win', apiAuth, async (req, res) => {
   const result = await claimRoomWin(req.params.id, req.session.userId, req.body && req.body.cardId);
