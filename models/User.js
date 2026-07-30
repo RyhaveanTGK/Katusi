@@ -6,6 +6,14 @@ const userSchema = new mongoose.Schema({
   email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
   phone:    { type: String, default: '', index: true, sparse: true },
+
+  // ── Şəxsiyyət məlumatları (qeydiyyat zamanı tələb olunur) ──
+  fullName:       { type: String, default: '', trim: true },   // Real ad soyad
+  birthDate:      { type: Date,   default: null },             // Doğum tarixi
+  passportNumber: { type: String, default: '', trim: true },   // Passport nömrəsi
+  passportPhoto:  { type: String, default: '' },               // Passport şəkili (URL)
+  facePhoto:      { type: String, default: '' },               // Üz şəkili (URL)
+  isVerified:     { type: Boolean, default: false },
   balance:  { type: Number, default: 0 },
   stars:    { type: Number, default: 0 },
   referralCode: { type: String, unique: true },
