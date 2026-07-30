@@ -1,0 +1,198 @@
+/* One Loto — otaq & oyun ekranı üçün ümumi dizayn (mobil-first) */
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ overflow-x:hidden; max-width:100%; }
+body{
+  background:#2d0b4e;
+  color:#fff;
+  font-family:'Rubik',sans-serif;
+  min-height:100vh;
+  padding-top: calc(56px + env(safe-area-inset-top));
+  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wrap{ width:100%; max-width:480px; margin:0 auto; padding:10px 10px 16px; }
+
+/* ── üst stat bar ── */
+.gamebar{
+  position:relative; z-index:20;
+  background: linear-gradient(180deg,#7b2cbf 0%,#6a25a8 60%,#5d1f90 100%);
+  padding:10px 8px 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.4);
+}
+.statbar{
+  max-width:480px; margin:0 auto;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.stat-pill{
+  flex:1 1 auto; min-width:0;
+  background: rgba(0,0,0,.30);
+  border-radius:22px; padding:6px 12px;
+  display:flex; align-items:center; gap:10px; justify-content:center;
+}
+.bet{
+  position:relative; flex:0 0 auto;
+  background: linear-gradient(180deg,#e6c44e,#c9a02f);
+  color:#fff; font-weight:800; font-size:13px;
+  border-radius:14px; padding:4px 12px; white-space:nowrap;
+}
+.bet .mult{
+  position:absolute; top:-9px; right:-8px;
+  background:#e30613; color:#fff;
+  font-size:9px; font-weight:800;
+  border-radius:9px; padding:1px 5px;
+  border:2px solid #6a25a8;
+}
+.item{ color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; gap:4px; white-space:nowrap; }
+.item .material-symbols-outlined{ font-size:18px; }
+.sep{ width:1px; height:20px; background: rgba(255,255,255,.22); flex:0 0 auto; }
+.icon-btn{
+  flex:0 0 auto; width:38px; height:38px; border:none; border-radius:50%;
+  background:#f5c518; color:#4a3300; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.icon-btn.muted{ background:#f5c518; }
+.icon-btn.muted .material-symbols-outlined{ opacity:.85; }
+
+/* ── canlı panel (oyun ekranı) ── */
+.panel{
+  margin-top:12px;
+  background: rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:18px; padding:12px;
+}
+.panel-title{ font-size:11px; color:rgba(255,255,255,.6); font-weight:800; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.live-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.status-pill{ display:inline-flex; align-items:center; gap:6px; background: rgba(255,255,255,.12); border-radius:99px; padding:6px 11px; font-size:12px; font-weight:700; }
+.status-dot{ width:8px; height:8px; border-radius:50%; background:#f5c518; animation: blink 1.2s infinite; }
+@keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.3} }
+.timer{ font-size:24px; font-weight:900; font-variant-numeric: tabular-nums; }
+.ball{
+  width:66px; height:66px; border-radius:50%; flex:0 0 auto;
+  background: radial-gradient(circle at 35% 30%,#fff6cf 0%,#f5c518 44%,#c8960c 100%);
+  box-shadow: inset 0 -8px 12px rgba(0,0,0,.22), inset 0 4px 8px rgba(255,255,255,.45), 0 8px 18px rgba(0,0,0,.28);
+  display:flex; align-items:center; justify-content:center;
+  color:#5a3000; font-size:26px; font-weight:900; position:relative;
+}
+.ball.pop{ animation: ball-pop .4s ease; }
+@keyframes ball-pop{ 0%{ transform: scale(.5) rotate(-15deg); opacity:.3 } 60%{ transform: scale(1.12) } 100%{ transform: scale(1); opacity:1 } }
+.draw-list{ display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; }
+.draw-item{ width:27px; height:27px; border-radius:50%; background:#4d1c7d; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
+.draw-item.latest{ background:#f5c518; color:#5a3000; }
+
+/* ── bilet kartı ── */
+.ticket{
+  background:#fff; border-radius:18px; padding:10px;
+  color:#191919; margin-top:12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.32);
+}
+.ticket.won{ box-shadow: 0 0 0 3px #16a62d, 0 8px 20px rgba(0,0,0,.32); }
+.ticket-tools{ display:flex; align-items:center; gap:6px; margin-bottom:9px; flex-wrap:nowrap; }
+.tool{
+  border:none; cursor:pointer; flex:1 1 0; min-width:0;
+  background:#3d0d62; color:#fff;
+  border-radius:999px; padding:9px 6px;
+  font-family:'Rubik',sans-serif; font-size:13px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.tool .material-symbols-outlined{ font-size:17px; }
+.tool:active{ transform: scale(.97); }
+.tool[disabled]{ opacity:.45; }
+.tool-label{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ticket-no{ flex:0 0 auto; font-size:12px; font-weight:800; color:#7a5aa0; padding-left:2px; }
+
+.grid{
+  display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:3px;
+  background:#9a9a9a; border:2px solid #9a9a9a; border-radius:10px; overflow:hidden;
+}
+.cell{
+  aspect-ratio: 1 / 1.12; min-width:0;
+  border-radius:4px; background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size: clamp(11px, 3.6vw, 19px); font-weight:800; color:#161616;
+  user-select:none; transition: background .12s, transform .12s;
+}
+.cell.empty{ background:#cecece; color:transparent; }
+.cell.drawn{ background:#fff5cc; }
+.cell.clickable{ cursor:pointer; }
+.cell.clickable:active{ transform: scale(.92); }
+.cell.marked{
+  background: radial-gradient(circle at 35% 30%,#7de392 0%,#22b93c 55%,#128a2a 100%);
+  color:#fff; box-shadow: inset 0 -2px 4px rgba(0,0,0,.25);
+  animation: daub .25s ease;
+}
+@keyframes daub{ 0%{ transform: scale(.55) } 70%{ transform: scale(1.12) } 100%{ transform: scale(1) } }
+
+.ticket-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:8px; font-size:12px; font-weight:700; color:#6b6b76; gap:8px; }
+.ticket-foot .win-tag{ color:#12902b; }
+.progress{ flex:1; height:7px; background:#e9e9ef; border-radius:99px; overflow:hidden; }
+.progress > i{ display:block; height:100%; width:0%; background: linear-gradient(90deg,#4fe06e,#16a62d); transition: width .3s ease; }
+
+/* ── alt "bilet al" paneli ── */
+.buybar{
+  position:fixed; left:0; right:0; bottom:0; z-index:60;
+  background: linear-gradient(180deg, rgba(30,8,55,.92) 0%, rgba(16,3,30,.99) 100%);
+  border-top:1px solid rgba(245,197,24,.2);
+  padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 24px rgba(0,0,0,.5);
+}
+.buybar-inner{ max-width:480px; margin:0 auto; display:flex; align-items:center; gap:10px; }
+.buy-btn{
+  flex:1 1 auto; min-width:0; border:none; cursor:pointer;
+  background: linear-gradient(180deg,#5a90ee,#3f6fd4);
+  color:#fff; border-radius:16px; padding:11px 12px;
+  font-family:'Rubik',sans-serif; text-align:center;
+  box-shadow: 0 6px 16px rgba(63,111,212,.35);
+}
+.buy-btn:active{ transform: scale(.985); }
+.buy-btn[disabled]{ background: linear-gradient(180deg,#7b8794,#5a6470); box-shadow:none; }
+.buy-main{ font-size:19px; font-weight:900; line-height:1.15; }
+.buy-sub{ font-size:13px; font-weight:600; opacity:.92; margin-top:2px; }
+.qty{ flex:0 0 auto; display:flex; align-items:center; gap:8px; }
+.qty-btn{
+  width:52px; height:52px; border:none; border-radius:50%; cursor:pointer;
+  color:#fff; font-size:26px; font-weight:900; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+}
+.qty-btn.minus{ background: linear-gradient(180deg,#ff6b6b,#e94b4b); }
+.qty-btn.plus{ background: linear-gradient(180deg,#4fe06e,#18b535); }
+.qty-btn:disabled{ opacity:.45; }
+.qty-box{ text-align:center; min-width:52px; }
+.qty-label{ font-size:12px; color:rgba(255,255,255,.7); font-weight:600; }
+.qty-val{ font-size:20px; font-weight:900; }
+
+.toast{
+  position:fixed; left:50%; bottom: calc(120px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  background: rgba(16,12,24,.94); color:#fff;
+  padding:11px 18px; border-radius:14px;
+  font-size:13px; font-weight:700; max-width:90vw; text-align:center;
+  opacity:0; pointer-events:none; transition: opacity .18s ease;
+  z-index:9999;
+}
+.toast.show{ opacity:1; }
+
+.error-msg{
+  background: rgba(232,0,26,.15); border:1px solid rgba(232,0,26,.3);
+  border-radius:12px; padding:10px 14px; font-size:13px;
+  color:#ff9d9d; margin-bottom:10px;
+}
+.hint{ font-size:12px; color:rgba(255,255,255,.6); margin-top:10px; text-align:center; line-height:1.5; }
+.win-banner{
+  background: linear-gradient(180deg, rgba(22,166,45,.28), rgba(22,166,45,.12));
+  border:1px solid rgba(79,224,110,.45);
+  border-radius:16px; padding:12px 14px; margin-top:12px;
+  text-align:center; font-weight:800; font-size:14px;
+}
+
+@media (max-width:360px){
+  .qty-btn{ width:44px; height:44px; font-size:22px; }
+  .buy-main{ font-size:16px; }
+  .buy-sub{ font-size:11px; }
+  .tool{ font-size:11px; padding:8px 4px; }
+  .tool .material-symbols-outlined{ font-size:15px; }
+  .ball{ width:56px; height:56px; font-size:22px; }
+  .timer{ font-size:20px; }
+  .item{ font-size:12px; }
+  .stat-pill{ gap:7px; padding:5px 9px; }
+}
