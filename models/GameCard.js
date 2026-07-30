@@ -8,6 +8,10 @@ const gameCardSchema = new mongoose.Schema({
   numbers:   [[Number]],
   markedNumbers: { type: [Number], default: [] },
   autoDaub:  { type: Boolean, default: false }, // legacy — auto rejim tamamilə söndürülüb
+  wonRows:   { type: [Number], default: [] },   // ödənilmiş linyaların indeksləri
+  lineWins:  { type: Number, default: 0 },
+  fullCard:  { type: Boolean, default: false },
+  fullAt:    { type: Date, default: null },
   isWinner:  { type: Boolean, default: false },
   prize:     { type: Number, default: 0 },
   completedAt: { type: Date, default: null },
