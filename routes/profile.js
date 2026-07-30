@@ -130,7 +130,7 @@ router.post('/sessions/terminate', requireLogin, async (req, res) => {
 });
 
 // Çıxış (GET və POST) — köhnə `/logout` route-u saxlanılır,
-router.get('/logout', requireLogin, (req, res) => {
+router.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
