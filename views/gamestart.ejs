@@ -77,6 +77,42 @@
     display:flex; align-items:center; justify-content:space-between; font-weight:900; font-size:15px;
   }
   .sheet-foot span:last-child{ color:#f5c518; }
+  /* ── Qalib animasiyası (vaxt bitdikdən sonra) ── */
+  .win-overlay{
+    position:fixed; inset:0; z-index:400; display:none;
+    align-items:center; justify-content:center; padding:24px;
+    background:radial-gradient(circle at 50% 45%, rgba(80,20,140,.85), rgba(8,1,16,.96));
+    backdrop-filter:blur(6px);
+  }
+  .win-overlay.show{ display:flex; animation: wo-in .35s ease both; }
+  @keyframes wo-in{ from{opacity:0} to{opacity:1} }
+  .win-box{ text-align:center; max-width:420px; width:100%; }
+  .win-word{
+    font-size:64px; line-height:1; font-weight:900; letter-spacing:6px;
+    background:linear-gradient(180deg,#fff6c9,#f5c518 55%,#c98a05);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 10px 40px rgba(245,197,24,.35);
+    animation: win-pop .7s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  @keyframes win-pop{ 0%{transform:scale(.3) rotate(-6deg);opacity:0} 60%{transform:scale(1.15) rotate(2deg);opacity:1} 100%{transform:scale(1) rotate(0)} }
+  .win-name{
+    margin-top:14px; font-size:26px; font-weight:900; color:#fff;
+    animation: win-slide .5s .25s ease both; word-break:break-word;
+  }
+  .win-prize{
+    margin-top:10px; display:inline-block; font-size:22px; font-weight:900; color:#1a0530;
+    background:linear-gradient(180deg,#ffe27a,#e0a82e); padding:8px 20px; border-radius:999px;
+    animation: win-slide .5s .4s ease both;
+  }
+  .win-sub{ margin-top:14px; font-size:13px; font-weight:700; color:rgba(255,255,255,.7); animation: win-slide .5s .55s ease both; }
+  @keyframes win-slide{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+  .win-rays{
+    position:absolute; width:520px; height:520px; border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(245,197,24,.22) 0 12deg, transparent 12deg 30deg);
+    animation: win-spin 9s linear infinite; pointer-events:none;
+  }
+  @keyframes win-spin{ to{ transform:rotate(360deg); } }
+  .win-me{ margin-top:8px; font-size:14px; font-weight:800; color:#4ce07a; animation: win-slide .5s .6s ease both; }
   .bb-home{
     flex:0 0 auto; text-decoration:none; color:#fff;
     background: rgba(255,255,255,.12); border-radius:14px;
@@ -142,6 +178,18 @@
   </div>
 </div>
 
+<!-- Qalib elanı: yalnız vaxt bitdikdən sonra -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-rays"></div>
+  <div class="win-box">
+    <div class="win-word">WIN</div>
+    <div class="win-name" id="winName"></div>
+    <div class="win-prize" id="winPrize"></div>
+    <div class="win-sub" id="winSub">Raund tamamlandı</div>
+    <div class="win-me" id="winMe" style="display:none">Uduş balansınıza əlavə olundu</div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="/assets/js/loto-sound.js"></script>
@@ -162,7 +210,7 @@ function toast(msg){
   clearTimeout(window.__t); window.__t = setTimeout(function(){ el.classList.remove('show'); }, 2400);
 }
 function fmtTime(s){ s = Math.max(0, parseInt(s || 0, 10)); var m = Math.floor(s/60), ss = s%60; return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss; }
-function statusLabel(s){ return s === 'started' ? 'Oyun başladı' : s === 'starting' ? 'Başlayır' : 'Gözləyir'; }
+function statusLabel(s){ return s === 'started' ? 'Oyun başladı' : s === 'ended' ? 'Raund bitdi' : s === 'starting' ? 'Başlayır' : 'Gözləyir'; }
 function renderTimer(){
   var t = document.getElementById('timer');
   var v = parseInt(t.dataset.secs || '0', 10);
@@ -354,9 +402,22 @@ function showWin(prize){
   var b = document.getElementById('winBanner');
   var pending = cards.filter(function(c){ return !c.isWinner; }).length;
   b.style.display = 'block';
-  b.innerHTML = '🎉 Bilet tam doldu! <b>+' + Number(prize || 0).toFixed(2) + ' ₼</b> balansına əlavə olundu.' +
-    (pending ? '<br><span style="font-weight:600;font-size:13px;opacity:.85">Qalan ' + pending + ' biletin dolması gözlənilir…</span>' : '');
+  b.innerHTML = 'Bilet tam doldu! <b>+' + Number(prize || 0).toFixed(2) + ' ₼</b> balansına əlavə olundu.' +
+    (pending ? '<br><span style="font-weight:600;font-size:13px;opacity:.85">Oyun vaxtın sonuna qədər davam edir…</span>' : '<br><span style="font-weight:600;font-size:13px;opacity:.85">Qalib vaxt bitdikdən sonra elan olunacaq.</span>');
   toast('Qazandınız! +' + Number(prize || 0).toFixed(2) + ' ₼');
+}
+
+var winShown = false;
+function showFinalWinner(w){
+  if (!w || winShown) return;
+  winShown = true;
+  var ov = document.getElementById('winOverlay');
+  document.getElementById('winName').textContent = w.name || 'Oyunçu';
+  document.getElementById('winPrize').textContent = Number(w.prize || 0).toFixed(2) + ' \u20BC';
+  document.getElementById('winSub').textContent = 'Ən çox daş dolduran oyunçu · ' + Number(w.marks || 0) + ' daş';
+  document.getElementById('winMe').style.display = (w.name === MY_NAME) ? 'block' : 'none';
+  ov.classList.add('show');
+  if (window.LotoSound && LotoSound.win) LotoSound.win();
 }
 
 function syncState(data){
@@ -394,6 +455,8 @@ function syncState(data){
   }
   lockMissed();
   renderTickets();
+
+  if (data.status === 'ended' && data.final_winner) showFinalWinner(data.final_winner);
 }
 
 function poll(){
