@@ -26,6 +26,15 @@
 
 <div class="wrap">
   <% if (typeof error !== 'undefined' && error) { %><div class="error-msg"><%= error %></div><% } %>
+  <div class="panel players-panel">
+    <div class="panel-title">Onlayn oyunçular</div>
+    <div class="players-list" id="playersList"></div>
+    <div class="players-total">
+      <span>Otaqdakı ümumi mərc</span>
+      <b id="totalStake">0.00 ₼</b>
+    </div>
+  </div>
+
   <div id="ticketList"></div>
   <div class="hint">Bilet rəqəmlərini <b>yenilə</b> və ya <b>dəyiş</b> ilə seçin, artıq bileti <b>sil</b>. Maksimum <%= maxTickets %> bilet.</div>
 </div>
@@ -59,6 +68,34 @@ var MAX_TICKETS = <%= maxTickets %>;
 var ENTRY_FEE   = <%= Number(room.entryFee || 0) %>;
 var POOL        = <%- JSON.stringify(previewCards) %>;
 var tickets     = [POOL[0]];
+var MY_NAME     = <%- JSON.stringify(user.username) %>;
+var lastStake   = null;
+
+function renderPlayers(data){
+  var list = document.getElementById('playersList');
+  if (!list) return;
+  var players = (data && data.players) || [];
+  list.innerHTML = '';
+  players.forEach(function(p){
+    var row = document.createElement('div');
+    row.className = 'player-row' + (p.name === MY_NAME ? ' me' : '');
+    row.innerHTML =
+      '<span class="player-av">' + String(p.name || '?').charAt(0).toUpperCase() + '</span>' +
+      '<span class="player-name">' + p.name + '</span>' +
+      '<span class="player-bet">' + Number(p.stake || 0).toFixed(2) + ' ₼<small>' + (p.tickets || 1) + ' bilet</small></span>';
+    list.appendChild(row);
+  });
+  if (!players.length) {
+    list.innerHTML = '<div class="player-row"><span class="player-name" style="opacity:.6">Oyunçular gözlənilir…</span></div>';
+  }
+  var total = document.getElementById('totalStake');
+  var stake = Number((data && data.total_stake) || 0);
+  total.textContent = stake.toFixed(2) + ' ₼';
+  if (lastStake !== null && Math.abs(stake - lastStake) >= 0.005) {
+    total.classList.remove('bet-bump'); void total.offsetWidth; total.classList.add('bet-bump');
+  }
+  lastStake = stake;
+}
 
 function toast(msg){
   var el = document.getElementById('toast');
@@ -68,7 +105,7 @@ function toast(msg){
 
 /* ── random bilet generatoru (klient tərəfi önizləmə) ── */
 function genCard(){
-  var cols=[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59],[60,69],[70,79],[80,90]];
+  var cols=[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59],[60,69],[70,79],[80,100]];
   var card=[[],[],[]], used=[];
   for(var i=0;i<9;i++) used.push({});
   for(var r=0;r<3;r++){
@@ -173,11 +210,15 @@ function poll(){
     if (!d || d.error) return;
     document.getElementById('playerCount').textContent = d.player_count;
     document.getElementById('roomPrize').textContent = Number(d.ticket_prize || 0).toFixed(2) + ' ₼';
+    renderPlayers(d);
+    if (typeof d.balance === 'number' && window.animateBalance && Math.abs(window.getBalance() - d.balance) >= 0.005) {
+      window.animateBalance(d.balance);
+    }
   }).catch(function(){});
 }
 render();
 poll();
-setInterval(poll, 4000);
+setInterval(poll, 2500);
 </script>
 </body>
 </html>
