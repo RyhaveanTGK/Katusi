@@ -126,11 +126,12 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
 
     // Real istifadəçiyə yer açmaq üçün lazım olsa süni oyunçu otaqdan çıxarılır
     if (room.status !== 'started') {
-      while (visiblePlayerCount(room) >= START_PLAYERS && (room.bots || []).length) {
+      const alreadyIn = room.players.map(String).includes(String(user._id));
+      while ((room.players.length + (alreadyIn ? 0 : 1) + (room.bots || []).length) > START_PLAYERS && (room.bots || []).length) {
         room.bots.pop();
         room.markModified('bots');
       }
-      if ((room.bots || []).length !== undefined) botEngine.recalcBotStake(room);
+      botEngine.recalcBotStake(room);
     }
     if (room.players.length >= START_PLAYERS) return renderErr('Otaq doludur');
 
@@ -154,7 +155,8 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
     await user.save();
 
     if (!room.players.map(String).includes(String(user._id))) room.players.push(user._id);
-    room.prize = Number(room.prize || 0) + total;
+    room.prize = Number((Number(room.prize || 0) + total).toFixed(2));
+    room.stakeTotal = Number((Number(room.stakeTotal || 0) + total).toFixed(2));
     if (room.jackpotEnabled) room.jackpot = Number(room.jackpot || 0) + total;
     await room.save();
 
@@ -207,7 +209,7 @@ router.get('/gamestart/:roomId', requireLogin, async (req, res) => {
       maxTickets: MAX_TICKETS,
       roomSize: START_PLAYERS,
       playerCount: visiblePlayerCount(room),
-      totalStake: Number(room.prize || 0),
+      totalStake: Number(Math.max(Number(room.stakeTotal || 0), Number(room.prize || 0)).toFixed(2)),
       ticketPrize: ticketPrize(room),
       displayStatus: getDisplayStatus(room),
       secsLeft: getSecsLeft(room)
