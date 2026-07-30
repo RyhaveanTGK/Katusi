@@ -3,148 +3,377 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Qaliblər – One Loto</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#3d0d62">
+<title>Balans – One Loto</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
 *{ box-sizing:border-box; margin:0; padding:0; }
 ::-webkit-scrollbar{ display:none; }
 html,body{ overflow-x:hidden; }
-:root{
-  --bg-purple:#3d0d62;
-  --primary-yellow:#f5c518;
-  --secondary-purple:#5c2491;
-  --panel-border:rgba(255,255,255,.1);
-}
 body{
-  background:var(--bg-purple); color:#fff;
-  font-family:'Inter',sans-serif; min-height:100vh;
-  padding-top:72px; padding-bottom:24px;
+  background:#3d0d62; color:#fff;
+  font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;
+  min-height:100vh; padding-top:72px; padding-bottom:24px;
 }
-.wrap{ width:100%; max-width:414px; margin:0 auto; padding:14px 14px 24px; }
-.page-title{ font-size:22px; font-weight:900; margin-bottom:4px; }
-.page-sub{ font-size:13px; color:rgba(255,255,255,.5); margin-bottom:20px; }
+.wrap{ width:100%; max-width:430px; margin:0 auto; padding:14px 14px 30px; }
+.page-title{ font-size:22px; font-weight:900; }
+.page-sub{ font-size:13px; color:rgba(255,255,255,.55); margin-bottom:16px; }
 
-.tab-row{
-  display:flex; gap:0; border-radius:12px; overflow:hidden;
-  border:1px solid rgba(255,255,255,.15);
-  margin-bottom:18px;
+.balance-card{
+  background: linear-gradient(135deg,#7a2db0,#4b1478);
+  border:1px solid rgba(245,197,24,.25);
+  border-radius:20px; padding:18px; margin-bottom:16px;
 }
-.tab-btn{
-  flex:1; padding:11px; font-size:13px; font-weight:700;
-  border:none; cursor:pointer;
-  background: rgba(255,255,255,.07);
-  color:rgba(255,255,255,.7);
-  transition: background .2s, color .2s;
+.balance-lbl{ font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:rgba(255,255,255,.65); font-weight:700; }
+.balance-val{ font-size:32px; font-weight:900; color:#f5c518; margin-top:4px; }
+.balance-meta{ display:flex; gap:14px; margin-top:10px; font-size:12px; color:rgba(255,255,255,.7); }
+
+.lang-row{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+.lang-chip{
+  text-decoration:none; font-size:12px; font-weight:700;
+  padding:7px 12px; border-radius:99px;
+  background: rgba(255,255,255,.08); color:rgba(255,255,255,.7);
+  border:1px solid rgba(255,255,255,.14);
 }
+.lang-chip.on{ background:#f5c518; color:#3d2200; border-color:#f5c518; }
+
+.tab-row{ display:flex; border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.15); margin-bottom:16px; }
+.tab-btn{ flex:1; padding:12px; font-size:13px; font-weight:800; border:none; cursor:pointer;
+  background: rgba(255,255,255,.07); color:rgba(255,255,255,.7); font-family:inherit; }
 .tab-btn.active{ background:#5c2491; color:#fff; }
 
-.rank-row{
-  display:flex; align-items:center; gap:12px;
-  padding:13px 16px;
-  background: rgba(255,255,255,.05);
-  border-radius:12px; margin-bottom:8px;
-  border:1px solid rgba(255,255,255,.08);
-  position:relative;
-}
-.rank-medal{
-  width:34px; height:34px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  font-weight:800; font-size:15px; color:#3d2200;
-  border:2px solid rgba(255,255,255,.55);
-}
-.rank-1{ background: linear-gradient(135deg,#ffd700,#f0a800); }
-.rank-2{ background: linear-gradient(135deg,#c0c0c0,#a0a0a0); }
-.rank-3{ background: linear-gradient(135deg,#cd7f32,#a0522d); }
-.rank-other{ background: rgba(255,255,255,.15); color:#fff; }
-.rank-info{ flex:1; min-width:0; }
-.rank-name{ font-size:15px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rank-stats{ font-size:12px; color:rgba(255,255,255,.5); margin-top:2px; }
-.rank-prize{ font-size:16px; font-weight:900; color:var(--primary-yellow); flex-shrink:0; }
+.msg{ border-radius:12px; padding:11px 14px; font-size:13px; font-weight:600; margin-bottom:14px; }
+.msg.ok{ background:rgba(28,184,93,.16); border:1px solid rgba(28,184,93,.4); color:#7bf0ae; }
+.msg.err{ background:rgba(232,0,26,.15); border:1px solid rgba(232,0,26,.35); color:#ff9a9a; }
 
-.recent-item{
+.section-title{ font-size:13px; font-weight:800; color:rgba(255,255,255,.75); margin:16px 0 10px; }
+
+.methods{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.method{
   display:flex; align-items:center; gap:10px;
-  padding:12px 14px;
-  background: rgba(255,255,255,.05);
-  border-radius:12px; margin-bottom:8px;
-  border:1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.12);
+  border-radius:16px; padding:11px; cursor:pointer;
+  transition: border-color .15s, background .15s;
 }
-.ri-icon{ font-size:24px; flex-shrink:0; }
-.ri-info{ flex:1; min-width:0; }
-.ri-name{ font-size:14px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ri-room{ font-size:12px; color:rgba(255,255,255,.5); }
-.ri-prize{ font-size:15px; font-weight:900; color:#1cb85d; flex-shrink:0; }
-.ri-date{ font-size:11px; color:rgba(255,255,255,.4); margin-top:2px; }
+.method:hover{ background: rgba(255,255,255,.1); }
+.method.sel{ border-color:#f5c518; background: rgba(245,197,24,.12); }
+.method img{ width:38px; height:38px; border-radius:11px; flex:0 0 auto; }
+.method .mn{ font-size:12.5px; font-weight:800; line-height:1.2; }
+.method .mk{ font-size:10.5px; color:rgba(255,255,255,.5); margin-top:2px; }
+.method input{ display:none; }
 
-.empty-state{ text-align:center; padding:40px 20px; color:rgba(255,255,255,.4); }
-.empty-state .icon{ font-size:48px; margin-bottom:12px; }
+.detail-box{
+  margin-top:14px; background: rgba(0,0,0,.22);
+  border:1px dashed rgba(245,197,24,.4); border-radius:14px; padding:12px 14px;
+}
+.detail-box .dl{ font-size:11px; color:rgba(255,255,255,.55); text-transform:uppercase; letter-spacing:.4px; }
+.detail-box .dv{ font-size:15px; font-weight:800; font-family:monospace; letter-spacing:.6px; word-break:break-all; }
+.detail-box .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px; }
+.copy-btn{ background:#f5c518; color:#3d2200; border:none; border-radius:9px; padding:7px 11px; font-weight:800; font-size:11px; cursor:pointer; font-family:inherit; }
+.no-details{ font-size:12px; color:rgba(255,255,255,.6); }
 
-@media (max-width:370px){
-  .rank-row{ padding:11px 14px; gap:10px; }
-  .rank-medal{ width:30px; height:30px; font-size:13px; }
-  .rank-name{ font-size:14px; }
-  .rank-prize{ font-size:14px; }
+.field{ margin-top:12px; }
+.field label{ display:block; font-size:12px; font-weight:700; color:rgba(255,255,255,.7); margin-bottom:6px; }
+.field input, .field select{
+  width:100%; padding:12px 14px; border-radius:12px;
+  background: rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.15);
+  color:#fff; font-size:14px; font-weight:600; font-family:inherit;
 }
-@supports (padding: max(0px)) {
-  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
+.field input::placeholder{ color:rgba(255,255,255,.35); }
+.quick{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.quick button{
+  background: rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16);
+  color:#fff; border-radius:10px; padding:7px 12px; font-size:12px; font-weight:800; cursor:pointer; font-family:inherit;
 }
+.submit-btn{
+  width:100%; margin-top:16px; padding:15px;
+  background: linear-gradient(180deg,#f5c518,#c8960c); color:#3d2200;
+  border:none; border-radius:14px; font-size:15px; font-weight:900;
+  cursor:pointer; font-family:inherit; text-transform:uppercase; letter-spacing:.4px;
+}
+.submit-btn.alt{ background: linear-gradient(180deg,#4d86e8,#3f6fd4); color:#fff; }
+.submit-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+.tx{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:11px 13px; margin-bottom:8px; }
+.tx .ti{ font-size:20px; }
+.tx .tb{ flex:1; min-width:0; }
+.tx .tn{ font-size:13px; font-weight:800; }
+.tx .td{ font-size:11px; color:rgba(255,255,255,.45); margin-top:2px; }
+.tx .ta{ font-size:14px; font-weight:900; }
+.ta.plus{ color:#1cb85d; } .ta.minus{ color:#ff7b7b; }
+.badge{ font-size:9.5px; font-weight:800; border-radius:6px; padding:2px 7px; }
+.b-pending{ background:#fff3cd; color:#856404; }
+.b-completed{ background:#d4edda; color:#155724; }
+.b-rejected{ background:#f8d7da; color:#721c24; }
+.empty{ text-align:center; padding:26px; color:rgba(255,255,255,.4); font-size:13px; }
+.hidden{ display:none !important; }
+@supports (padding: max(0px)) { body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); } }
 </style>
 </head>
 <body>
 <%- include('partials/topnav', { user: user }) %>
 
 <div class="wrap">
-  <div class="page-title">🏆 Qaliblər</div>
-  <div class="page-sub">Ən çox qazanan oyunçular</div>
+  <div class="page-title">💳 Balans</div>
+  <div class="page-sub">Depozit və çıxarış əməliyyatları</div>
 
-  <div class="tab-row" id="tabRow">
-    <button class="tab-btn active" onclick="showTab('top')">Liderboard</button>
-    <button class="tab-btn" onclick="showTab('recent')">Son qaliblər</button>
+  <div class="balance-card">
+    <div class="balance-lbl">Cari balans</div>
+    <div class="balance-val"><%= Number(user.balance || 0).toFixed(2) %> ₼</div>
+    <div class="balance-meta">
+      <span>⬆ Depozit: <b><%= Number(counter.totalDeposits || 0).toFixed(2) %></b></span>
+      <span>⬇ Çıxarış: <b><%= Number(counter.totalWithdraws || 0).toFixed(2) %></b></span>
+    </div>
   </div>
 
-  <div id="tab-top">
-    <% if (topWinners.length === 0) { %>
-    <div class="empty-state"><div class="icon">🏅</div><div>Hələ qalib yoxdur</div></div>
-    <% } %>
-    <% topWinners.forEach(function(w, i) { %>
-    <div class="rank-row">
-      <div class="rank-medal <%= i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other' %>"><%= i+1 %></div>
-      <div class="rank-info">
-        <div class="rank-name"><%= w.username %></div>
-        <div class="rank-stats"><%= w.gamesWon %> qalibiyyət • <%= w.gamesPlayed %> oyun</div>
-      </div>
-      <div class="rank-prize"><%= w.totalWon.toFixed(2) %> ₼</div>
-    </div>
+  <!-- Dil / ölkə seçimi: dil dəstəyi əlavə olunanda kartlar avtomatik dəyişir -->
+  <div class="lang-row">
+    <% locales.forEach(function(l){ %>
+      <a class="lang-chip <%= l.code === locale ? 'on' : '' %>" href="/wallet?lang=<%= l.code %>"><%= l.flag %> <%= l.label %></a>
     <% }); %>
   </div>
 
-  <div id="tab-recent" style="display:none;">
-    <% if (recentGames.length === 0) { %>
-    <div class="empty-state"><div class="icon">🎯</div><div>Hələ heç bir oyun bitməyib</div></div>
-    <% } %>
-    <% recentGames.forEach(function(g) { %>
-    <div class="recent-item">
-      <div class="ri-icon">🎊</div>
-      <div class="ri-info">
-        <div class="ri-name"><%= g.userId ? g.userId.username : 'İstifadəçi' %></div>
-        <div class="ri-room"><%= g.roomId ? g.roomId.name : 'Otaq' %></div>
-        <div class="ri-date"><%= new Date(g.playedAt).toLocaleDateString('az-AZ', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) %></div>
-      </div>
-      <div class="ri-prize">+<%= g.prize.toFixed(2) %> ₼</div>
-    </div>
-    <% }); %>
+  <% if (success) { %><div class="msg ok"><%= success %></div><% } %>
+  <% if (error)   { %><div class="msg err"><%= error %></div><% } %>
+
+  <div class="tab-row">
+    <button type="button" class="tab-btn <%= tab === 'withdraw' ? '' : 'active' %>" id="tabDepositBtn" onclick="showTab('deposit')">Balans artır</button>
+    <button type="button" class="tab-btn <%= tab === 'withdraw' ? 'active' : '' %>" id="tabWithdrawBtn" onclick="showTab('withdraw')">Çıxarış</button>
   </div>
+
+  <!-- ══════ DEPOZİT ══════ -->
+  <div id="tab-deposit" class="<%= tab === 'withdraw' ? 'hidden' : '' %>">
+    <% if (!depositMethods.length) { %>
+      <div class="empty">Bu ölkə üçün ödəniş üsulu hələ əlavə edilməyib.</div>
+    <% } else { %>
+    <form method="POST" action="/wallet/deposit" enctype="multipart/form-data" id="depositForm">
+      <input type="hidden" name="lang" value="<%= locale %>">
+      <input type="hidden" name="method" id="depMethod" value="">
+
+      <div class="section-title">Ödəniş üsulunu seçin</div>
+      <div class="methods">
+        <% depositMethods.forEach(function(m){ %>
+        <label class="method" data-key="<%= m.key %>" data-kind="<%= m.kind %>"
+               data-card="<%= m.cardNumber || '' %>" data-iban="<%= m.iban || '' %>"
+               data-holder="<%= m.accountHolder || '' %>" data-wallet="<%= m.walletAddress || '' %>"
+               data-network="<%= m.network || '' %>" data-name="<%= m.name %>">
+          <img src="<%= m.logo || '/assets/banks/banktransfer.svg' %>" alt="<%= m.name %>">
+          <div>
+            <div class="mn"><%= m.name %></div>
+            <div class="mk"><%= m.currency %><%= m.network ? ' · ' + m.network : '' %></div>
+          </div>
+          <input type="radio" name="__dep" value="<%= m.key %>">
+        </label>
+        <% }); %>
+      </div>
+
+      <div class="detail-box" id="depDetails">
+        <div class="no-details">Üsul seçdikdə ödəniş ediləcək rekvizitlər burada görünəcək.</div>
+      </div>
+
+      <div class="field">
+        <label>Məbləğ (<%= limits.depositMin %> – <%= limits.depositMax %>)</label>
+        <input type="number" name="amount" id="depAmount" step="0.01" min="<%= limits.depositMin %>" max="<%= limits.depositMax %>" placeholder="0.00" required>
+        <div class="quick">
+          <button type="button" onclick="setAmt('depAmount',10)">10</button>
+          <button type="button" onclick="setAmt('depAmount',20)">20</button>
+          <button type="button" onclick="setAmt('depAmount',50)">50</button>
+          <button type="button" onclick="setAmt('depAmount',100)">100</button>
+        </div>
+      </div>
+
+      <div id="depBankFields">
+        <div class="field">
+          <label>Göndərdiyiniz kart / hesab nömrəsi</label>
+          <input type="text" name="cardNumber" inputmode="numeric" placeholder="0000 0000 0000 0000">
+        </div>
+        <div class="field">
+          <label>Ad Soyad</label>
+          <input type="text" name="cardHolder" placeholder="AD SOYAD">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Qəbz / dekont (şəkil və ya PDF)</label>
+        <input type="file" name="receipt" accept="image/*,application/pdf">
+      </div>
+
+      <button type="submit" class="submit-btn" id="depSubmit">Depozit sorğusu göndər</button>
+    </form>
+
+    <!-- Kripto formu ayrıca göndərilir -->
+    <form method="POST" action="/wallet/deposit/crypto" enctype="multipart/form-data" id="cryptoForm" class="hidden">
+      <input type="hidden" name="lang" value="<%= locale %>">
+      <input type="hidden" name="method" id="cryMethod" value="">
+      <div class="field">
+        <label>Məbləğ</label>
+        <input type="number" name="amount" id="cryAmount" step="0.01" min="<%= limits.depositMin %>" placeholder="0.00">
+      </div>
+      <div class="field">
+        <label>Göndərən pulqabı ünvanı</label>
+        <input type="text" name="walletAddress" placeholder="0x... / T...">
+      </div>
+      <div class="field">
+        <label>Qəbz (screenshot)</label>
+        <input type="file" name="receipt" accept="image/*,application/pdf">
+      </div>
+      <button type="submit" class="submit-btn">Kripto depozit göndər</button>
+    </form>
+    <% } %>
+  </div>
+
+  <!-- ══════ ÇIXARIŞ ══════ -->
+  <div id="tab-withdraw" class="<%= tab === 'withdraw' ? '' : 'hidden' %>">
+    <% if (!withdrawMethods.length) { %>
+      <div class="empty">Bu ölkə üçün çıxarış üsulu hələ əlavə edilməyib.</div>
+    <% } else { %>
+    <form method="POST" action="/wallet/withdraw" id="withdrawForm">
+      <input type="hidden" name="lang" value="<%= locale %>">
+      <input type="hidden" name="method" id="wdMethod" value="">
+
+      <div class="section-title">Çıxarış üsulunu seçin</div>
+      <div class="methods">
+        <% withdrawMethods.forEach(function(m){ %>
+        <label class="method wd" data-key="<%= m.key %>" data-kind="<%= m.kind %>" data-name="<%= m.name %>">
+          <img src="<%= m.logo || '/assets/banks/banktransfer.svg' %>" alt="<%= m.name %>">
+          <div>
+            <div class="mn"><%= m.name %></div>
+            <div class="mk"><%= m.currency %><%= m.network ? ' · ' + m.network : '' %></div>
+          </div>
+          <input type="radio" name="__wd" value="<%= m.key %>">
+        </label>
+        <% }); %>
+      </div>
+
+      <div class="field">
+        <label>Məbləğ (<%= limits.withdrawMin %> – <%= limits.withdrawMax %>)</label>
+        <input type="number" name="amount" id="wdAmount" step="0.01" min="<%= limits.withdrawMin %>" max="<%= limits.withdrawMax %>" placeholder="0.00" required>
+      </div>
+
+      <div id="wdBankFields">
+        <div class="field">
+          <label>Hesab sahibi (Ad Soyad)</label>
+          <input type="text" name="cardHolder" placeholder="AD SOYAD">
+        </div>
+        <div class="field">
+          <label>Kart nömrəsi və ya IBAN</label>
+          <input type="text" name="cardNumber" placeholder="0000 0000 0000 0000 / IBAN">
+        </div>
+        <div class="field">
+          <label>Son istifadə tarixi (varsa)</label>
+          <input type="text" name="cardExpiry" placeholder="AA/İİ">
+        </div>
+      </div>
+
+      <div id="wdCryptoFields" class="hidden">
+        <div class="field">
+          <label>Kripto pulqabı ünvanı</label>
+          <input type="text" name="walletAddress" placeholder="0x... / T...">
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn alt">Çıxarış sorğusu göndər</button>
+    </form>
+    <% } %>
+  </div>
+
+  <div class="section-title">Son əməliyyatlar</div>
+  <% if (!transactions.length) { %>
+    <div class="empty">Hələ əməliyyat yoxdur</div>
+  <% } %>
+  <% transactions.forEach(function(t){ %>
+  <div class="tx">
+    <div class="ti"><%= t.type === 'deposit' ? '⬆️' : t.type === 'withdraw' ? '⬇️' : '🎁' %></div>
+    <div class="tb">
+      <div class="tn"><%= t.type === 'deposit' ? 'Depozit' : t.type === 'withdraw' ? 'Çıxarış' : t.type %>
+        <span class="badge b-<%= t.status %>"><%= t.status === 'pending' ? 'Gözləyir' : t.status === 'completed' ? 'Tamamlandı' : 'Rədd edildi' %></span>
+      </div>
+      <div class="td"><%= new Date(t.createdAt).toLocaleString('az-AZ') %><%= t.method ? ' · ' + t.method : '' %></div>
+    </div>
+    <div class="ta <%= t.type === 'withdraw' ? 'minus' : 'plus' %>"><%= t.type === 'withdraw' ? '-' : '+' %><%= Number(t.amount).toFixed(2) %></div>
+  </div>
+  <% }); %>
 </div>
 
-<%- include('partials/footer', { activePage: 'winners' }) %>
+<%- include('partials/footer', { activePage: 'wallet' }) %>
 
 <script>
-function showTab(tab){
-  document.getElementById('tab-top').style.display    = tab==='top'    ? 'block':'none';
-  document.getElementById('tab-recent').style.display = tab==='recent' ? 'block':'none';
-  document.querySelectorAll('.tab-btn').forEach(function(b,i){
-    b.classList.toggle('active', (tab==='top' && i===0) || (tab==='recent' && i===1));
-  });
+function showTab(t){
+  document.getElementById('tab-deposit').classList.toggle('hidden', t !== 'deposit');
+  document.getElementById('tab-withdraw').classList.toggle('hidden', t !== 'withdraw');
+  document.getElementById('tabDepositBtn').classList.toggle('active', t === 'deposit');
+  document.getElementById('tabWithdrawBtn').classList.toggle('active', t === 'withdraw');
 }
+function setAmt(id, v){ document.getElementById(id).value = v; }
+function copyTxt(v){
+  navigator.clipboard && navigator.clipboard.writeText(v);
+  alert('Kopyalandı: ' + v);
+}
+
+/* ── Depozit üsulu seçimi ── */
+document.querySelectorAll('#tab-deposit .method').forEach(function(el){
+  el.addEventListener('click', function(){
+    document.querySelectorAll('#tab-deposit .method').forEach(function(x){ x.classList.remove('sel'); });
+    el.classList.add('sel');
+    var d = el.dataset;
+    var isCrypto = d.kind === 'crypto';
+    document.getElementById('depMethod').value = d.key;
+    document.getElementById('cryMethod').value = d.key;
+
+    document.getElementById('depositForm').classList.toggle('hidden', false);
+    document.getElementById('depBankFields').classList.toggle('hidden', isCrypto);
+    document.getElementById('depAmount').required = !isCrypto;
+    document.getElementById('depSubmit').classList.toggle('hidden', isCrypto);
+    document.getElementById('cryptoForm').classList.toggle('hidden', !isCrypto);
+
+    var box = document.getElementById('depDetails');
+    var rows = [];
+    if (isCrypto) {
+      if (d.wallet) rows.push(['Pulqabı ünvanı', d.wallet]);
+      if (d.network) rows.push(['Şəbəkə', d.network]);
+    } else {
+      if (d.card) rows.push(['Kart nömrəsi', d.card]);
+      if (d.iban) rows.push(['IBAN', d.iban]);
+      if (d.holder) rows.push(['Hesab sahibi', d.holder]);
+    }
+    if (!rows.length){
+      box.innerHTML = '<div class="no-details">' + d.name + ' üçün rekvizitlər admin tərəfindən hələ əlavə edilməyib.</div>';
+      return;
+    }
+    box.innerHTML = rows.map(function(r){
+      return '<div class="row"><div><div class="dl">' + r[0] + '</div><div class="dv">' + r[1] + '</div></div>' +
+             '<button type="button" class="copy-btn" data-copy="' + r[1] + '">Kopyala</button></div>';
+    }).join('');
+    box.querySelectorAll('.copy-btn').forEach(function(b){
+      b.addEventListener('click', function(){ copyTxt(b.dataset.copy); });
+    });
+  });
+});
+
+/* ── Çıxarış üsulu seçimi ── */
+document.querySelectorAll('#tab-withdraw .method').forEach(function(el){
+  el.addEventListener('click', function(){
+    document.querySelectorAll('#tab-withdraw .method').forEach(function(x){ x.classList.remove('sel'); });
+    el.classList.add('sel');
+    document.getElementById('wdMethod').value = el.dataset.key;
+    var isCrypto = el.dataset.kind === 'crypto';
+    document.getElementById('wdBankFields').classList.toggle('hidden', isCrypto);
+    document.getElementById('wdCryptoFields').classList.toggle('hidden', !isCrypto);
+  });
+});
+
+/* Üsul seçilmədən göndərişin qarşısını al */
+var df = document.getElementById('depositForm');
+if (df) df.addEventListener('submit', function(e){
+  if (!document.getElementById('depMethod').value){ e.preventDefault(); alert('Əvvəlcə ödəniş üsulunu seçin'); }
+});
+var wf = document.getElementById('withdrawForm');
+if (wf) wf.addEventListener('submit', function(e){
+  if (!document.getElementById('wdMethod').value){ e.preventDefault(); alert('Əvvəlcə çıxarış üsulunu seçin'); }
+});
 </script>
 </body>
 </html>
