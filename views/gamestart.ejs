@@ -2,177 +2,29 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Oyun – One Loto</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/loto.css">
 <style>
-*{ box-sizing:border-box; margin:0; padding:0; }
-html,body{ overflow-x:hidden; }
-body{
-  background:#3d0d62; color:#fff;
-  font-family:'Rubik',sans-serif; min-height:100vh;
-  padding-top: 72px;
-  padding-bottom: 24px;
-}
-.wrap{ width:100%; max-width:430px; margin:0 auto; padding:12px 10px 24px; }
-
-/* sticky gamebar (topnav + bar) */
-.gamebar{
-  position:sticky; top:72px; z-index:9;
-  background: linear-gradient(180deg,#7a2db0 0%,#6a25a0 55%,#5d1f90 100%);
-  padding:10px 0 14px;
-  box-shadow: 0 4px 18px rgba(0,0,0,.35);
-  border-radius: 0 0 20px 20px;
-}
-.statbar{ display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; padding:0 8px; }
-.stat-pill{
-  background: rgba(0,0,0,.28);
-  border-radius:18px; padding:5px 12px;
-  display:flex; align-items:center; gap:11px;
-}
-.bet{
-  position:relative;
-  background: linear-gradient(180deg,#e6c44e,#caa130);
-  color:#fff; font-weight:800; font-size:13px;
-  border-radius:13px; padding:3px 12px;
-}
-.bet .x4{
-  position:absolute; top:-9px; right:-6px;
-  background:#e80000; color:#fff;
-  font-size:9px; font-weight:800;
-  border-radius:8px; padding:1px 5px;
-  border:2px solid #6a25a0;
-}
-.item{
-  color:#fff; font-weight:700; font-size:13px;
-  display:flex; align-items:center; gap:5px;
-}
-.item .material-symbols-outlined{ font-size:18px; }
-.sep{ width:1px; height:22px; background: rgba(255,255,255,.22); }
-.sound{ border:none; cursor:pointer; flex:0 0 auto; width:32px; height:32px; border-radius:50%; background:#f5c518; color:#fff; display:flex; align-items:center; justify-content:center; }
-.auto{ background: linear-gradient(180deg,#4fe06e,#14bb29); color:#fff; font-weight:800; font-size:12px; border-radius:14px; padding:6px 14px; display:flex; align-items:center; gap:5px; border:none; cursor:pointer; }
-.auto.off{ background: linear-gradient(180deg,#8395a7,#576574); }
-
-.panel{
-  margin-top:14px;
-  background: rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:20px; padding:14px;
-}
-.panel-title{
-  font-size:12px; color:rgba(255,255,255,.65);
-  font-weight:800; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;
-}
-.current-ball-wrap{ display:flex; align-items:center; justify-content:space-between; gap:14px; }
-.ball{
-  width:74px; height:74px; border-radius:50%;
-  background: radial-gradient(circle at 35% 30%,#fff6cf 0%,#f5c518 44%,#c8960c 100%);
-  box-shadow: inset 0 -8px 12px rgba(0,0,0,.22), inset 0 4px 8px rgba(255,255,255,.48), 0 8px 20px rgba(0,0,0,.25);
-  display:flex; align-items:center; justify-content:center;
-  color:#5a3000; font-size:28px; font-weight:900; position:relative;
-  animation: ball-pop .35s ease;
-}
-@keyframes ball-pop{ from{ transform: scale(.6); opacity:.4; } to { transform: scale(1); opacity:1; } }
-.ball:before{
-  content:''; position:absolute; top:8%; left:16%;
-  width:28%; height:20%;
-  background: rgba(255,255,255,.36); border-radius:50%; transform: rotate(-20deg);
-}
-.timer{ font-size:28px; font-weight:900; color:#fff; font-variant-numeric: tabular-nums; }
-.status-pill{
-  display:inline-flex; align-items:center; gap:6px;
-  background: rgba(255,255,255,.12); border-radius:99px;
-  padding:7px 12px; font-size:12px; font-weight:700;
-}
-.status-dot{ width:8px; height:8px; border-radius:50%; background:#f5c518; animation: blink 1.2s infinite; }
-@keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.3} }
-
-.draw-list{ display:flex; flex-wrap:wrap; gap:6px; }
-.draw-item{
-  width:30px; height:30px; border-radius:50%;
-  background:#5c2491;
-  display:flex; align-items:center; justify-content:center;
-  font-size:11px; font-weight:900;
-}
-.draw-item.latest{ background:#f5c518; color:#5a3000; animation: ball-pop .35s ease; }
-
-.ticket{ background:#fff; border:3px solid #1d0b33; border-radius:16px; padding:10px; color:#191919; }
-.ticket-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px; }
-.ticket-title{ font-size:14px; font-weight:900; }
-.help{ font-size:11px; color:#666; }
-.grid{ display:grid; grid-template-columns:repeat(9,1fr); gap:3px; background:#9a9a9a; border:1px solid #9a9a9a; border-radius:11px; overflow:hidden; }
-.cell{
-  aspect-ratio: 1 / 1.12;
-  border-radius:5px; background:#fff;
-  display:flex; align-items:center; justify-content:center;
-  font-size: clamp(13px, 4vw, 20px); font-weight:800; color:#161616;
-  cursor:default; user-select:none; transition: background .12s;
-}
-.cell.empty{ background:#cecece; color:transparent; }
-.cell.drawn{ background:#e6f7ea; }
-.cell.marked{ background: linear-gradient(180deg,#4fe06e,#15a62d); color:#fff; box-shadow: inset 0 -2px 4px rgba(0,0,0,.2); }
-.cell.clickable{ cursor:pointer; }
-.cell.clickable:active{ transform: scale(.95); }
-.cell.pending{ outline:2px solid #f5c518; outline-offset:-2px; }
-
-.actions{ display:flex; gap:10px; margin-top:14px; }
-.btn{
-  flex:1; border:none; border-radius:14px; padding:13px 14px;
-  font-size:14px; font-weight:900; font-family:'Rubik',sans-serif;
-  cursor:pointer; transition: transform .12s;
-}
-.btn:active{ transform: scale(.98); }
-.btn-primary{ background: linear-gradient(180deg,#4d86e8,#3f6fd4); color:#fff; }
-.btn-secondary{ background: rgba(255,255,255,.12); color:#fff; text-decoration:none; display:flex; align-items:center; justify-content:center; }
-
-.winner-box{
-  background: rgba(21,166,45,.18);
-  border:1px solid rgba(79,224,110,.35);
-  border-radius:16px; padding:12px 14px; margin-top:14px;
-  text-align:center; font-weight:800;
-}
-.warn{ color:#ffdb7d; font-size:12px; margin-top:10px; }
-.meta-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.meta-card{ background: rgba(255,255,255,.06); border-radius:14px; padding:12px; }
-.meta-key{ font-size:11px; color:rgba(255,255,255,.6); text-transform:uppercase; font-weight:700; }
-.meta-val{ font-size:18px; font-weight:900; margin-top:4px; }
-
-.toast{
-  position:fixed; left:50%; bottom:20px;
-  transform:translateX(-50%);
-  background: rgba(16,12,24,.92); color:#fff;
-  padding:11px 18px; border-radius:14px;
-  font-size:13px; font-weight:700;
-  box-shadow: 0 10px 26px rgba(0,0,0,.28);
-  opacity:0; pointer-events:none;
-  transition: opacity .18s ease, transform .2s ease;
-  z-index:9999;
-}
-.toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px); }
-
-/* ── Responsive medianlar ── */
-@media (max-width:430px){
-  .wrap{ padding:12px 8px 24px; }
-  .statbar{ gap:8px; }
-  .ball{ width:64px; height:64px; font-size:24px; }
-  .timer{ font-size:24px; }
-  .cell{ font-size:13px; }
-}
-@media (max-width:370px){
-  .ball{ width:54px; height:54px; font-size:20px; }
-  .timer{ font-size:20px; }
-  .cell{ font-size:11px; }
-  .draw-item{ width:26px; height:26px; font-size:10px; }
-  .panel{ padding:12px; }
-  .meta-val{ font-size:15px; }
-  .stat-pill{ gap:8px; padding:5px 10px; }
-  .item{ font-size:12px; }
-}
-@supports (padding: max(0px)) {
-  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
-  .toast{ bottom: max(20px, env(safe-area-inset-bottom)); }
-}
+  body{ padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .bottombar{
+    position:fixed; left:0; right:0; bottom:0; z-index:60;
+    background: linear-gradient(180deg, rgba(30,8,55,.92) 0%, rgba(16,3,30,.99) 100%);
+    border-top:1px solid rgba(245,197,24,.2);
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  }
+  .bottombar-inner{ max-width:480px; margin:0 auto; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; }
+  .bb-info{ min-width:0; }
+  .bb-k{ font-size:11px; color:rgba(255,255,255,.6); font-weight:700; text-transform:uppercase; }
+  .bb-v{ font-size:16px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bb-home{
+    flex:0 0 auto; text-decoration:none; color:#fff;
+    background: rgba(255,255,255,.12); border-radius:14px;
+    padding:12px 16px; font-weight:800; font-size:14px;
+    display:flex; align-items:center; gap:6px;
+  }
 </style>
 </head>
 <body>
@@ -182,211 +34,215 @@ body{
 <div class="gamebar">
   <div class="statbar">
     <div class="stat-pill">
-      <div class="bet"><%= Number(room.entryFee || 0).toFixed(2) %> ₼<span class="x4"><%= room.prizeMultiplier || 'x2' %></span></div>
+      <div class="bet"><%= Number(room.entryFee || 0).toFixed(2) %><span class="mult"><%= room.prizeMultiplier || 'x2' %></span></div>
       <div class="item"><span class="material-symbols-outlined">person</span><span id="playerCount"><%= room.players.length %></span></div>
       <div class="sep"></div>
-      <div class="item"><span class="material-symbols-outlined">emoji_events</span><span id="roomPrize"><%= Number(room.prize || 0).toFixed(2) %> ₼</span></div>
+      <div class="item"><span class="material-symbols-outlined">emoji_events</span><span id="roomPrize"><%= Number(ticketPrize || 0).toFixed(2) %> ₼</span></div>
     </div>
-    <button class="sound" type="button" title="Səs"><span class="material-symbols-outlined">volume_up</span></button>
-    <button class="auto <%= card && card.autoDaub ? '' : 'off' %>" id="autoBtn" type="button"><span class="material-symbols-outlined">bolt</span><span id="autoText"><%= card && card.autoDaub ? 'avto açıq' : 'avto bağlı' %></span></button>
-  </div>
-</div>
-
-<style>
-.winner-ticker{
-  max-width:430px; margin:8px auto 0; padding:0 10px;
-}
-.winner-ticker-inner{
-  display:flex; align-items:center; gap:10px;
-  background: linear-gradient(180deg, rgba(245,197,24,.14), rgba(245,197,24,.06));
-  border:1px solid rgba(245,197,24,.35);
-  border-radius:14px; padding:8px 12px;
-  box-shadow: 0 4px 12px -4px rgba(0,0,0,.5);
-  overflow:hidden;
-}
-.wt-badge{
-  flex:0 0 auto; font-size:18px; line-height:1;
-}
-.wt-scroll{
-  flex:1; overflow:hidden; position:relative; height:20px;
-}
-.wt-track{
-  display:flex; gap:26px; white-space:nowrap;
-  animation: wt-marquee 28s linear infinite;
-  font-size:13px; font-weight:700; color:#fff;
-}
-.wt-track b{ color:#f5c518; }
-.wt-track span.wt-prize{ color:#4fe06e; margin-left:6px; }
-@keyframes wt-marquee{
-  0%{ transform: translateX(0); }
-  100%{ transform: translateX(-50%); }
-}
-</style>
-<div class="winner-ticker" id="winnerTicker" style="display:none">
-  <div class="winner-ticker-inner">
-    <span class="wt-badge">🏆</span>
-    <div class="wt-scroll"><div class="wt-track" id="wtTrack"></div></div>
+    <button class="icon-btn" id="soundBtn" type="button" aria-label="Səs"><span class="material-symbols-outlined" id="soundIcon">volume_up</span></button>
   </div>
 </div>
 
 <div class="wrap">
   <div class="panel">
     <div class="panel-title">Canlı oyun</div>
-    <div class="current-ball-wrap">
-      <div style="display:flex;flex-direction:column;gap:10px;">
+    <div class="live-row">
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:0;">
         <div class="status-pill"><span class="status-dot"></span><span id="statusText"><%= displayStatus === 'started' ? 'Oyun başladı' : displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir' %></span></div>
         <div class="timer" id="timer" data-secs="<%= secsLeft %>">00:00</div>
       </div>
       <div class="ball" id="currentBall"><%= room.currentNumber || '?' %></div>
     </div>
+    <div class="draw-list" id="drawList"></div>
   </div>
 
+  <div id="ticketList"></div>
 
-  <div class="ticket">
-    <div class="ticket-head">
-      <div>
-        <div class="ticket-title"><%= room.ticketLabel || 'TAM BİLET' %></div>
-        <div class="help">Daşı manual vur və ya avto rejimi aktiv et</div>
-      </div>
-      <div class="help" id="markHelp">Hazır daşları vur</div>
+  <div class="win-banner" id="winBanner" style="display:none"></div>
+  <div class="hint">Çıxan daşı biletdə vurub yerləşdir. Bilet tam dolduqda uduş <b>avtomatik</b> balansına əlavə olunur.</div>
+</div>
+
+<div class="bottombar">
+  <div class="bottombar-inner">
+    <div class="bb-info">
+      <div class="bb-k">Bilet uduşu</div>
+      <div class="bb-v"><span id="ticketPrize"><%= Number(ticketPrize || 0).toFixed(2) %></span> ₼ · <span id="ticketCount"><%= cards.length %></span> bilet</div>
     </div>
-    <div class="grid" id="cardGrid">
-      <% if (card) { const drawn = room.drawnNumbers || []; const marked = new Set(card.markedNumbers || []); %>
-        <% card.numbers.forEach(function(row){ row.forEach(function(n){ %>
-          <div class="cell <%= !n ? 'empty' : '' %> <%= n && drawn.includes(n) ? 'drawn clickable' : '' %> <%= n && marked.has(n) ? 'marked' : '' %> <%= n && drawn.includes(n) && !marked.has(n) ? 'pending' : '' %>" data-number="<%= n || '' %>"><%= n || '' %></div>
-        <% }) }) %>
-      <% } %>
-    </div>
+    <a class="bb-home" href="/"><span class="material-symbols-outlined">home</span>Ana səhifə</a>
   </div>
-
-  <div class="actions">
-    <button class="btn btn-primary" id="claimBtn" type="button">Bingo et</button>
-    <a class="btn btn-secondary" href="/">Ana səhifə</a>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Otaq məlumatları</div>
-    <div class="meta-grid">
-      <div class="meta-card"><div class="meta-key">Jackpot</div><div class="meta-val" id="jackpotVal"><%= room.jackpotEnabled ? Number(room.jackpot || 0).toFixed(2) + ' ₼' : 'OFF' %></div></div>
-      <div class="meta-card"><div class="meta-key">Bonus</div><div class="meta-val"><%= room.prizeMultiplier || 'x2' %></div></div>
-      <div class="meta-card"><div class="meta-key">Ulduz</div><div class="meta-val"><%= room.starPrize || 0 %></div></div>
-      <div class="meta-card"><div class="meta-key">Çəkilən daş</div><div class="meta-val" id="currentNumberText"><%= room.currentNumber || '-' %></div></div>
-    </div>
-  </div>
-
-  <div class="winner-box" id="winnerBox" style="display:none"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- Footer səhifənin ən axırında -->
-<div id="footer-slot"></div>
+<script src="/assets/js/loto-sound.js"></script>
 <script>
-  fetch('/assets/wallet/footer-fragment.html').catch(()=>{}); // placeholder, gerçək footer partial yoxdur burada
-</script>
+var ROOM_ID = '<%= room._id %>';
+var cards = <%- JSON.stringify(cards.map(function(c){ return { id: String(c._id), numbers: c.numbers, marked: c.markedNumbers || [], isWinner: !!c.isWinner, prize: Number(c.prize || 0) }; })) %>;
+var drawnNumbers = <%- JSON.stringify(room.drawnNumbers || []) %>;
+var lastBall = <%- JSON.stringify(room.currentNumber || null) %>;
+var lastRound = <%= Number(room.currentRoundId || 1) %>;
 
-<script>
-const ROOM_ID = '<%= room._id %>';
-let currentCard = <%- JSON.stringify(card ? { numbers: card.numbers, markedNumbers: card.markedNumbers || [], autoDaub: !!card.autoDaub } : null) %>;
-let drawnNumbers = <%- JSON.stringify(room.drawnNumbers || []) %>;
-function fmtTime(s){s=Math.max(0,parseInt(s||0,10));var m=Math.floor(s/60),ss=s%60;return(m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
-function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(function(){el.classList.remove('show');},2200);}
-function statusLabel(s){return s==='started'?'Oyun başladı':s==='starting'?'Başlayır':'Gözləyir';}
-function renderTimer(){var t=document.getElementById('timer');var v=parseInt(t.dataset.secs||'0',10);t.textContent=fmtTime(v);if(v>0)t.dataset.secs=v-1;}setInterval(renderTimer,1000);renderTimer();
-function buildCell(n, markedSet){
-  var div=document.createElement('div');
-  var isDrawn=drawnNumbers.includes(n);
-  var isMarked=markedSet.has(n);
-  div.className='cell'+(n?'' :' empty')+(n&&isDrawn?' drawn clickable':'')+(n&&isMarked?' marked':'')+(n&&isDrawn&&!isMarked?' pending':'');
-  div.dataset.number=n||''; div.textContent=n||'';
-  return div;
+function toast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(window.__t); window.__t = setTimeout(function(){ el.classList.remove('show'); }, 2400);
 }
-function renderCard(){if(!currentCard)return;var wrap=document.getElementById('cardGrid');wrap.innerHTML='';var marked=new Set((currentCard.markedNumbers||[]).map(Number));currentCard.numbers.forEach(function(row){row.forEach(function(n){wrap.appendChild(buildCell(n, marked));});});}
+function fmtTime(s){ s = Math.max(0, parseInt(s || 0, 10)); var m = Math.floor(s/60), ss = s%60; return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss; }
+function statusLabel(s){ return s === 'started' ? 'Oyun başladı' : s === 'starting' ? 'Başlayır' : 'Gözləyir'; }
+function renderTimer(){
+  var t = document.getElementById('timer');
+  var v = parseInt(t.dataset.secs || '0', 10);
+  t.textContent = fmtTime(v);
+  if (v > 0) t.dataset.secs = v - 1;
+}
+setInterval(renderTimer, 1000); renderTimer();
+
+function renderDrawList(){
+  var box = document.getElementById('drawList');
+  box.innerHTML = '';
+  drawnNumbers.slice(-14).forEach(function(n, i, arr){
+    var d = document.createElement('div');
+    d.className = 'draw-item' + (i === arr.length - 1 ? ' latest' : '');
+    d.textContent = n;
+    box.appendChild(d);
+  });
+}
+
+function ticketNode(card, index){
+  var total = 0, marks = 0;
+  var box = document.createElement('div');
+  box.className = 'ticket' + (card.isWinner ? ' won' : '');
+  box.dataset.cardId = card.id;
+
+  var head = document.createElement('div');
+  head.className = 'ticket-foot';
+  head.style.marginTop = '0';
+  head.style.marginBottom = '8px';
+  head.innerHTML = '<span class="ticket-no">Bilet #' + (index + 1) + '</span>';
+  box.appendChild(head);
+
+  var grid = document.createElement('div');
+  grid.className = 'grid';
+  var markedSet = {};
+  (card.marked || []).forEach(function(n){ markedSet[Number(n)] = true; });
+
+  card.numbers.forEach(function(row){
+    row.forEach(function(n){
+      var cell = document.createElement('div');
+      var isDrawn = n && drawnNumbers.indexOf(n) >= 0;
+      var isMarked = n && markedSet[n];
+      if (n) { total++; if (isMarked) marks++; }
+      cell.className = 'cell' + (n ? '' : ' empty') + (isDrawn && !isMarked ? ' drawn clickable' : '') + (isMarked ? ' marked' : '');
+      cell.dataset.number = n || '';
+      cell.textContent = n || '';
+      grid.appendChild(cell);
+    });
+  });
+  box.appendChild(grid);
+
+  var foot = document.createElement('div');
+  foot.className = 'ticket-foot';
+  foot.innerHTML = '<span>' + marks + '/' + total + '</span><span class="progress"><i style="width:' +
+    (total ? Math.round(marks / total * 100) : 0) + '%"></i></span>' +
+    (card.isWinner ? '<span class="win-tag">Qazandı +' + Number(card.prize || 0).toFixed(2) + ' ₼</span>' : '<span></span>');
+  box.appendChild(foot);
+
+  grid.addEventListener('click', function(e){
+    var cell = e.target.closest('.cell.clickable');
+    if (!cell || !cell.dataset.number) return;
+    var number = Number(cell.dataset.number);
+    cell.classList.remove('clickable', 'drawn');
+    cell.classList.add('marked');
+    LotoSound.place();
+    fetch('/api/card/' + ROOM_ID + '/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number: number, cardId: card.id })
+    }).then(function(r){ return r.json(); }).then(function(res){
+      if (res.error) { toast(res.error); return poll(); }
+      if (res.card) { card.marked = res.card.marked_numbers || []; }
+      if (res.won) {
+        card.isWinner = true;
+        card.prize = res.prize || 0;
+        LotoSound.win();
+        showWin(res.prize || 0);
+      }
+      renderTickets();
+    }).catch(function(){ toast('Şəbəkə xətası'); poll(); });
+  });
+
+  return box;
+}
+
+function renderTickets(){
+  var list = document.getElementById('ticketList');
+  list.innerHTML = '';
+  cards.forEach(function(c, i){ list.appendChild(ticketNode(c, i)); });
+  document.getElementById('ticketCount').textContent = cards.length;
+}
+
+function showWin(prize){
+  var b = document.getElementById('winBanner');
+  var pending = cards.filter(function(c){ return !c.isWinner; }).length;
+  b.style.display = 'block';
+  b.innerHTML = '🎉 Bilet tam doldu! <b>+' + Number(prize || 0).toFixed(2) + ' ₼</b> balansına əlavə olundu.' +
+    (pending ? '<br><span style="font-weight:600;font-size:13px;opacity:.85">Qalan ' + pending + ' biletin dolması gözlənilir…</span>' : '');
+  toast('Qazandınız! +' + Number(prize || 0).toFixed(2) + ' ₼');
+}
+
 function syncState(data){
-  if(data.card) currentCard={numbers:data.card.numbers,markedNumbers:data.card.marked_numbers||[],autoDaub:!!data.card.auto_daub};
-  drawnNumbers=data.drawn_numbers||drawnNumbers;
-  document.getElementById('playerCount').textContent=data.player_count;
-  document.getElementById('roomPrize').textContent=(parseFloat(data.prize||0)).toFixed(2)+' ₼';
-  document.getElementById('statusText').textContent=statusLabel(data.status);
-  document.getElementById('timer').dataset.secs=data.secs_left||0;
-  document.getElementById('currentBall').textContent=data.current_number||'?';
-  document.getElementById('currentNumberText').textContent=data.current_number||'-';
-  document.getElementById('jackpotVal').textContent=data.jackpot===null?'OFF':(parseFloat(data.jackpot||0)).toFixed(2)+' ₼';
-  var autoBtn=document.getElementById('autoBtn');
-  autoBtn.classList.toggle('off', !(data.card && data.card.auto_daub));
-  document.getElementById('autoText').textContent=data.card && data.card.auto_daub ? 'avto açıq' : 'avto bağlı';
-  renderCard();
-  if(data.card && data.card.is_complete){
-    document.getElementById('winnerBox').style.display='block';
-    document.getElementById('winnerBox').textContent='Kart tamamlandı. “Bingo et” düyməsi ilə qalibiyyəti təsdiqlə.';
-  } else { document.getElementById('winnerBox').style.display='none'; }
-  if (data.auto_joined) toast('Oturum açıq qaldığı üçün kart verildi');
-}
-function post(url, body){return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})}).then(r=>r.json());}
+  if (!data || data.error) return;
 
-document.getElementById('cardGrid').addEventListener('click',function(e){
-  var cell=e.target.closest('.cell.clickable');
-  if(!cell||!cell.dataset.number)return;
-  post('/api/card/'+ROOM_ID+'/toggle',{number:Number(cell.dataset.number)}).then(function(res){
-    if(res.error) return toast(res.error);
-    if(res.won) toast('Bingo qazandınız!');
-    if(res.card){ currentCard.markedNumbers=res.card.marked_numbers||[]; renderCard(); }
-  }).catch(function(){ toast('Şəbəkə xətası'); });
-});
-document.getElementById('autoBtn').addEventListener('click',function(){
-  var next=!(currentCard&&currentCard.autoDaub);
-  post('/api/card/'+ROOM_ID+'/auto',{enabled:next}).then(function(res){
-    if(res.error) return toast(res.error);
-    if(currentCard) currentCard.autoDaub=next;
-    if(res.card){
-      currentCard.markedNumbers=res.card.marked_numbers||[];
-      currentCard.autoDaub=res.card.auto_daub;
-    }
-    document.getElementById('autoBtn').classList.toggle('off', !next);
-    document.getElementById('autoText').textContent=next?'avto açıq':'avto bağlı';
-    renderCard();
-    if(res.won) toast('Bingo qazandınız!');
-  }).catch(function(){ toast('Şəbəkə xətası'); });
-});
-document.getElementById('claimBtn').addEventListener('click',function(){
-  post('/api/room/'+ROOM_ID+'/claim-win',{}).then(function(res){
-    toast(res.won?'Bingo təsdiqləndi!':'Hələ tamam deyil');
-  }).catch(function(){ toast('Şəbəkə xətası'); });
-});
+  if (Number(data.current_round_id) !== lastRound) { window.location.reload(); return; }
+
+  document.getElementById('playerCount').textContent = data.player_count;
+  document.getElementById('roomPrize').textContent = Number(data.ticket_prize || 0).toFixed(2) + ' ₼';
+  document.getElementById('ticketPrize').textContent = Number(data.ticket_prize || 0).toFixed(2);
+  document.getElementById('statusText').textContent = statusLabel(data.status);
+  document.getElementById('timer').dataset.secs = data.secs_left || 0;
+
+  var ball = document.getElementById('currentBall');
+  if (data.current_number && data.current_number !== lastBall) {
+    lastBall = data.current_number;
+    ball.textContent = data.current_number;
+    ball.classList.remove('pop'); void ball.offsetWidth; ball.classList.add('pop');
+    LotoSound.draw();
+  } else if (!data.current_number) {
+    ball.textContent = '?';
+  }
+
+  drawnNumbers = data.drawn_numbers || drawnNumbers;
+  renderDrawList();
+
+  if (Array.isArray(data.cards) && data.cards.length) {
+    cards = data.cards.map(function(c){
+      return { id: c.id, numbers: c.numbers, marked: c.marked_numbers || [], isWinner: !!c.is_winner, prize: Number(c.prize || 0) };
+    });
+  }
+  renderTickets();
+}
 
 function poll(){
-  fetch('/api/room/'+ROOM_ID).then(r=>r.json()).then(syncState).catch(function(){});
+  return fetch('/api/room/' + ROOM_ID).then(function(r){ return r.json(); }).then(syncState).catch(function(){});
 }
-renderCard();
-poll();
-setInterval(poll, 2500);
 
-// ── Son qazananların canlı ticker-i (bütün otaqlar üzrə) ──
+/* ── səs aç/bağla ── */
 (function(){
-  var track = document.getElementById('wtTrack');
-  var wrap  = document.getElementById('winnerTicker');
-  if (!track || !wrap) return;
-  function fmt(w){
-    var name = (w.name || 'Oyunçu').replace(/[<>&]/g,'');
-    var room = (w.room || '').replace(/[<>&]/g,'');
-    var prize = Number(w.prize||0).toFixed(2);
-    return '🎊 <b>'+name+'</b> · '+room+' <span class="wt-prize">+'+prize+' ₼</span>';
-  }
-  function load(){
-    fetch('/api/latest-winners', {credentials:'same-origin'})
-      .then(function(r){ return r && r.ok ? r.json() : []; })
-      .then(function(list){
-        if (!Array.isArray(list) || !list.length){ wrap.style.display='none'; return; }
-        wrap.style.display='block';
-        var html = list.map(fmt).join('&nbsp;&nbsp;•&nbsp;&nbsp;');
-        // dublikat — kəsintisiz axın üçün
-        track.innerHTML = html + '&nbsp;&nbsp;•&nbsp;&nbsp;' + html;
-      })
-      .catch(function(){});
-  }
-  load();
-  setInterval(load, 8000);
+  var btn = document.getElementById('soundBtn');
+  var icon = document.getElementById('soundIcon');
+  function paint(){ icon.textContent = LotoSound.isOn() ? 'volume_up' : 'volume_off'; }
+  paint();
+  btn.addEventListener('click', function(){
+    var on = LotoSound.toggle();
+    paint();
+    toast(on ? 'Səs açıldı' : 'Səs bağlandı');
+  });
 })();
+
+renderDrawList();
+renderTickets();
+poll();
+setInterval(poll, 2000);
 </script>
 </body>
 </html>
