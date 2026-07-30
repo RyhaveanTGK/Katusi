@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Ödəniş kartları</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a0a2e;color:#fff;font-family:'Inter',sans-serif;min-height:100vh}
+.topbar{background:#300b51;border-bottom:1px solid rgba(255,255,255,.15);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.tb-title{font-size:18px;font-weight:900}
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(245,197,24,.16);color:#f5c518;border:1px solid rgba(245,197,24,.4);border-radius:10px;padding:7px 13px;font-size:12px;font-weight:800;text-decoration:none}
+.wrap{max-width:900px;margin:0 auto;padding:18px 16px 40px}
+.nav-links{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.nav-link{color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15)}
+.nav-link.active,.nav-link:hover{background:rgba(255,255,255,.1);color:#fff}
+.chips{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.chip{padding:7px 14px;border-radius:99px;font-size:12px;font-weight:700;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);text-decoration:none}
+.chip.active{background:#5c2491;color:#fff;border-color:#5c2491}
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;margin-bottom:12px}
+.hd{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.hd img{width:42px;height:42px;border-radius:12px}
+.hd .nm{font-size:15px;font-weight:900}
+.hd .ky{font-size:11px;color:rgba(255,255,255,.45)}
+.hd .st{margin-left:auto;font-size:10px;font-weight:800;border-radius:6px;padding:3px 8px}
+.st.on{background:#d4edda;color:#155724}.st.off{background:#f8d7da;color:#721c24}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+label{display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:4px}
+input,select{width:100%;padding:9px 11px;border-radius:9px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:13px;font-family:inherit}
+.row-btn{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{padding:9px 15px;border:none;border-radius:10px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit}
+.b-save{background:linear-gradient(180deg,#1cb85d,#0d8c3e);color:#fff}
+.b-tog{background:rgba(245,197,24,.18);color:#f5c518}
+.b-del{background:linear-gradient(180deg,#e0556a,#c02a40);color:#fff}
+.section{font-size:14px;font-weight:800;margin:22px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)}
+.hint{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-title">🎰 Admin Panel · Ödəniş kartları</div>
+  <a class="back-btn" href="/admin/users">← Sayta qayıt</a>
+</div>
+
+<div class="wrap">
+  <div class="nav-links">
+    <a href="/admin/users" class="nav-link">İstifadəçilər</a>
+    <a href="/admin/transactions" class="nav-link">Əməliyyatlar</a>
+    <a href="/admin/rooms" class="nav-link">Otaqlar</a>
+    <a href="/admin/live-games" class="nav-link">Canlı oyunlar</a>
+    <a href="/admin/bonus" class="nav-link">Bonus kodları</a>
+    <a href="/admin/payments" class="nav-link active">Ödəniş kartları</a>
+  </div>
+
+  <div class="hint">Kart / IBAN nömrələri yalnız burada saxlanılır. İstifadəçi seçdiyi dilə uyğun bankları və bu rekvizitləri görür.</div>
+
+  <div class="chips">
+    <% locales.forEach(function(l){ %>
+      <a class="chip <%= l.code === locale ? 'active' : '' %>" href="/admin/payments?locale=<%= l.code %>"><%= l.flag %> <%= l.label %></a>
+    <% }); %>
+  </div>
+
+  <% methods.forEach(function(m){ %>
+  <form class="card" method="POST" action="/admin/payments/<%= m._id %>/update">
+    <div class="hd">
+      <img src="<%= m.logo || '/assets/banks/banktransfer.svg' %>" alt="<%= m.name %>">
+      <div>
+        <div class="nm"><%= m.name %></div>
+        <div class="ky"><%= m.key %> · <%= m.kind %> · <%= m.locale.toUpperCase() %></div>
+      </div>
+      <div class="st <%= m.active ? 'on' : 'off' %>"><%= m.active ? 'AKTİV' : 'BAĞLI' %></div>
+    </div>
+    <div class="grid">
+      <div><label>Ad</label><input type="text" name="name" value="<%= m.name %>"></div>
+      <div><label>Bank adı</label><input type="text" name="bankName" value="<%= m.bankName %>"></div>
+      <div><label>Kart nömrəsi</label><input type="text" name="cardNumber" value="<%= m.cardNumber %>" placeholder="0000 0000 0000 0000"></div>
+      <div><label>IBAN</label><input type="text" name="iban" value="<%= m.iban %>" placeholder="AZ00 XXXX ..."></div>
+      <div><label>Hesab sahibi</label><input type="text" name="accountHolder" value="<%= m.accountHolder %>"></div>
+      <div><label>Kripto ünvan</label><input type="text" name="walletAddress" value="<%= m.walletAddress %>"></div>
+      <div><label>Şəbəkə</label><input type="text" name="network" value="<%= m.network %>" placeholder="TRC20 / ERC20"></div>
+      <div><label>Valyuta</label><input type="text" name="currency" value="<%= m.currency %>"></div>
+      <div><label>Logo yolu</label><input type="text" name="logo" value="<%= m.logo %>"></div>
+      <div><label>Sıra</label><input type="number" name="sortOrder" value="<%= m.sortOrder %>"></div>
+      <div><label>Depozit üçün</label><select name="forDeposit"><option value="1" <%= m.forDeposit?'selected':'' %>>Bəli</option><option value="0" <%= !m.forDeposit?'selected':'' %>>Xeyr</option></select></div>
+      <div><label>Çıxarış üçün</label><select name="forWithdraw"><option value="1" <%= m.forWithdraw?'selected':'' %>>Bəli</option><option value="0" <%= !m.forWithdraw?'selected':'' %>>Xeyr</option></select></div>
+    </div>
+    <div class="row-btn">
+      <button class="btn b-save" type="submit">💾 Yadda saxla</button>
+      <button class="btn b-tog" type="submit" formaction="/admin/payments/<%= m._id %>/toggle"><%= m.active ? '⏸ Bağla' : '▶ Aktivləşdir' %></button>
+      <button class="btn b-del" type="submit" formaction="/admin/payments/<%= m._id %>/delete" onclick="return confirm('Silinsin?')">🗑 Sil</button>
+    </div>
+  </form>
+  <% }); %>
+
+  <div class="section">Yeni ödəniş üsulu əlavə et</div>
+  <form class="card" method="POST" action="/admin/payments/create">
+    <input type="hidden" name="locale" value="<%= locale %>">
+    <div class="grid">
+      <div><label>Açar (key)</label><input type="text" name="key" placeholder="vakifbank" required></div>
+      <div><label>Ad</label><input type="text" name="name" placeholder="Vakıf Bank" required></div>
+      <div><label>Növ</label><select name="kind"><option value="bank">bank</option><option value="iban">iban</option><option value="transfer">transfer</option><option value="crypto">crypto</option></select></div>
+      <div><label>Logo yolu</label><input type="text" name="logo" placeholder="/assets/banks/vakifbank.svg"></div>
+      <div><label>Valyuta</label><input type="text" name="currency" value="AZN"></div>
+      <div><label>Sıra</label><input type="number" name="sortOrder" value="10"></div>
+    </div>
+    <div class="row-btn"><button class="btn b-save" type="submit">➕ Əlavə et</button></div>
+  </form>
+</div>
+</body>
+</html>
