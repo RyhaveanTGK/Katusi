@@ -2,6 +2,8 @@ const Room = require('../models/Room');
 const GameCard = require('../models/GameCard');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
+const bots = require('./botEngine');
+
 
 const WAITING_SEC = Number(process.env.GAME_WAITING_SEC || 5);
 const STARTING_SEC = Number(process.env.GAME_STARTING_WINDOW_SEC || 3);
@@ -137,8 +139,11 @@ async function startRoom(room) {
   room.winnerUser = null;
   room.winnerNums = [];
   room.winnerPrize = 0;
+  // ── Botlar: 3-dən az real oyunçu varsa otağa bot əlavə olunur ──
+  bots.syncBots(room, generateCardNumbers);
   await room.save();
 }
+
 
 async function resetRoomForNextRound(room) {
   room.status = 'waiting';
@@ -152,10 +157,13 @@ async function resetRoomForNextRound(room) {
   room.winnerUser = null;
   room.winnerNums = [];
   room.winnerPrize = 0;
+  room.bots = [];
+  room.botWinIntended = false;
   room.currentRoundId = Number(room.currentRoundId || 1) + 1;
   room.nextGameAt = new Date(Date.now() + WAITING_SEC * 1000);
   await room.save();
 }
+
 
 /**
  * Bir bileti qalib elan edir və uduşu dərhal balansa əlavə edir.
@@ -256,12 +264,45 @@ async function drawNextNumber(room) {
     return;
   }
 
-  const next = available[Math.floor(Math.random() * available.length)];
+  // Botlar varsa daş çəkilişi 80/20 qaydasına uyğun yönləndirilir
+  let next;
+  if ((room.bots || []).length) {
+    const realCards = await GameCard.find({ roomId: room._id, roundId: room.currentRoundId, isWinner: false });
+    next = bots.pickNextNumber(room, realCards, available);
+  }
+  if (!next) next = available[Math.floor(Math.random() * available.length)];
+
   room.drawnNumbers.push(next);
   room.currentNumber = next;
   room.lastDrawAt = new Date();
+
+  const botWinner = bots.applyDrawToBots(room, next);
   await room.save();
+
+  if (botWinner) {
+    await settleBotWin(room, botWinner);
+  }
 }
+
+/** Bot bileti tam dolduqda raundu bağlayır (real bilet dolubsa əvvəlcə ödənir) */
+async function settleBotWin(room, bot) {
+  const pending = await GameCard.find({ roomId: room._id, roundId: room.currentRoundId, isWinner: false });
+  for (const card of pending) {
+    if (isCardComplete(card)) await settleCard(room, card);
+  }
+
+  const nums = (bot.marked || []).slice(-5);
+  room.winnerUser = null;
+  room.winnerNums = nums;
+  room.winnerPrize = ticketPrize(room);
+  room.winCount = Number(room.winCount || 0) + 1;
+  room.lastWinnerName = bot.name;
+  room.lastWinnerNums = nums;
+  await room.save();
+
+  await resetRoomForNextRound(room);
+}
+
 
 async function tick() {
   if (ticking) return;
@@ -316,6 +357,11 @@ function startGameLoop() {
   }, 800);
 }
 
+/** Otaqda görünən ümumi oyunçu sayı (real + bot) */
+function visiblePlayerCount(room) {
+  return (room.players || []).length + ((room.bots || []).length);
+}
+
 module.exports = {
   WAITING_SEC,
   STARTING_SEC,
@@ -334,5 +380,7 @@ module.exports = {
   resetRoomForNextRound,
   generateCardNumbers,
   ticketPrize,
-  multiplierOf
+  multiplierOf,
+  visiblePlayerCount,
+  botEngine: bots
 };
