@@ -24,12 +24,15 @@ const MAX_PLAYERS = START_PLAYERS;
 // Otaqda bu qədər real oyunçu olarsa süni oyunçu ÜMUMİYYƏTLƏ olmur
 const REAL_ONLY_THRESHOLD = 3;
 
+// Otaq dolduqdan sonra oyunun başlamasına qədər geri sayım (saniyə)
+const START_COUNTDOWN_SEC = Number(process.env.GAME_START_COUNTDOWN_SEC || 5);
+
 // Çıxan daşı biletə qoymaq üçün verilən vaxt (saniyə).
 // Bu vaxtdan sonra daş biletdə qırmızı X ilə bloklanır və sayılmır.
 const MARK_GRACE_SEC = Number(process.env.GAME_MARK_GRACE_SEC || 12);
 
-// Linya (sıra) uduş faizləri — ortadakı ümumi mərcdən götürülür
-const LINE_PERCENTS = [0.08, 0.16, 0.24];
+// Linya (sıra) uduş faizləri — ortadakı ümumi mərcdən götürülür (2.4% / 4.8% / 7.2%)
+const LINE_PERCENTS = [0.024, 0.048, 0.072];
 
 // Otaqdan çıxanda tutulan komissiya (70%) — 30% geri qaytarılır
 const LEAVE_COMMISSION = 0.70;
@@ -154,6 +157,22 @@ function realPlayerCount(room) {
   return (room.players || []).length;
 }
 
+/** Otağın tutumu: şəxsi otaqlarda seçilən limit, digərlərində 5 */
+function capacityOf(room) {
+  if (!room) return START_PLAYERS;
+  if (room.isCustom) {
+    const n = Number(room.maxPlayers || START_PLAYERS);
+    return Math.max(2, Math.min(START_PLAYERS, Number.isFinite(n) ? n : START_PLAYERS));
+  }
+  return START_PLAYERS;
+}
+
+/** Otaq dolub — başlamasına neçə saniyə qaldı? (0 = geri sayım yoxdur) */
+function startsInSec(room, now = Date.now()) {
+  if (!room || room.status !== 'waiting' || !room.nextGameAt) return 0;
+  return Math.max(0, Math.ceil((new Date(room.nextGameAt).getTime() - now) / 1000));
+}
+
 /** Daşın çıxma vaxtı (yoxdursa null) */
 function drawnAtOf(room, number) {
   const list = room.drawnNumbers || [];
@@ -167,8 +186,11 @@ function drawnAtOf(room, number) {
 /** Daşı hələ biletə qoymaq olarmı? (vaxt bitibsə – yox) */
 function canMarkNumber(room, number, now = Date.now()) {
   const list = (room.drawnNumbers || []).map(Number);
-  if (!list.includes(Number(number))) return false;
-  const at = drawnAtOf(room, number);
+  const n = Number(number);
+  if (!list.includes(n)) return false;
+  // Yalnız SON çıxan daş biletə qoyula bilər — yeni daş çıxan kimi köhnəsi bloklanır
+  if (list[list.length - 1] !== n) return false;
+  const at = drawnAtOf(room, n);
   if (!at) return true; // köhnə raundlar üçün uyğunluq
   const grace = Number(room.markGraceSec || MARK_GRACE_SEC) * 1000;
   return now - at <= grace;
@@ -185,7 +207,8 @@ function missedNumbersFor(room, card, now = Date.now()) {
 function getDisplayStatus(room) {
   if (room.status === 'started') return 'started';
   if (room.status === 'ended')   return 'ended';
-  if (visiblePlayerCount(room) >= START_PLAYERS - 1) return 'starting';
+  if (room.nextGameAt) return 'starting';
+  if (visiblePlayerCount(room) >= capacityOf(room)) return 'starting';
   return 'waiting';
 }
 
@@ -196,11 +219,12 @@ function getSecsLeft(room, now = Date.now()) {
   if (room.status === 'ended' && room.revealAt) {
     return Math.max(0, Math.round((new Date(room.revealAt).getTime() - now) / 1000));
   }
+  if (room.status === 'waiting' && room.nextGameAt) return startsInSec(room, now);
   return 0;
 }
 
 function slotsLeft(room) {
-  return Math.max(0, START_PLAYERS - visiblePlayerCount(room));
+  return Math.max(0, capacityOf(room) - visiblePlayerCount(room));
 }
 
 /** Qalib məlumatı görünə bilərmi? */
@@ -652,17 +676,30 @@ async function tick() {
       }
 
       // ── Gözləmə ──
+      const cap = capacityOf(room);
       const reals = realPlayerCount(room);
-      // Klon otaqlar real oyunçu gəlməyincə boş qalır (heç vaxt tək botla start etmir)
-      const canBots = bots.allowBots(room, START_PLAYERS) && (!room.isClone || reals > 0);
+
+      // Otaq doldu → 5 saniyəlik geri sayım, sonra oyun avtomatik başlayır
+      if (visiblePlayerCount(room) >= cap) {
+        if (!room.nextGameAt) {
+          room.nextGameAt = new Date(now + START_COUNTDOWN_SEC * 1000);
+          await room.save();
+          continue;
+        }
+        if (new Date(room.nextGameAt).getTime() <= now) await startRoom(room);
+        continue;
+      }
+      if (room.nextGameAt) { room.nextGameAt = null; await room.save(); }
+
+      // Klon otaqlar real oyunçu gəlməyincə boş qalır
+      const canBots = bots.allowBots(room, cap) && (!room.isClone || reals > 0);
 
       if (!canBots) {
         // Şəxsi otaq / 3+ real oyunçu / boş klon otaq: yalnız real oyunçular
         if ((room.bots || []).length) { bots.clearBots(room); await room.save(); }
-        if (reals >= START_PLAYERS) { await startRoom(room); continue; }
-        if (reals >= 2) {
+        if (!room.isCustom && reals >= 2) {
           if (!room.botFillAt) { room.botFillAt = new Date(now + 30000); await room.save(); continue; }
-          if (new Date(room.botFillAt).getTime() <= now) await startRoom(room);
+          if (new Date(room.botFillAt).getTime() <= now) { await startRoom(room); continue; }
         } else if (room.botFillAt) {
           room.botFillAt = null;
           await room.save();
@@ -672,28 +709,20 @@ async function tick() {
       }
 
       // Real oyunçular üçün yer aç
-      let changed = bots.makeRoomForReal(room, START_PLAYERS);
+      let changed = bots.makeRoomForReal(room, cap);
 
-      // Otaqda hər zaman 2-4 random süni oyunçu olur
-      if (!(room.bots || []).length && bots.seedBots(room, generateCardNumbers, START_PLAYERS)) changed = true;
+      if (!(room.bots || []).length && bots.seedBots(room, generateCardNumbers, cap)) changed = true;
 
-      if (visiblePlayerCount(room) >= START_PLAYERS) {
-        if (changed) await room.save();
-        await startRoom(room);
-        continue;
-      }
-
-      // Otaq tədricən süni oyunçularla dolur
+      // Otaq tədricən dolur
       if (!room.botFillAt) {
         room.botFillAt = new Date(now + BOT_JOIN_STEP_SEC * 1000);
         changed = true;
       } else if (new Date(room.botFillAt).getTime() <= now) {
-        if (bots.addOneBot(room, generateCardNumbers, START_PLAYERS)) changed = true;
+        if (bots.addOneBot(room, generateCardNumbers, cap)) changed = true;
         room.botFillAt = new Date(now + BOT_JOIN_STEP_SEC * 1000);
       }
 
       if (changed) await room.save();
-      if (visiblePlayerCount(room) >= START_PLAYERS) await startRoom(room);
       await cleanupSpareRooms(room);
     }
   } finally {
@@ -843,6 +872,9 @@ module.exports = {
   MAX_PLAYERS,
   REAL_ONLY_THRESHOLD,
   MARK_GRACE_SEC,
+  START_COUNTDOWN_SEC,
+  capacityOf,
+  startsInSec,
   LINE_PERCENTS,
   LEAVE_COMMISSION,
   ROW_WIN_MULTIPLIER,
