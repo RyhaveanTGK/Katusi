@@ -4,9 +4,10 @@ const gameCardSchema = new mongoose.Schema({
   userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   roomId:    { type: mongoose.Schema.Types.ObjectId, ref: 'Room', required: true },
   roundId:   { type: Number, default: 1, index: true },
+  ticketIndex: { type: Number, default: 1 },
   numbers:   [[Number]],
   markedNumbers: { type: [Number], default: [] },
-  autoDaub:  { type: Boolean, default: false },
+  autoDaub:  { type: Boolean, default: false }, // legacy — auto rejim tamamilə söndürülüb
   isWinner:  { type: Boolean, default: false },
   prize:     { type: Number, default: 0 },
   completedAt: { type: Date, default: null },
