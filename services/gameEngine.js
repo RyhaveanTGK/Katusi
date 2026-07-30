@@ -8,6 +8,8 @@ const STARTING_SEC = Number(process.env.GAME_STARTING_WINDOW_SEC || 3);
 const DRAW_INTERVAL_SEC = Number(process.env.GAME_DRAW_INTERVAL_SEC || 5);
 const ROUND_DURATION_SEC = Number(process.env.GAME_ROUND_DURATION_SEC || 360);
 
+const MAX_TICKETS = 5;
+
 let loopHandle = null;
 let ticking = false;
 
@@ -27,6 +29,46 @@ function isCardComplete(card) {
   const marks = new Set((card.markedNumbers || []).map(Number));
   const numbers = flatCardNumbers(card);
   return numbers.length > 0 && numbers.every((n) => marks.has(Number(n)));
+}
+
+/** 'x4' → 4, 'x2' → 2 */
+function multiplierOf(room) {
+  const raw = String(room.prizeMultiplier || 'x2').replace(/[^0-9.]/g, '');
+  const num = parseFloat(raw);
+  return Number.isFinite(num) && num > 0 ? num : 2;
+}
+
+/** Bir biletin uduş məbləği (bilet başına) */
+function ticketPrize(room) {
+  return Number((Number(room.entryFee || 0) * multiplierOf(room)).toFixed(2));
+}
+
+/** Random 3x9 loto bileti (hər sətirdə 5 rəqəm) */
+function generateCardNumbers() {
+  const cols = [
+    [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
+    [50, 59], [60, 69], [70, 79], [80, 90]
+  ];
+  const card = [new Array(9).fill(0), new Array(9).fill(0), new Array(9).fill(0)];
+  const used = Array.from({ length: 9 }, () => new Set());
+
+  for (let row = 0; row < 3; row++) {
+    const chosen = [];
+    while (chosen.length < 5) {
+      const c = Math.floor(Math.random() * 9);
+      if (!chosen.includes(c)) chosen.push(c);
+    }
+    chosen.sort((a, b) => a - b);
+    for (const c of chosen) {
+      const [min, max] = cols[c];
+      let value = min;
+      do { value = Math.floor(Math.random() * (max - min + 1)) + min; }
+      while (used[c].has(value));
+      used[c].add(value);
+      card[row][c] = value;
+    }
+  }
+  return card;
 }
 
 function getDisplayStatus(room, now = Date.now()) {
@@ -98,13 +140,6 @@ async function startRoom(room) {
   await room.save();
 }
 
-/**
- * Round bitdikdən sonra növbəti round üçün qısa gözləmə.
- * Artıq 75 saniyəlik lobby yoxdur – oyun bitən kimi yeni round qısa
- * fasilə ilə başlayır (WAITING_SEC = 5 saniyə). İstifadəçi oyun
- * bitən kimi hazır olmalıdır, "qalib olan" və "yeni qoşulan" şəxslər
- * üçün gözləmə minimuma endirilib.
- */
 async function resetRoomForNextRound(room) {
   room.status = 'waiting';
   room.players = [];
@@ -122,29 +157,29 @@ async function resetRoomForNextRound(room) {
   await room.save();
 }
 
-async function settleWinner(room, card) {
-  const prize = Number(room.prize || 0);
-  const user = await User.findById(card.userId);
-  if (!user) {
-    await resetRoomForNextRound(room);
-    return false;
-  }
+/**
+ * Bir bileti qalib elan edir və uduşu dərhal balansa əlavə edir.
+ * Otaq DAYANDIRILMIR — digər biletlərin dolması gözlənilir.
+ */
+async function settleCard(room, card) {
+  if (!card || card.isWinner || !isCardComplete(card)) return null;
 
+  const user = await User.findById(card.userId);
+  if (!user) return null;
+
+  const prize = ticketPrize(room);
   const cardNumbers = flatCardNumbers(card);
   const marked = new Set((card.markedNumbers || []).map(Number));
   const winnerNums = cardNumbers.filter((n) => marked.has(Number(n))).slice(0, 5);
 
-  user.balance += prize;
-  user.gamesWon += 1;
-  user.totalWon += prize;
+  if (room.type === 'stars') {
+    user.stars = Number(user.stars || 0) + prize;
+  } else {
+    user.balance = Number(user.balance || 0) + prize;
+  }
+  user.gamesWon = Number(user.gamesWon || 0) + 1;
+  user.totalWon = Number(user.totalWon || 0) + prize;
   await user.save();
-
-  room.winnerUser = user._id;
-  room.winnerNums = winnerNums;
-  room.winnerPrize = prize;
-  room.winCount = Number(room.winCount || 0) + 1;
-  room.lastWinnerName = user.username;
-  room.lastWinnerNums = winnerNums;
 
   card.isWinner = true;
   card.prize = prize;
@@ -152,25 +187,61 @@ async function settleWinner(room, card) {
   card.claimedAt = new Date();
   await card.save();
 
-  await new Transaction({
-    userId: user._id,
-    type: 'win',
-    amount: prize,
-    status: 'completed',
-    note: `${room.name} otağında qalib`
-  }).save();
+  room.winnerUser = user._id;
+  room.winnerNums = winnerNums;
+  room.winnerPrize = prize;
+  room.winCount = Number(room.winCount || 0) + 1;
+  room.lastWinnerName = user.username;
+  room.lastWinnerNums = winnerNums;
+  room.prize = Math.max(0, Number(room.prize || 0) - prize);
+  await room.save();
 
-  await resetRoomForNextRound(room);
-  return true;
+  if (room.type !== 'stars') {
+    await new Transaction({
+      userId: user._id,
+      type: 'win',
+      amount: prize,
+      status: 'completed',
+      note: `${room.name} otağında qalib bilet`
+    }).save();
+  }
+
+  return prize;
 }
 
-async function claimRoomWin(roomId, userId) {
-  const room = await Room.findById(roomId);
-  if (!room || room.status !== 'started' || room.winnerUser) return false;
+/** Round-un bütün biletləri dolubsa yeni round-a keç */
+async function maybeFinishRound(room) {
+  const cards = await GameCard.find({ roomId: room._id, roundId: room.currentRoundId });
+  if (!cards.length) return false;
+  const allDone = cards.every((c) => c.isWinner);
+  if (allDone) {
+    await resetRoomForNextRound(room);
+    return true;
+  }
+  return false;
+}
 
-  const card = await GameCard.findOne({ roomId: room._id, userId, roundId: room.currentRoundId }).sort({ playedAt: -1 });
-  if (!card || !isCardComplete(card)) return false;
-  return settleWinner(room, card);
+/**
+ * Manual/avtomatik yoxlama: istifadəçinin (bütün və ya bir) biletləri
+ * tam dolubsa avtomatik qazandırır.
+ */
+async function claimRoomWin(roomId, userId, cardId = null) {
+  const room = await Room.findById(roomId);
+  if (!room || room.status !== 'started') return { won: false, prize: 0 };
+
+  const query = { roomId: room._id, userId, roundId: room.currentRoundId, isWinner: false };
+  if (cardId) query._id = cardId;
+
+  const cards = await GameCard.find(query);
+  let total = 0;
+  let won = false;
+  for (const card of cards) {
+    if (!isCardComplete(card)) continue;
+    const prize = await settleCard(room, card);
+    if (prize !== null && prize !== undefined) { won = true; total += prize; }
+  }
+  if (won) await maybeFinishRound(room);
+  return { won, prize: Number(total.toFixed(2)) };
 }
 
 async function drawNextNumber(room) {
@@ -190,21 +261,6 @@ async function drawNextNumber(room) {
   room.currentNumber = next;
   room.lastDrawAt = new Date();
   await room.save();
-
-  const autoCards = await GameCard.find({ roomId: room._id, roundId: room.currentRoundId, autoDaub: true });
-  for (const card of autoCards) {
-    const numbers = flatCardNumbers(card);
-    if (!numbers.includes(next)) continue;
-    if (!(card.markedNumbers || []).includes(next)) {
-      card.markedNumbers = [...new Set([...(card.markedNumbers || []), next])];
-      if (isCardComplete(card)) card.completedAt = card.completedAt || new Date();
-      await card.save();
-      if (isCardComplete(card)) {
-        await claimRoomWin(room._id, card.userId);
-        return;
-      }
-    }
-  }
 }
 
 async function tick() {
@@ -218,12 +274,12 @@ async function tick() {
       if (room.status === 'started') {
         const roundEndsAt = room.roundEndsAt ? new Date(room.roundEndsAt).getTime() : 0;
         if (roundEndsAt && roundEndsAt <= now) {
-          const winnerCard = await GameCard.findOne({ roomId: room._id, roundId: room.currentRoundId }).sort({ completedAt: 1, playedAt: 1 });
-          if (winnerCard && isCardComplete(winnerCard)) {
-            await settleWinner(room, winnerCard);
-          } else {
-            await resetRoomForNextRound(room);
+          // Round bitir: dolu olub hələ ödənilməmiş biletləri ödə, sonra sıfırla
+          const pending = await GameCard.find({ roomId: room._id, roundId: room.currentRoundId, isWinner: false });
+          for (const card of pending) {
+            if (isCardComplete(card)) await settleCard(room, card);
           }
+          await resetRoomForNextRound(room);
           continue;
         }
 
@@ -265,11 +321,18 @@ module.exports = {
   STARTING_SEC,
   DRAW_INTERVAL_SEC,
   ROUND_DURATION_SEC,
+  MAX_TICKETS,
   ensureDefaultRooms,
   startGameLoop,
   getDisplayStatus,
   getSecsLeft,
   flatCardNumbers,
   isCardComplete,
-  claimRoomWin
+  claimRoomWin,
+  settleCard,
+  maybeFinishRound,
+  resetRoomForNextRound,
+  generateCardNumbers,
+  ticketPrize,
+  multiplierOf
 };
