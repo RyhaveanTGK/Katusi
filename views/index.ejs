@@ -106,6 +106,20 @@ body{
 .coin.c2{ left:5px; bottom:6px; }
 .coin.c3{ left:8px; bottom:12px; }
 
+/* ── Mərc dəyişməsi animasiyası ── */
+.prize{ position:relative; }
+.prize .js-prize{ transition: color .25s ease, transform .25s ease; display:inline-block; }
+.prize.up .js-prize{ color:#12b84a; transform: scale(1.12); }
+.prize.down .js-prize{ color:#e04b4b; transform: scale(.93); }
+.prize-float{
+  position:absolute; left:36px; top:0;
+  font-size:13px; font-weight:900; pointer-events:none; opacity:0; white-space:nowrap;
+}
+.prize-float.up{ color:#12b84a; animation: pf-up 1.15s ease forwards; }
+.prize-float.down{ color:#e04b4b; animation: pf-down 1.15s ease forwards; }
+@keyframes pf-up{ 0%{opacity:0;transform:translateY(6px) scale(.8);} 25%{opacity:1;transform:translateY(-14px) scale(1.05);} 100%{opacity:0;transform:translateY(-32px) scale(1);} }
+@keyframes pf-down{ 0%{opacity:0;transform:translateY(-14px) scale(.8);} 25%{opacity:1;transform:translateY(2px) scale(1.05);} 100%{opacity:0;transform:translateY(22px) scale(1);} }
+
 .players{ margin-top:6px; display:flex; align-items:baseline; gap:7px; }
 .players .pcount{ font-size: clamp(22px, 6vw, 30px); font-weight:900; color:#2b2b2b; line-height:1; }
 .players .ptext{ font-size:16px; color:#8f8f8f; font-weight:500; }
@@ -273,14 +287,16 @@ body{
           <span class="status js-status st-<%= room.displayStatus %>">
             <% if (room.displayStatus==='started') { %><span class="material-symbols-outlined">play_circle</span>Başladı
             <% } else if (room.displayStatus==='starting') { %><span class="material-symbols-outlined">hourglass_top</span>Başlayır
-            <% } else { %><span class="material-symbols-outlined">hourglass_empty</span>Gözləyir<% } %>
+            <% } else { %><span class="material-symbols-outlined">group</span>Oyunçu gözlənilir<% } %>
           </span>
           <span class="time js-time st-<%= room.displayStatus %>">
             <span class="material-symbols-outlined">schedule</span>
-            <span data-secs="<%= room.secsLeft %>" class="js-time-text">
-              <% var s = Number(room.secsLeft||0), m = Math.floor(s/60), ss = s%60;
-                 var fmt = (m<10?'0':'') + m + ':' + (ss<10?'0':'') + ss; %>
-              <%= fmt %>
+            <span data-secs="<%= room.secsLeft %>" data-status="<%= room.displayStatus %>" data-slots="<%= room.slotsLeft %>" data-size="<%= room.roomSize %>" class="js-time-text">
+              <% if (room.displayStatus === 'started') { var s = Number(room.secsLeft||0), m = Math.floor(s/60), ss = s%60; %>
+                <%= (m<10?'0':'') + m + ':' + (ss<10?'0':'') + ss %>
+              <% } else { %>
+                <%= (room.playerCount || 0) %>/<%= room.roomSize %>
+              <% } %>
             </span>
           </span>
         </div>
@@ -289,7 +305,7 @@ body{
         <div class="body-left">
           <div class="prize">
             <div class="coins"><i class="coin c1"></i><i class="coin c2"></i><i class="coin c3"></i></div>
-            <span class="js-prize"><%= Number(room.prize || 0).toFixed(2) %></span><span>₼</span>
+            <span class="js-prize" data-val="<%= Number(room.prize || 0).toFixed(2) %>"><%= Number(room.prize || 0).toFixed(2) %></span><span>₼</span>
           </div>
           <div class="players"><span class="pcount js-players"><%= room.playerCount %></span><span class="ptext">onlayn oyunçular</span></div>
         </div>
@@ -342,10 +358,41 @@ function setJackpot(el,val,ratio){
   var reels = el.querySelectorAll('.reel');
   if (reels.length>=3){ reels[0].textContent=s[0]; reels[1].textContent=s[1]; reels[2].textContent=s[2]; }
 }
+/* ── Otağın ümumi mərci: + / − animasiyalı ── */
+function animatePrize(card, value){
+  var wrap = card.querySelector('.prize');
+  var el   = card.querySelector('.js-prize');
+  if (!wrap || !el) return;
+  var from = parseFloat(el.dataset.val);
+  if (!isFinite(from)) from = parseFloat(el.textContent) || 0;
+  var delta = Math.round((value - from) * 100) / 100;
+  el.dataset.val = value.toFixed(2);
+  if (Math.abs(delta) < 0.005){ el.textContent = value.toFixed(2); return; }
+
+  var f = document.createElement('span');
+  f.className = 'prize-float ' + (delta > 0 ? 'up' : 'down');
+  f.textContent = (delta > 0 ? '+' : '−') + Math.abs(delta).toFixed(2) + ' ₼';
+  wrap.appendChild(f);
+  setTimeout(function(){ if (f.parentNode) f.parentNode.removeChild(f); }, 1250);
+
+  wrap.classList.remove('up','down');
+  void wrap.offsetWidth;
+  wrap.classList.add(delta > 0 ? 'up' : 'down');
+  setTimeout(function(){ wrap.classList.remove('up','down'); }, 750);
+
+  var start = performance.now(), dur = 800;
+  (function step(now){
+    var t = Math.min(1, (now - start) / dur);
+    var e = 1 - Math.pow(1 - t, 3);
+    el.textContent = (from + delta * e).toFixed(2);
+    if (t < 1) requestAnimationFrame(step); else el.textContent = value.toFixed(2);
+  })(start);
+}
+
 function setStatusText(status){
   if (status==='started') return '<span class="material-symbols-outlined">play_circle</span>Başladı';
   if (status==='starting') return '<span class="material-symbols-outlined">hourglass_top</span>Başlayır';
-  return '<span class="material-symbols-outlined">hourglass_empty</span>Gözləyir';
+  return '<span class="material-symbols-outlined">group</span>Oyunçu gözlənilir';
 }
 function applyState(card, info){
   card.dataset.state = info.status;
@@ -353,11 +400,18 @@ function applyState(card, info){
   var st = card.querySelector('.js-status');
   if (st){ st.className='status js-status st-'+info.status; st.innerHTML = setStatusText(info.status); }
   var tm = card.querySelector('.js-time-text');
-  if (tm){ tm.dataset.secs = info.secs_left||0; tm.textContent = fmtTime(info.secs_left||0); }
+  if (tm){
+    tm.dataset.secs = info.secs_left || 0;
+    tm.dataset.status = info.status;
+    // Başlama vaxtı yoxdur: otaq dolan kimi başlayır → gözləmədə iştirakçı sayı göstərilir
+    tm.textContent = info.status === 'started'
+      ? fmtTime(info.secs_left || 0)
+      : (info.player_count || 0) + '/' + (info.room_size || 5);
+  }
   var tmWrap = card.querySelector('.js-time');
   if (tmWrap) tmWrap.className = 'time js-time st-'+info.status;
   var pe = card.querySelector('.js-players'); if (pe) pe.textContent = info.player_count;
-  var pr = card.querySelector('.js-prize'); if (pr) pr.textContent = (parseFloat(info.prize||0)).toFixed(2);
+  animatePrize(card, parseFloat(info.prize || 0));
   var barrel = card.querySelector('.js-barrel');
   if (barrel && info.jackpot!==null && info.jackpot!==undefined) setJackpot(barrel, info.jackpot, info.jackpot_ratio||1);
 
@@ -381,6 +435,7 @@ function applyState(card, info){
 (function(){
   function tick(){
     document.querySelectorAll('.js-time-text').forEach(function(el){
+      if (el.dataset.status !== 'started') return;   // gözləmədə geri sayım yoxdur
       var v = parseInt(el.dataset.secs||'0', 10);
       if (v>0){ v-=1; el.dataset.secs = v; }
       el.textContent = fmtTime(v);
