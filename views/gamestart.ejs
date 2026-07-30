@@ -56,15 +56,6 @@
     <div class="draw-list" id="drawList"></div>
   </div>
 
-  <div class="panel players-panel">
-    <div class="panel-title">Onlayn oyunçular</div>
-    <div class="players-list" id="playersList"></div>
-    <div class="players-total">
-      <span>Otaqdakı ümumi mərc</span>
-      <b id="totalStake">0.00 ₼</b>
-    </div>
-  </div>
-
   <div id="ticketList"></div>
 
   <div class="win-banner" id="winBanner" style="display:none"></div>
@@ -141,32 +132,7 @@ function lockMissed(){
   });
 }
 
-function renderPlayers(data){
-  var list = document.getElementById('playersList');
-  if (!list) return;
-  var players = (data && data.players) || [];
-  list.innerHTML = '';
-  players.forEach(function(p){
-    var row = document.createElement('div');
-    row.className = 'player-row' + (p.name === MY_NAME ? ' me' : '');
-    row.innerHTML =
-      '<span class="player-av">' + String(p.name || '?').charAt(0).toUpperCase() + '</span>' +
-      '<span class="player-name">' + p.name + '</span>' +
-      '<span class="player-bet">' + Number(p.stake || 0).toFixed(2) + ' ₼<small>' + (p.tickets || 1) + ' bilet</small></span>';
-    list.appendChild(row);
-  });
-  if (!players.length) {
-    list.innerHTML = '<div class="player-row"><span class="player-name" style="opacity:.6">Oyunçular gözlənilir…</span></div>';
-  }
-
-  var total = document.getElementById('totalStake');
-  var stake = Number((data && data.total_stake) || 0);
-  total.textContent = stake.toFixed(2) + ' ₼';
-  if (lastStake !== null && Math.abs(stake - lastStake) >= 0.005) {
-    total.classList.remove('bet-bump'); void total.offsetWidth; total.classList.add('bet-bump');
-  }
-  lastStake = stake;
-}
+function renderPlayers(){ /* onlayn oyunçular siyahısı silindi */ }
 
 function ticketNode(card, index){
   var total = 0, marks = 0;
