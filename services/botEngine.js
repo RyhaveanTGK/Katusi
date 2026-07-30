@@ -7,7 +7,7 @@
 //  2) Otaq real istifadəçilərin sayına görə hesablanaraq süni oyunçularla dolur.
 //  3) Real istifadəçi olmasa belə süni oyunçular öz aralarında oynayır.
 //  4) Daşların 65%-i süni oyunçuların xeyrinə, qalanı tam random çıxır.
-//  5) Sıra (linya) uduşları: 1-ci 8%, 2-ci 16%, 3-cü 24% — ortadakı mərcdən.
+//  5) Sıra (linya) uduşları: 1-ci 2.4%, 2-ci 4.8%, 3-cü 7.2% — ortadakı mərcdən.
 
 const BOT_NAMES = [
   'Elvin_07', 'Nigar__', 'Rashad.M', 'AynurX', 'Tural99', 'Leyla_ist',
