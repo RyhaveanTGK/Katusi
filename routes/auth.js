@@ -246,7 +246,7 @@ router.post('/register', requireGuest, kycUploadSafe, async (req, res) => {
   }
 });
 
-router.get('/logout', requireLogin, (req, res) => {
+router.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
