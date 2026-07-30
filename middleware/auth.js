@@ -3,6 +3,11 @@ const User = require('../models/User');
 
 exports.requireLogin = async (req, res, next) => {
   if (!req.session.userId) return res.redirect('/login');
+  // Admin yalnız admin paneldə qalır: oyun, otaqlar, profil, balans bağlıdır
+  if (req.session.isAdmin) {
+    if (req.path.startsWith('/api/')) return res.status(403).json({ error: 'Admin hesabı ilə oyuna giriş yoxdur' });
+    return res.redirect('/admin/users');
+  }
   try {
     const u = await User.findById(req.session.userId).select('isBlocked blockReason');
     if (u && u.isBlocked) {
