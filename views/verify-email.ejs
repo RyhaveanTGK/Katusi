@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>One Loto – E-poçt doğrulaması</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Exo+2:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
+html,body{background:#3d0d62;overflow-x:hidden;}
+body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;color:#fff;min-height:100vh;}
+.wrap{max-width:414px;margin:0 auto;padding:60px 20px 40px;}
+.logo{text-align:center;margin-bottom:26px;}
+.logo .m{font-family:'Exo 2',sans-serif;font-size:34px;font-weight:900;letter-spacing:-1px;}
+.logo .m .red{color:#e8001a;}
+.logo .s{font-size:10px;letter-spacing:2.4px;color:rgba(255,255,255,.45);text-transform:uppercase;margin-top:4px;}
+.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:26px 22px;backdrop-filter:blur(12px);}
+.title{font-size:21px;font-weight:900;text-align:center;}
+.sub{font-size:13px;line-height:1.6;color:rgba(255,255,255,.62);text-align:center;margin-top:8px;}
+.mail{color:#f5c518;font-weight:800;}
+.code-row{display:flex;gap:8px;justify-content:center;margin:22px 0 6px;}
+.code-row input{
+  width:46px;height:56px;text-align:center;font-size:24px;font-weight:900;color:#fff;
+  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);border-radius:14px;
+  outline:none;transition:border-color .15s,background .15s;font-family:'Exo 2',monospace;
+}
+.code-row input:focus{border-color:#f5c518;background:rgba(245,197,24,.1);}
+.timer{text-align:center;font-size:13px;font-weight:800;color:#f5c518;margin-top:10px;}
+.timer.dead{color:#ff8080;}
+.btn{width:100%;padding:15px;margin-top:16px;border:none;border-radius:16px;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;color:#fff;
+  background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);box-shadow:0 4px 14px rgba(107,31,168,.45);transition:transform .15s,opacity .2s;}
+.btn:active{transform:scale(.97);}
+.btn[disabled]{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:none;border:1.5px solid rgba(255,255,255,.25);box-shadow:none;font-size:14px;padding:12px;}
+.msg{border-radius:12px;padding:11px 14px;font-size:13px;text-align:center;margin-bottom:14px;line-height:1.5;}
+.msg.err{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.32);color:#ff8f8f;}
+.msg.ok{background:rgba(0,200,100,.15);border:1px solid rgba(0,200,100,.32);color:#66e6a8;}
+.hint{font-size:11.5px;line-height:1.65;color:rgba(255,255,255,.45);text-align:center;margin-top:16px;}
+.hint a{color:#f5c518;font-weight:800;text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <div class="m"><span class="red">One</span> Loto</div>
+    <div class="s">one-loto.com</div>
+  </div>
+
+  <div class="card">
+    <% if (error) { %><div class="msg err"><%= error %></div><% } %>
+    <% if (success) { %><div class="msg ok"><%= success %></div><% } %>
+
+    <div class="title">E-poçtunu doğrula</div>
+    <div class="sub">
+      6 rəqəmli kod <span class="mail"><%= email %></span> adresinə göndərildi.<br>
+      Kod <b>3 dəqiqə</b> etibarlıdır — vaxt bitdikdə kod bloke olunur.
+    </div>
+
+    <form method="POST" action="/verify-email" id="vform" autocomplete="off">
+      <input type="hidden" name="code" id="codeField">
+      <div class="code-row" id="codeRow">
+        <input type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]">
+        <input type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]">
+        <input type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]">
+        <input type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]">
+        <input type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]">
+        <input type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]">
+      </div>
+      <div class="timer" id="timer" data-left="<%= secondsLeft %>">--:--</div>
+      <button class="btn" type="submit" id="submitBtn">Doğrula</button>
+    </form>
+
+    <form method="POST" action="/verify-email/resend">
+      <button class="btn btn-ghost" type="submit">Yeni kod göndər</button>
+    </form>
+
+    <div class="hint">
+      Kod gəlmədi? Spam qovluğunu yoxlayın.<br>
+      <a href="/logout">Başqa hesabla davam et</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var row = document.getElementById('codeRow');
+  var inputs = Array.prototype.slice.call(row.querySelectorAll('input'));
+  var field = document.getElementById('codeField');
+  var form = document.getElementById('vform');
+
+  function value(){ return inputs.map(function(i){ return i.value.replace(/\D/g,''); }).join(''); }
+  inputs.forEach(function(inp, idx){
+    inp.addEventListener('input', function(){
+      inp.value = inp.value.replace(/\D/g,'').slice(0,1);
+      if (inp.value && idx < inputs.length - 1) inputs[idx+1].focus();
+      if (value().length === 6) { field.value = value(); form.requestSubmit ? form.requestSubmit() : form.submit(); }
+    });
+    inp.addEventListener('keydown', function(e){
+      if (e.key === 'Backspace' && !inp.value && idx > 0) inputs[idx-1].focus();
+    });
+    inp.addEventListener('paste', function(e){
+      var t = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+      if (!t) return;
+      e.preventDefault();
+      t.split('').forEach(function(ch,i){ if (inputs[i]) inputs[i].value = ch; });
+      inputs[Math.min(t.length, 5)].focus();
+      if (t.length === 6){ field.value = t; form.requestSubmit ? form.requestSubmit() : form.submit(); }
+    });
+  });
+  form.addEventListener('submit', function(){ field.value = value(); });
+  inputs[0].focus();
+
+  var tEl = document.getElementById('timer');
+  var left = parseInt(tEl.dataset.left || '0', 10);
+  var btn = document.getElementById('submitBtn');
+  function paint(){
+    if (left <= 0){
+      tEl.textContent = 'Kodun vaxtı bitdi — bloke olundu';
+      tEl.classList.add('dead');
+      btn.disabled = true;
+      return;
+    }
+    var m = Math.floor(left/60), s = left%60;
+    tEl.textContent = 'Qalan vaxt ' + m + ':' + (s<10?'0':'') + s;
+    left -= 1;
+    setTimeout(paint, 1000);
+  }
+  paint();
+})();
+</script>
+</body>
+</html>
