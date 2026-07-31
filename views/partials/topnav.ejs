@@ -94,10 +94,10 @@ img.emoji{ height:1em; width:1em; margin:0 .05em 0 .1em; vertical-align:-0.12em;
       </span>
     </a>
     <a class="balance-box" id="balanceBox" href="/wallet" data-balance="<%= user ? Number(user.balance || 0).toFixed(2) : '0.00' %>">
-      <span class="b-label">Balans:</span>
+      <span class="b-label"><%= typeof t === 'function' ? t('wallet.balance') : 'Balance' %>:</span>
       <span class="b-value">
-        <span id="balanceValue"><%= user ? Number(user.balance || 0).toFixed(2) : '0.00' %></span>
-        <span class="coin-icon">₼</span>
+        <span id="balanceValue"><%= user ? money(user.balance || 0, { symbol: false }) : '0.00' %></span>
+        <span class="coin-icon"><%= localeMeta.symbol %></span>
       </span>
     </a>
   </div>
