@@ -8,6 +8,7 @@ const WinnerLog = require('../models/WinnerLog');
 const { requireLogin } = require('../middleware/auth');
 const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, START_PLAYERS, slotsLeft, botEngine, findJoinableRoom, capacityOf, startsInSec } = require('../services/gameEngine');
 const { hasRoomAccess } = require('./rooms');
+const starLeague = require('../services/starLeague');
 
 function generateCard() {
   const cols = [
@@ -176,7 +177,8 @@ router.post('/join/:roomId', requireLogin, async (req, res) => {
     if (isStars) user.stars = Number(user.stars || 0) - total;
     else user.balance = Number(user.balance || 0) - total;
     user.gamesPlayed = Number(user.gamesPlayed || 0) + quantity;
-    await user.save();
+    // Biletin qiymətinə görə ulduz (24 saatlıq liderboard üçün)
+    await starLeague.awardStars(user, room, quantity);
 
     if (!room.players.map(String).includes(String(user._id))) room.players.push(user._id);
     room.prize = Number((Number(room.prize || 0) + total).toFixed(2));
@@ -259,35 +261,22 @@ router.get('/card-add/:roomId', requireLogin, async (req, res) => {
 router.get('/winners', requireLogin, async (req, res) => {
   const user = await User.findById(req.session.userId);
 
-  // Qeydiyyatlı istifadəçilər
-  const users = await User.find({ gamesWon: { $gt: 0 } }).sort({ totalWon: -1 }).limit(40);
-  const map = new Map();
-  users.forEach((u) => map.set(u.username, {
-    username: u.username,
-    gamesWon: Number(u.gamesWon || 0),
-    gamesPlayed: Number(u.gamesPlayed || 0),
-    totalWon: Number(u.totalWon || 0)
-  }));
+  // ── Ulduz liderboardu (ən çox pul uduşu deyil, ən çox ULDUZ yığanlar) ──
+  const leaders = await starLeague.leaderboard(starLeague.LEADERBOARD_SIZE);
+  const cycle   = await starLeague.currentCycle();
+  const last    = await starLeague.lastCycle();
 
-  // Jurnaldakı bütün digər qaliblər də siyahıya düşür
-  const agg = await WinnerLog.aggregate([
-    { $group: { _id: '$name', totalWon: { $sum: '$prize' }, gamesWon: { $sum: 1 } } },
-    { $sort: { totalWon: -1 } },
-    { $limit: 60 }
-  ]);
-  agg.forEach((a) => {
-    if (map.has(a._id)) return;
-    map.set(a._id, {
-      username: a._id,
-      gamesWon: Number(a.gamesWon || 0),
-      gamesPlayed: Number(a.gamesWon || 0) + Math.floor(Number(a.gamesWon || 0) * 1.6),
-      totalWon: Number((a.totalWon || 0).toFixed(2))
-    });
-  });
+  const meRow = leaders.find((r) => !r.isBot && String(r.id) === String(user._id)) || null;
+  const me = {
+    rank: meRow ? meRow.rank : null,
+    periodStars: meRow ? meRow.periodStars : Number(user.periodStars || 0),
+    prize: meRow ? meRow.prize : 0,
+    stars: Number(user.stars || 0)
+  };
 
-  const topWinners = [...map.values()].sort((a, b) => b.totalWon - a.totalWon).slice(0, 20);
+  const secondsLeft = Math.max(0, Math.ceil((new Date(cycle.endsAt).getTime() - Date.now()) / 1000));
 
-  const logs = await WinnerLog.find({}).sort({ createdAt: -1 }).limit(10);
+  const logs = await WinnerLog.find({}).sort({ createdAt: -1 }).limit(12);
   const recentGames = logs.map((g) => ({
     userId: { username: g.name },
     roomId: { name: g.roomName || 'Otaq' },
@@ -295,7 +284,21 @@ router.get('/winners', requireLogin, async (req, res) => {
     prize: Number(g.prize || 0)
   }));
 
-  res.render('winners', { user, topWinners, recentGames });
+  res.render('winners', {
+    user,
+    leaders,
+    me,
+    secondsLeft,
+    recentGames,
+    lastCycle: last ? { paidAt: last.paidAt, totalPaid: last.totalPaid, winners: (last.winners || []).slice(0, 10) } : null,
+    prizes: {
+      first: starLeague.PRIZE_FIRST,
+      second: starLeague.PRIZE_SECOND,
+      third: starLeague.PRIZE_THIRD,
+      rest: starLeague.PRIZE_REST,
+      size: starLeague.LEADERBOARD_SIZE
+    }
+  });
 });
 
 module.exports = router;
