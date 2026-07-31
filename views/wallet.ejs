@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="az">
+<html lang="<%= locale %>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -117,22 +117,22 @@ body{
 <%- include('partials/topnav', { user: user }) %>
 
 <div class="wrap">
-  <div class="page-title">💳 Balans</div>
-  <div class="page-sub">Depozit və çıxarış əməliyyatları</div>
+  <div class="page-title">💳 <%= t('wallet.title') %></div>
+  <div class="page-sub"><%= t('wallet.sub') %></div>
 
   <div class="balance-card">
-    <div class="balance-lbl">Cari balans</div>
-    <div class="balance-val"><%= Number(user.balance || 0).toFixed(2) %> ₼</div>
+    <div class="balance-lbl"><%= t('wallet.balance') %></div>
+    <div class="balance-val"><%= money(user.balance || 0) %></div>
     <div class="balance-meta">
-      <span>⬆ Depozit: <b><%= Number(counter.totalDeposits || 0).toFixed(2) %></b></span>
-      <span>⬇ Çıxarış: <b><%= Number(counter.totalWithdraws || 0).toFixed(2) %></b></span>
+      <span>⬆ <%= t('wallet.deposits') %>: <b><%= money(counter.totalDeposits || 0) %></b></span>
+      <span>⬇ <%= t('wallet.withdraws') %>: <b><%= money(counter.totalWithdraws || 0) %></b></span>
     </div>
   </div>
 
   <!-- Dil / ölkə seçimi: dil dəstəyi əlavə olunanda kartlar avtomatik dəyişir -->
   <div class="lang-row">
     <% locales.forEach(function(l){ %>
-      <a class="lang-chip <%= l.code === locale ? 'on' : '' %>" href="/wallet?lang=<%= l.code %>"><%= l.flag %> <%= l.label %></a>
+      <a class="lang-chip <%= l.code === locale ? 'on' : '' %>" href="/lang/<%= l.code %>?next=%2Fwallet"><%= l.flag %> <%= l.native || l.label %></a>
     <% }); %>
   </div>
 
@@ -140,20 +140,20 @@ body{
   <% if (error)   { %><div class="msg err"><%= error %></div><% } %>
 
   <div class="tab-row">
-    <button type="button" class="tab-btn <%= tab === 'withdraw' ? '' : 'active' %>" id="tabDepositBtn" onclick="showTab('deposit')">Balans artır</button>
-    <button type="button" class="tab-btn <%= tab === 'withdraw' ? 'active' : '' %>" id="tabWithdrawBtn" onclick="showTab('withdraw')">Çıxarış</button>
+    <button type="button" class="tab-btn <%= tab === 'withdraw' ? '' : 'active' %>" id="tabDepositBtn" onclick="showTab('deposit')"><%= t('wallet.tab_deposit') %></button>
+    <button type="button" class="tab-btn <%= tab === 'withdraw' ? 'active' : '' %>" id="tabWithdrawBtn" onclick="showTab('withdraw')"><%= t('wallet.tab_withdraw') %></button>
   </div>
 
   <!-- ══════ DEPOZİT ══════ -->
   <div id="tab-deposit" class="<%= tab === 'withdraw' ? 'hidden' : '' %>">
     <% if (!depositMethods.length) { %>
-      <div class="empty">Bu ölkə üçün ödəniş üsulu hələ əlavə edilməyib.</div>
+      <div class="empty"><%= t('wallet.no_methods') %></div>
     <% } else { %>
     <form method="POST" action="/wallet/deposit" enctype="multipart/form-data" id="depositForm">
       <input type="hidden" name="lang" value="<%= locale %>">
       <input type="hidden" name="method" id="depMethod" value="">
 
-      <div class="section-title">Ödəniş üsulunu seçin</div>
+      <div class="section-title"><%= t('wallet.choose_method') %></div>
       <div class="methods">
         <% depositMethods.forEach(function(m){ %>
         <label class="method" data-key="<%= m.key %>" data-kind="<%= m.kind %>"
@@ -171,37 +171,38 @@ body{
       </div>
 
       <div class="detail-box" id="depDetails">
-        <div class="no-details">Üsul seçdikdə ödəniş ediləcək rekvizitlər burada görünəcək.</div>
+        <div class="no-details"><%= t('wallet.details_hint') %></div>
       </div>
 
       <div class="field">
-        <label>Məbləğ (<%= limits.depositMin %> – <%= limits.depositMax %>)</label>
-        <input type="number" name="amount" id="depAmount" step="0.01" min="<%= limits.depositMin %>" max="<%= limits.depositMax %>" placeholder="0.00" required>
+        <label><%= t('wallet.amount') %> (<%= money(limits.depositMin, { symbol:false }) %> – <%= money(limits.depositMax, { symbol:false }) %> <%= localeMeta.symbol %>)</label>
+        <input type="number" name="amount" id="depAmount" step="0.01" min="<%= (limits.depositMin * localeMeta.rate).toFixed(2) %>" max="<%= (limits.depositMax * localeMeta.rate).toFixed(2) %>" placeholder="0.00" required>
         <div class="quick">
-          <button type="button" onclick="setAmt('depAmount',10)">10</button>
-          <button type="button" onclick="setAmt('depAmount',20)">20</button>
-          <button type="button" onclick="setAmt('depAmount',50)">50</button>
-          <button type="button" onclick="setAmt('depAmount',100)">100</button>
+          <button type="button" onclick="setAmt('depAmount',<%= Math.round(10 * localeMeta.rate) %>)"><%= Math.round(10 * localeMeta.rate) %></button>
+          <button type="button" onclick="setAmt('depAmount',<%= Math.round(20 * localeMeta.rate) %>)"><%= Math.round(20 * localeMeta.rate) %></button>
+          <button type="button" onclick="setAmt('depAmount',<%= Math.round(50 * localeMeta.rate) %>)"><%= Math.round(50 * localeMeta.rate) %></button>
+          <button type="button" onclick="setAmt('depAmount',<%= Math.round(100 * localeMeta.rate) %>)"><%= Math.round(100 * localeMeta.rate) %></button>
         </div>
       </div>
 
       <div id="depBankFields">
         <div class="field">
-          <label>Göndərdiyiniz kart / hesab nömrəsi</label>
+          <label><%= t('wallet.your_card') %></label>
           <input type="text" name="cardNumber" inputmode="numeric" placeholder="0000 0000 0000 0000">
         </div>
         <div class="field">
-          <label>Ad Soyad</label>
+          <label><%= t('wallet.name_surname') %></label>
           <input type="text" name="cardHolder" placeholder="AD SOYAD">
         </div>
       </div>
 
       <div class="field">
-        <label>Qəbz / dekont (şəkil və ya PDF)</label>
+        <label><%= t('wallet.receipt') %></label>
+        <div style="font-size:11.5px;color:rgba(255,255,255,.45);margin:4px 0 6px;line-height:1.45;"><%= t('wallet.receipt_hint') %></div>
         <input type="file" name="receipt" accept="image/*,application/pdf">
       </div>
 
-      <button type="submit" class="submit-btn" id="depSubmit">Depozit sorğusu göndər</button>
+      <button type="submit" class="submit-btn" id="depSubmit"><%= t('wallet.submit_deposit') %></button>
     </form>
 
     <!-- Kripto formu ayrıca göndərilir -->
@@ -209,18 +210,18 @@ body{
       <input type="hidden" name="lang" value="<%= locale %>">
       <input type="hidden" name="method" id="cryMethod" value="">
       <div class="field">
-        <label>Məbləğ</label>
-        <input type="number" name="amount" id="cryAmount" step="0.01" min="<%= limits.depositMin %>" placeholder="0.00">
+        <label><%= t('wallet.amount') %></label>
+        <input type="number" name="amount" id="cryAmount" step="0.01" min="<%= (limits.depositMin * localeMeta.rate).toFixed(2) %>" placeholder="0.00">
       </div>
       <div class="field">
-        <label>Göndərən pulqabı ünvanı</label>
+        <label><%= t('wallet.wallet_address') %></label>
         <input type="text" name="walletAddress" placeholder="0x... / T...">
       </div>
       <div class="field">
-        <label>Qəbz (screenshot)</label>
+        <label><%= t('wallet.receipt') %></label>
         <input type="file" name="receipt" accept="image/*,application/pdf">
       </div>
-      <button type="submit" class="submit-btn">Kripto depozit göndər</button>
+      <button type="submit" class="submit-btn"><%= t('wallet.submit_deposit') %></button>
     </form>
     <% } %>
   </div>
@@ -228,13 +229,13 @@ body{
   <!-- ══════ ÇIXARIŞ ══════ -->
   <div id="tab-withdraw" class="<%= tab === 'withdraw' ? '' : 'hidden' %>">
     <% if (!withdrawMethods.length) { %>
-      <div class="empty">Bu ölkə üçün çıxarış üsulu hələ əlavə edilməyib.</div>
+      <div class="empty"><%= t('wallet.no_methods') %></div>
     <% } else { %>
     <form method="POST" action="/wallet/withdraw" id="withdrawForm">
       <input type="hidden" name="lang" value="<%= locale %>">
       <input type="hidden" name="method" id="wdMethod" value="">
 
-      <div class="section-title">Çıxarış üsulunu seçin</div>
+      <div class="section-title"><%= t('wallet.choose_method') %></div>
       <div class="methods">
         <% withdrawMethods.forEach(function(m){ %>
         <label class="method wd" data-key="<%= m.key %>" data-kind="<%= m.kind %>" data-name="<%= m.name %>">
@@ -249,17 +250,17 @@ body{
       </div>
 
       <div class="field">
-        <label>Məbləğ (<%= limits.withdrawMin %> – <%= limits.withdrawMax %>)</label>
-        <input type="number" name="amount" id="wdAmount" step="0.01" min="<%= limits.withdrawMin %>" max="<%= limits.withdrawMax %>" placeholder="0.00" required>
+        <label><%= t('wallet.amount') %> (<%= money(limits.withdrawMin, { symbol:false }) %> – <%= money(limits.withdrawMax, { symbol:false }) %> <%= localeMeta.symbol %>)</label>
+        <input type="number" name="amount" id="wdAmount" step="0.01" min="<%= (limits.withdrawMin * localeMeta.rate).toFixed(2) %>" max="<%= (limits.withdrawMax * localeMeta.rate).toFixed(2) %>" placeholder="0.00" required>
       </div>
 
       <div id="wdBankFields">
         <div class="field">
-          <label>Hesab sahibi (Ad Soyad)</label>
+          <label><%= t('wallet.holder') %></label>
           <input type="text" name="cardHolder" placeholder="AD SOYAD">
         </div>
         <div class="field">
-          <label>Kart nömrəsi və ya IBAN</label>
+          <label><%= t('wallet.card_number') %> / <%= t('wallet.iban') %></label>
           <input type="text" name="cardNumber" placeholder="0000 0000 0000 0000 / IBAN">
         </div>
         <div class="field">
@@ -270,30 +271,31 @@ body{
 
       <div id="wdCryptoFields" class="hidden">
         <div class="field">
-          <label>Kripto pulqabı ünvanı</label>
+          <label><%= t('wallet.wallet_address') %></label>
           <input type="text" name="walletAddress" placeholder="0x... / T...">
         </div>
       </div>
 
-      <button type="submit" class="submit-btn alt">Çıxarış sorğusu göndər</button>
+      <button type="submit" class="submit-btn alt"><%= t('wallet.submit_withdraw') %></button>
     </form>
     <% } %>
   </div>
 
-  <div class="section-title">Son əməliyyatlar</div>
+  <div class="section-title"><%= t('wallet.history') %></div>
   <% if (!transactions.length) { %>
-    <div class="empty">Hələ əməliyyat yoxdur</div>
+    <div class="empty"><%= t('wallet.empty_history') %></div>
   <% } %>
+  <% const tr = t; %>
   <% transactions.forEach(function(t){ %>
   <div class="tx">
     <div class="ti"><%= t.type === 'deposit' ? '⬆️' : t.type === 'withdraw' ? '⬇️' : '🎁' %></div>
     <div class="tb">
-      <div class="tn"><%= t.type === 'deposit' ? 'Depozit' : t.type === 'withdraw' ? 'Çıxarış' : t.type %>
-        <span class="badge b-<%= t.status %>"><%= t.status === 'pending' ? 'Gözləyir' : t.status === 'completed' ? 'Tamamlandı' : 'Rədd edildi' %></span>
+      <div class="tn"><%= t.type === 'deposit' ? tr('wallet.deposits') : t.type === 'withdraw' ? tr('wallet.withdraws') : t.type %>
+        <span class="badge b-<%= t.status %>"><%= t.status === 'pending' ? tr('wallet.pending') : t.status === 'completed' ? tr('wallet.completed') : tr('wallet.rejected') %></span>
       </div>
-      <div class="td"><%= new Date(t.createdAt).toLocaleString('az-AZ') %><%= t.method ? ' · ' + t.method : '' %></div>
+      <div class="td"><%= new Date(t.createdAt).toLocaleString(localeMeta.intl || 'en-US') %><%= t.method ? ' · ' + t.method : '' %></div>
     </div>
-    <div class="ta <%= t.type === 'withdraw' ? 'minus' : 'plus' %>"><%= t.type === 'withdraw' ? '-' : '+' %><%= Number(t.amount).toFixed(2) %></div>
+    <div class="ta <%= t.type === 'withdraw' ? 'minus' : 'plus' %>"><%= t.type === 'withdraw' ? '-' : '+' %><%= money(t.amount) %></div>
   </div>
   <% }); %>
 </div>
@@ -308,9 +310,10 @@ function showTab(t){
   document.getElementById('tabWithdrawBtn').classList.toggle('active', t === 'withdraw');
 }
 function setAmt(id, v){ document.getElementById(id).value = v; }
+var COPY_LBL = <%- JSON.stringify(t('wallet.copy')) %>;
 function copyTxt(v){
   navigator.clipboard && navigator.clipboard.writeText(v);
-  alert('Kopyalandı: ' + v);
+  alert(<%- JSON.stringify(t('wallet.copied')) %> + ' ' + v);
 }
 
 /* ── Depozit üsulu seçimi ── */
@@ -332,12 +335,12 @@ document.querySelectorAll('#tab-deposit .method').forEach(function(el){
     var box = document.getElementById('depDetails');
     var rows = [];
     if (isCrypto) {
-      if (d.wallet) rows.push(['Pulqabı ünvanı', d.wallet]);
-      if (d.network) rows.push(['Şəbəkə', d.network]);
+      if (d.wallet) rows.push([<%- JSON.stringify(t('wallet.wallet_address')) %>, d.wallet]);
+      if (d.network) rows.push([<%- JSON.stringify(t('wallet.network')) %>, d.network]);
     } else {
-      if (d.card) rows.push(['Kart nömrəsi', d.card]);
+      if (d.card) rows.push([<%- JSON.stringify(t('wallet.card_number')) %>, d.card]);
       if (d.iban) rows.push(['IBAN', d.iban]);
-      if (d.holder) rows.push(['Hesab sahibi', d.holder]);
+      if (d.holder) rows.push([<%- JSON.stringify(t('wallet.holder')) %>, d.holder]);
     }
     if (!rows.length){
       box.innerHTML = '<div class="no-details">' + d.name + ' üçün rekvizitlər admin tərəfindən hələ əlavə edilməyib.</div>';
@@ -345,7 +348,7 @@ document.querySelectorAll('#tab-deposit .method').forEach(function(el){
     }
     box.innerHTML = rows.map(function(r){
       return '<div class="row"><div><div class="dl">' + r[0] + '</div><div class="dv">' + r[1] + '</div></div>' +
-             '<button type="button" class="copy-btn" data-copy="' + r[1] + '">Kopyala</button></div>';
+             '<button type="button" class="copy-btn" data-copy="' + r[1] + '">' + COPY_LBL + '</button></div>';
     }).join('');
     box.querySelectorAll('.copy-btn').forEach(function(b){
       b.addEventListener('click', function(){ copyTxt(b.dataset.copy); });
