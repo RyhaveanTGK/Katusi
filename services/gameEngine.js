@@ -4,12 +4,16 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const bots = require('./botEngine');
+const starLeague = require('./starLeague');
 
 const DRAW_INTERVAL_SEC = Number(process.env.GAME_DRAW_INTERVAL_SEC || 5);
 const ROUND_DURATION_SEC = Number(process.env.GAME_ROUND_DURATION_SEC || 360);
 
 // Otaq süni oyunçularla dolarkən hər yeni oyunçu arasındakı gözləmə
 const BOT_JOIN_STEP_SEC = Number(process.env.GAME_BOT_JOIN_STEP_SEC || 6);
+
+// Botlar real istifadəçini bu qədər saniyə gözləyir; gəlməzsə oyunu özləri başladır
+const BOT_WAIT_SEC = Number(process.env.GAME_BOT_WAIT_SEC || 30);
 
 // Raund bitdikdən sonra qalibin göstərilmə (animasiya) müddəti
 const REVEAL_SEC = Number(process.env.GAME_REVEAL_SEC || 12);
@@ -301,6 +305,7 @@ async function startRoom(room) {
   room.drawnAt = [];
   room.nextGameAt = null;
   room.botFillAt = null;
+  room.botWaitUntil = null;
   room.revealAt = null;
   room.winnerUser = null;
   room.winnerNums = [];
@@ -320,6 +325,12 @@ async function startRoom(room) {
   room.basePot = Number(Math.max(Number(room.stakeTotal || 0), Number(room.prize || 0)).toFixed(2));
   room.markGraceSec = Number(room.markGraceSec || MARK_GRACE_SEC);
   await room.save();
+  // Süni oyunçular da bilet qiymətinə görə ulduz yığır (24 saatlıq liderboard)
+  try {
+    for (const b of (room.bots || [])) {
+      await starLeague.awardBotStars(b.name, room, Number(b.tickets || 1));
+    }
+  } catch (e) { /* liderboard oyunu dayandırmır */ }
   // Otaq doldu → eyni tipli yeni (boş) otaq açılır
   await ensureSpareRoom(room);
 }
@@ -338,6 +349,7 @@ async function resetRoomForNextRound(room) {
   room.lastDrawAt = null;
   room.revealAt = null;
   room.botFillAt = null;
+  room.botWaitUntil = null;
   room.winnerUser = null;
   room.winnerNums = [];
   room.winnerPrize = 0;
@@ -702,6 +714,7 @@ async function tick() {
           if (new Date(room.botFillAt).getTime() <= now) { await startRoom(room); continue; }
         } else if (room.botFillAt) {
           room.botFillAt = null;
+  room.botWaitUntil = null;
           await room.save();
         }
         await cleanupSpareRooms(room);
@@ -711,15 +724,41 @@ async function tick() {
       // Real oyunçular üçün yer aç
       let changed = bots.makeRoomForReal(room, cap);
 
-      if (!(room.bots || []).length && bots.seedBots(room, generateCardNumbers, cap)) changed = true;
-
-      // Otaq tədricən dolur
-      if (!room.botFillAt) {
-        room.botFillAt = new Date(now + BOT_JOIN_STEP_SEC * 1000);
+      // Ana səhifədə otaq 3-4 süni oyunçu ilə gözləyir
+      if (!(room.bots || []).length && bots.seedBots(room, generateCardNumbers, cap)) {
         changed = true;
-      } else if (new Date(room.botFillAt).getTime() <= now) {
-        if (bots.addOneBot(room, generateCardNumbers, cap)) changed = true;
-        room.botFillAt = new Date(now + BOT_JOIN_STEP_SEC * 1000);
+        room.botWaitUntil = new Date(now + BOT_WAIT_SEC * 1000);
+      }
+
+      if (reals > 0) {
+        // Real istifadəçi gəldi → gözləmə ləğv olunur, otaq tədricən dolur
+        if (room.botWaitUntil) { room.botWaitUntil = null; changed = true; }
+        if (!room.botFillAt) {
+          room.botFillAt = new Date(now + BOT_JOIN_STEP_SEC * 1000);
+          changed = true;
+        } else if (new Date(room.botFillAt).getTime() <= now) {
+          if (bots.addOneBot(room, generateCardNumbers, cap)) changed = true;
+          room.botFillAt = new Date(now + BOT_JOIN_STEP_SEC * 1000);
+          changed = true;
+        }
+      } else {
+        // Real istifadəçi yoxdur: 30 saniyə gözlənilir
+        if (!room.botWaitUntil) {
+          room.botWaitUntil = new Date(now + BOT_WAIT_SEC * 1000);
+          changed = true;
+        } else if (new Date(room.botWaitUntil).getTime() <= now) {
+          // 30 saniyə içərisində real istifadəçi gəlmədi →
+          // süni oyunçular 5-ə çatır və oyunu öz aralarında başladırlar
+          let guard = 0;
+          while (visiblePlayerCount(room) < cap && guard++ < 10) {
+            if (!bots.addOneBot(room, generateCardNumbers, cap)) break;
+          }
+          room.botWaitUntil = null;
+          room.botFillAt = null;
+          await room.save();
+          await startRoom(room);
+          continue;
+        }
       }
 
       if (changed) await room.save();
