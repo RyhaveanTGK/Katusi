@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="az">
+<html lang="<%= locale %>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>One Loto – Qeydiyyat</title>
+<title>One Loto – <%= t('auth.register') %></title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Exo+2:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--purple-bg:#3d0d62;--purple-dark:#2a0848;--purple-mid:#5a1a90;--purple-card:#6b2fa8;--gold:#f5c518;--orange-btn:#f5a623;}
@@ -69,6 +69,7 @@ input[type="date"].form-input{color-scheme:dark;}
 </style>
 </head>
 <body>
+<%- include('partials/lang-switch', { locale: locale, locales: locales, next: '/register' }) %>
 <nav class="topnav">
   <div style="font-size:20px;font-weight:900;color:#e8001a;">One Loto</div>
   <div class="nav-btns">
@@ -97,24 +98,25 @@ input[type="date"].form-input{color-scheme:dark;}
       </div>
     </div>
     <div class="form-card">
-      <div class="form-title">Hesab yaradın</div>
+      <div class="form-title"><%= t('auth.register.title') %></div>
+      <div style="text-align:center;font-size:12.5px;color:rgba(255,255,255,.55);margin:-12px 0 18px;"><%= t('auth.register.sub') %></div>
       <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
       <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
       <form method="POST" action="/register" id="regForm" enctype="multipart/form-data">
         <input type="hidden" name="deviceId" id="deviceId" value="">
         <% if (typeof query !== 'undefined' && query.ref) { %><input type="hidden" name="ref" value="<%= query.ref %>"><% } %>
         <div class="form-group">
-          <label class="form-label">İstifadəçi adı</label>
-          <input class="form-input" type="text" name="username" placeholder="İstifadəçi adınız" required minlength="3">
+          <label class="form-label"><%= t('auth.username') %></label>
+          <input class="form-input" type="text" name="username" placeholder="<%= t('auth.username') %>" required minlength="3">
         </div>
         <div class="form-group">
-          <label class="form-label">E-poçt</label>
-          <input class="form-input" type="email" name="email" placeholder="E-poçt ünvanınız" required>
+          <label class="form-label"><%= t('auth.email') %></label>
+          <input class="form-input" type="email" name="email" placeholder="<%= t('auth.email') %>" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Şifrə</label>
+          <label class="form-label"><%= t('auth.password') %></label>
           <div class="pwd-wrap">
-            <input class="form-input" type="password" name="password" id="pwd1" placeholder="Şifrənizi daxil edin" required minlength="6">
+            <input class="form-input" type="password" name="password" id="pwd1" placeholder="<%= t('auth.password') %>" required minlength="6">
             <button type="button" class="eye-btn" onclick="togglePwd('pwd1','eye1')">
               <svg id="eye1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -123,9 +125,9 @@ input[type="date"].form-input{color-scheme:dark;}
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Şifrəni təsdiqlə</label>
+          <label class="form-label"><%= t('auth.password2') %></label>
           <div class="pwd-wrap">
-            <input class="form-input" type="password" name="password2" id="pwd2" placeholder="Şifrənizi təkrarlayın" required minlength="6">
+            <input class="form-input" type="password" name="password2" id="pwd2" placeholder="<%= t('auth.password2') %>" required minlength="6">
             <button type="button" class="eye-btn" onclick="togglePwd('pwd2','eye2')">
               <svg id="eye2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -136,11 +138,11 @@ input[type="date"].form-input{color-scheme:dark;}
         <div class="section-sep"><i></i><span>Şəxsiyyət məlumatları</span><i></i></div>
 
         <div class="form-group">
-          <label class="form-label">Real Ad Soyad</label>
+          <label class="form-label"><%= t('auth.fullname') %></label>
           <input class="form-input" type="text" name="fullName" placeholder="Ad və soyadınız" required minlength="5">
         </div>
         <div class="form-group">
-          <label class="form-label">Doğum tarixi</label>
+          <label class="form-label"><%= t('auth.birthdate') %></label>
           <input class="form-input" type="date" name="birthDate" id="birthDate" required>
           <div class="age-note" id="ageNote">Qeydiyyat yalnız 18 yaşdan yuxarı şəxslər üçündür.</div>
         </div>
@@ -173,9 +175,9 @@ input[type="date"].form-input{color-scheme:dark;}
           </label>
         </div>
 
-        <button type="submit" class="btn-register">Qeydiyyatdan keç</button>
+        <button type="submit" class="btn-register"><%= t('auth.submit_register') %></button>
       </form>
-      <div class="login-note">Hesabınız var? <a href="/login">Giriş edin</a></div>
+      <div class="login-note"><%= t('auth.have_account') %> <a href="/login"><%= t('auth.submit_login') %></a></div>
     </div>
   </div>
   <div class="footer-bar">
