@@ -47,13 +47,16 @@ function decisionKeyboard(txId) {
   };
 }
 
+const i18n = require('./i18n');
+
 // Yeni deposit sorğusu → admin-ə göndərilir + inline düymələr
 async function notifyDepositRequest(tx, user) {
   const lines = [
     `🟢 <b>YENİ DEPOZİT SORĞUSU</b>`,
     ``,
     `👤 İstifadəçi: <b>${escapeHtml(user.username)}</b> (#${String(user._id).slice(-6).toUpperCase()})`,
-    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} ${tx.currency || 'AZN'}</b>`,
+    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} AZN</b>`,
+    `🌍 Dil / valyuta: <b>${i18n.localeMeta(user && user.locale).flag} ${i18n.localeMeta(user && user.locale).native}</b> — ${i18n.money(tx.amount, user && user.locale)}`,
     `🏦 Üsul: ${escapeHtml(tx.method || 'card')}`,
     tx.cryptoToken ? `🪙 Token: ${escapeHtml(tx.cryptoToken)}` : '',
     tx.network       ? `🌐 Şəbəkə: ${escapeHtml(tx.network)}` : '',
@@ -77,7 +80,8 @@ async function notifyWithdrawRequest(tx, user) {
     `🔴 <b>YENİ ÇIXARIŞ SORĞUSU</b>`,
     ``,
     `👤 İstifadəçi: <b>${escapeHtml(user.username)}</b> (#${String(user._id).slice(-6).toUpperCase()})`,
-    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} ${tx.currency || 'AZN'}</b>`,
+    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} AZN</b>`,
+    `🌍 Dil / valyuta: <b>${i18n.localeMeta(user && user.locale).flag} ${i18n.localeMeta(user && user.locale).native}</b> — ${i18n.money(tx.amount, user && user.locale)}`,
     tx.cardLast4 ? `💳 Kart: **** **** **** ${escapeHtml(tx.cardLast4)}` : '',
     tx.cardHolder ? `👤 Kart sahibi: ${escapeHtml(tx.cardHolder)}` : '',
     tx.note      ? `📝 Qeyd: ${escapeHtml(tx.note)}` : '',
@@ -100,7 +104,8 @@ async function notifyDecision(tx, user, decision) {
     `${icon} <b>${verb}</b>`,
     ``,
     `👤 İstifadəçi: <b>${escapeHtml(user.username)}</b>`,
-    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} ${tx.currency || 'AZN'}</b>`,
+    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} AZN</b>`,
+    `🌍 Dil / valyuta: <b>${i18n.localeMeta(user && user.locale).flag} ${i18n.localeMeta(user && user.locale).native}</b> — ${i18n.money(tx.amount, user && user.locale)}`,
     `🆔 TX: <code>${String(tx._id)}</code>`
   ];
 
