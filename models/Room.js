@@ -34,6 +34,8 @@ const roomSchema = new mongoose.Schema({
   nextGameAt:  { type: Date, default: null },
   // Real istifadəçi daxil olduqdan sonra süni oyunçuların qoşulma vaxtı (30 san.)
   botFillAt:   { type: Date, default: null },
+  // Ana səhifədə 3-4 süni oyunçunun real istifadəçini gözləmə vaxtı (30 san.)
+  botWaitUntil:{ type: Date, default: null },
   // Vaxt bitdikdən sonra qalibin göstərilmə müddəti
   revealAt:    { type: Date, default: null },
   finalWinnerName:  { type: String, default: null },
