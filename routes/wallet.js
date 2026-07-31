@@ -12,6 +12,7 @@ const PaymentMethod  = require('../models/PaymentMethod');
 const { requireLogin } = require('../middleware/auth');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/telegramBot');
 const { LOCALES, normalizeLocale } = require('../services/paymentMethods');
+const i18n = require('../services/i18n');
 
 // ── Receipt (qəbz) upload: /public/uploads/dekont-<rand>.jpg ──
 const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
@@ -39,7 +40,13 @@ const WITHDRAW_MIN = 30, WITHDRAW_MAX = 2000;
 
 /** İstifadəçinin aktiv dili — dil dəstəyi əlavə olunanda burada oxunacaq */
 function currentLocale(req) {
-  return normalizeLocale(req.query.lang || req.body.lang || req.session.locale || 'az');
+  return i18n.normalizeLocale(req.query.lang || req.body.lang || req.session.locale || i18n.DEFAULT_LOCALE);
+}
+
+/** İstifadəçi öz dilinin valyutasında məbləğ yazır — bazada AZN saxlanılır */
+function toBase(amountLocal, locale) {
+  const rate = i18n.localeMeta(locale).rate || 1;
+  return Math.round((Number(amountLocal || 0) / rate) * 100) / 100;
 }
 
 // Bütün istifadəçi əməliyyatları + balans + ödəniş üsulları
@@ -92,7 +99,7 @@ router.get('/', requireLogin, async (req, res) => {
 router.post('/deposit', requireLogin, upload.single('receipt'), async (req, res) => {
   try {
     const { method, amount, cardNumber, cardHolder, cardExpiry } = req.body;
-    const amt = parseFloat(amount);
+    const amt = toBase(parseFloat(amount), currentLocale(req)); // baza valyutaya (AZN) çevrilir
 
     const user = await User.findById(req.session.userId);
     if (!user) return res.redirect('/login');
@@ -135,7 +142,7 @@ router.post('/deposit', requireLogin, upload.single('receipt'), async (req, res)
 
     return renderWallet(req, res, {
       tab: 'deposit',
-      success: 'Ödəniş sorğunuz qəbul edildi. Yoxlama başa çatdıqdan sonra balansınıza yüklənəcək.'
+      success: i18n.translate('wallet.deposit_ok', currentLocale(req))
     });
   } catch (e) {
     console.error('Deposit err:', e);
@@ -147,7 +154,7 @@ router.post('/deposit', requireLogin, upload.single('receipt'), async (req, res)
 router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (req, res) => {
   try {
     const { amount, method, walletAddress, note } = req.body;
-    const amt = parseFloat(amount);
+    const amt = toBase(parseFloat(amount), currentLocale(req));
 
     const user = await User.findById(req.session.userId);
     if (!user) return res.redirect('/login');
@@ -197,7 +204,7 @@ router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (re
 router.post('/withdraw', requireLogin, async (req, res) => {
   try {
     const { amount, method, cardHolder, cardExpiry, cardNumber, iban, walletAddress } = req.body;
-    const amt = parseFloat(amount);
+    const amt = toBase(parseFloat(amount), currentLocale(req));
 
     const user = await User.findById(req.session.userId);
     if (!user) return res.redirect('/login');
