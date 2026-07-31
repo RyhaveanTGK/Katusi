@@ -10,6 +10,8 @@ const path   = require('path');
 const fs     = require('fs');
 const multer = require('multer');
 const Device = require('../models/Device');
+const EmailVerification = require('../models/EmailVerification');
+const { sendVerificationCode, generateCode, CODE_TTL_MS } = require('../services/emailService');
 
 // ── Qeydiyyat sənədləri üçün fayl yükləmə (passport + üz şəkili) ──
 const kycDir = path.join(__dirname, '..', 'public', 'uploads', 'kyc');
@@ -66,6 +68,153 @@ function deviceHashOf(req) {
 
 const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 8);
 
+// ─────────────────────────────────────────────────────────────
+//  E-POÇT DOĞRULAMASI (Resend)
+//  Qeydiyyatdan sonra istifadəçiyə 6 rəqəmli kod göndərilir.
+//  Kod 3 dəqiqə etibarlıdır; vaxt bitdikdə kod BLOKE olunur.
+// ─────────────────────────────────────────────────────────────
+const MAX_CODE_ATTEMPTS = 5;
+
+/** Yeni doğrulama kodu yaradır və e-poçta göndərir */
+async function issueVerificationCode(user) {
+  const code = generateCode();
+  const now  = Date.now();
+
+  // Köhnə aktiv kodlar bloke olunur — yalnız son kod işləyir
+  await EmailVerification.updateMany(
+    { userId: user._id, usedAt: null, blocked: false },
+    { $set: { blocked: true } }
+  );
+
+  const rec = await new EmailVerification({
+    userId: user._id,
+    email: user.email,
+    codeHash: EmailVerification.hashCode(code),
+    expiresAt: new Date(now + CODE_TTL_MS),
+    lastSentAt: new Date(now)
+  }).save();
+
+  await sendVerificationCode(user.email, code);
+  return rec;
+}
+
+/** Sessiyadaki gözləyən istifadəçini qaytarır */
+async function pendingUser(req) {
+  const id = req.session.pendingVerifyUserId;
+  if (!id) return null;
+  return User.findById(id);
+}
+
+function secondsLeftOf(rec) {
+  if (!rec || rec.blocked || rec.usedAt) return 0;
+  return Math.max(0, Math.ceil((rec.expiresAt.getTime() - Date.now()) / 1000));
+}
+
+// ── Doğrulama səhifəsi ──
+router.get('/verify-email', async (req, res) => {
+  const user = await pendingUser(req);
+  if (!user) return res.redirect('/login');
+  if (user.emailVerified) {
+    req.session.pendingVerifyUserId = null;
+    return res.redirect('/login');
+  }
+  const rec = await EmailVerification.findOne({ userId: user._id, usedAt: null })
+    .sort({ createdAt: -1 });
+  res.render('verify-email', {
+    email: user.email,
+    error: req.session.verifyError || null,
+    success: req.session.verifySuccess || null,
+    secondsLeft: secondsLeftOf(rec)
+  });
+  req.session.verifyError = null;
+  req.session.verifySuccess = null;
+});
+
+// ── Kodun yoxlanılması ──
+router.post('/verify-email', async (req, res) => {
+  try {
+    const user = await pendingUser(req);
+    if (!user) return res.redirect('/login');
+
+    const code = String(req.body.code || '').replace(/\D/g, '');
+    const rec = await EmailVerification.findOne({ userId: user._id, usedAt: null })
+      .sort({ createdAt: -1 });
+
+    if (!rec || rec.blocked) {
+      req.session.verifyError = 'Kod bloke olunmuşdur. Yeni kod göndərin.';
+      return res.redirect('/verify-email');
+    }
+    // 3 dəqiqə keçib — kod bloke olunur
+    if (rec.isExpired()) {
+      rec.blocked = true;
+      await rec.save();
+      req.session.verifyError = 'Kodun 3 dəqiqəlik vaxtı bitdi və kod bloke olundu. Yeni kod göndərin.';
+      return res.redirect('/verify-email');
+    }
+    if (code.length !== 6) {
+      req.session.verifyError = 'Kodu 6 rəqəm olaraq daxil edin';
+      return res.redirect('/verify-email');
+    }
+
+    rec.attempts += 1;
+    if (!rec.matches(code)) {
+      if (rec.attempts >= MAX_CODE_ATTEMPTS) {
+        rec.blocked = true;
+        await rec.save();
+        req.session.verifyError = 'Çox sayda yanlış cəhd — kod bloke olundu. Yeni kod göndərin.';
+        return res.redirect('/verify-email');
+      }
+      await rec.save();
+      req.session.verifyError = `Kod yanlışdır (${MAX_CODE_ATTEMPTS - rec.attempts} cəhd qaldı)`;
+      return res.redirect('/verify-email');
+    }
+
+    rec.usedAt = new Date();
+    await rec.save();
+
+    user.emailVerified = true;
+    user.emailVerifiedAt = new Date();
+    await user.save();
+
+    req.session.pendingVerifyUserId = null;
+    req.session.userId   = user._id.toString();
+    req.session.username = user.username;
+    req.session.isAdmin  = user.isAdmin;
+
+    if (req.session.pendingInvite) {
+      const token = req.session.pendingInvite;
+      req.session.pendingInvite = null;
+      return res.redirect('/r/' + token);
+    }
+    res.redirect('/');
+  } catch (e) {
+    console.error(e);
+    req.session.verifyError = 'Xəta baş verdi, yenidən yoxlayın';
+    res.redirect('/verify-email');
+  }
+});
+
+// ── Yeni kod göndər ──
+router.post('/verify-email/resend', async (req, res) => {
+  try {
+    const user = await pendingUser(req);
+    if (!user) return res.redirect('/login');
+
+    const last = await EmailVerification.findOne({ userId: user._id }).sort({ createdAt: -1 });
+    if (last && Date.now() - last.lastSentAt.getTime() < 30 * 1000) {
+      req.session.verifyError = 'Yeni kod 30 saniyədən bir göndərilə bilər';
+      return res.redirect('/verify-email');
+    }
+    await issueVerificationCode(user);
+    req.session.verifySuccess = 'Yeni kod e-poçtunuza göndərildi';
+    res.redirect('/verify-email');
+  } catch (e) {
+    console.error(e);
+    req.session.verifyError = 'Kod göndərilmədi, bir az sonra yenidən cəhd edin';
+    res.redirect('/verify-email');
+  }
+});
+
 // ── İstifadəçi girişi ──
 router.get('/login', requireGuest, (req, res) => {
   res.render('login', { error: null, success: null });
@@ -111,6 +260,19 @@ router.post('/login', requireGuest, async (req, res) => {
     }
     if (user.isBlocked) {
       return res.render('login', { error: 'Hesabınız bloklanmışdır.', success: null });
+    }
+
+    // E-poçt doğrulanmayıbsa giriş yoxdur — yeni kod göndərilir
+    if (!user.isAdmin && !user.emailVerified) {
+      req.session.pendingVerifyUserId = user._id.toString();
+      try {
+        await issueVerificationCode(user);
+        req.session.verifySuccess = 'Doğrulama kodu e-poçtunuza göndərildi';
+      } catch (e) {
+        console.error(e);
+        req.session.verifyError = 'Kod göndərilmədi, "Yeni kod göndər" düyməsini sınayın';
+      }
+      return res.redirect('/verify-email');
     }
 
     req.session.userId   = user._id.toString();
@@ -231,15 +393,16 @@ router.post('/register', requireGuest, kycUploadSafe, async (req, res) => {
     device.ip = dev.ip; device.userAgent = dev.ua;
     try { await device.save(); } catch (e) {}
 
-    req.session.userId   = user._id.toString();
-    req.session.username = user.username;
-    req.session.isAdmin  = user.isAdmin;
-    if (req.session.pendingInvite) {
-      const token = req.session.pendingInvite;
-      req.session.pendingInvite = null;
-      return res.redirect('/r/' + token);
+    // ── E-poçt doğrulaması: hesab kod təsdiqlənənə qədər aktivləşmir ──
+    req.session.pendingVerifyUserId = user._id.toString();
+    try {
+      await issueVerificationCode(user);
+      req.session.verifySuccess = 'Doğrulama kodu e-poçtunuza göndərildi';
+    } catch (e) {
+      console.error(e);
+      req.session.verifyError = 'Kod göndərilmədi — "Yeni kod göndər" düyməsini sınayın';
     }
-    res.redirect('/');
+    return res.redirect('/verify-email');
   } catch (e) {
     console.error(e);
     res.render('register', { error: 'Qeydiyyat zamanı xəta baş verdi', success: null, query: req.body });
