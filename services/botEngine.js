@@ -6,7 +6,8 @@
 //     (admin tərəfindən sonradan yaradılanlar daxil) 2-4 random süni oyunçu olur.
 //  2) Otaq real istifadəçilərin sayına görə hesablanaraq süni oyunçularla dolur.
 //  3) Real istifadəçi olmasa belə süni oyunçular öz aralarında oynayır.
-//  4) Daşların 65%-i süni oyunçuların xeyrinə, qalanı tam random çıxır.
+//  4) Daşlar random çıxır: botlu otaqlarda 55% süni oyunçuların, 45% real
+//     istifadəçilərin xeyrinə seçilir. Bot olmayan otaqlarda TAM random.
 //  5) Sıra (linya) uduşları: 1-ci 2.4%, 2-ci 4.8%, 3-cü 7.2% — ortadakı mərcdən.
 
 const BOT_NAMES = [
@@ -18,8 +19,9 @@ const BOT_NAMES = [
 ];
 
 const DEFAULT_ROOM_SIZE = 5;      // bütün otaqlar 5 iştirakçı ilə dolur
-const BOT_FAVOR_CHANCE = 0.65;    // daşların 65%-i botların xeyrinə
-const MIN_SEED_BOTS = 2;          // hər otaqda ən azı 2 süni oyunçu
+const BOT_FAVOR_CHANCE  = 0.55;   // daşların 55%-i botların xeyrinə
+const REAL_FAVOR_CHANCE = 0.45;   // 45%-i real istifadəçilərin xeyrinə
+const MIN_SEED_BOTS = 3;          // ana səhifədə otaqda 3-4 süni oyunçu gözləyir
 const MAX_SEED_BOTS = 4;          // ilkin maksimum 4 süni oyunçu
 const MAX_TICKETS_PER_BOT = 3;
 
@@ -249,29 +251,64 @@ function botWinningRow(bot, drawnNumbers) {
   return (bot.marked || []).slice(-5);
 }
 
+/** Bir real biletin sıraları (GameCard.numbers) */
+function realRowsOf(card) {
+  return rowsOf((card && card.numbers) || []);
+}
+
+/** Real oyunçuların tamamlanmağa ən yaxın sırasının qalan daşları */
+function realRemaining(realCards, drawnSet, availSet) {
+  let best = null;
+  for (const card of (realCards || [])) {
+    for (const row of realRowsOf(card)) {
+      const rem = row.filter((n) => !drawnSet.has(n));
+      if (!rem.length) continue;
+      const usable = rem.filter((n) => availSet.has(n));
+      if (!usable.length) continue;
+      if (!best || rem.length < best.length) best = usable;
+    }
+  }
+  return best || [];
+}
+
+/** Botların tamamlanmağa ən yaxın sırasının qalan daşları */
+function botsRemaining(bots, drawnSet, availSet) {
+  let best = null;
+  for (const bot of (bots || [])) {
+    const rem = botRemaining(bot, drawnSet).filter((n) => availSet.has(n));
+    if (!rem.length) continue;
+    if (!best || rem.length < best.length) best = rem;
+  }
+  return best || [];
+}
+
 /**
- * Növbəti daşı seçir.
- *  - 65% ehtimalla süni oyunçuların ehtiyacı olan daş çıxır
- *  - 35% (və bot olmayanda 100%) tam random
- * Real istifadəçilərə qarşı heç bir blok tətbiq olunmur.
+ * Növbəti daşı seçir — daşlar RANDOM çıxır:
+ *  - Süni oyunçusu OLMAYAN otaqlarda: 100% tam random.
+ *  - Süni oyunçulu otaqlarda: 55% ehtimalla botların, 45% ehtimalla real
+ *    istifadəçilərin ehtiyacı olan daş seçilir (hər iki halda uyğun daşlar
+ *    arasından random). Uyğun daş yoxdursa tam random.
  */
 function pickNextNumber(room, realCards, available) {
   if (!available || !available.length) return null;
-  const bots = room.bots || [];
+
+  const bots = (room.bots || []).filter((b) => b && b.name);
+  // Bot olmayan otaqlar — tam random
   if (!bots.length) return pick(available);
-  if (Math.random() > BOT_FAVOR_CHANCE) return pick(available);
 
   const drawnSet = new Set((room.drawnNumbers || []).map(Number));
-  const availSet = new Set(available);
+  const availSet = new Set(available.map(Number));
 
-  // ən yaxın bot sırası
-  let bestRem = null;
-  for (const bot of bots) {
-    const rem = botRemaining(bot, drawnSet).filter((n) => availSet.has(n));
-    if (!rem.length) continue;
-    if (!bestRem || rem.length < bestRem.length) bestRem = rem;
-  }
-  if (bestRem && bestRem.length) return pick(bestRem);
+  const favorBots = Math.random() < BOT_FAVOR_CHANCE;
+
+  const botPool  = botsRemaining(bots, drawnSet, availSet);
+  const realPool = realRemaining(realCards, drawnSet, availSet);
+
+  const first  = favorBots ? botPool : realPool;
+  const second = favorBots ? realPool : botPool;
+
+  if (first.length)  return pick(first);
+  if (second.length) return pick(second);
   return pick(available);
 }
 
@@ -317,6 +354,7 @@ module.exports = {
   BOT_NAMES,
   DEFAULT_ROOM_SIZE,
   BOT_FAVOR_CHANCE,
+  REAL_FAVOR_CHANCE,
   MIN_SEED_BOTS,
   MAX_SEED_BOTS,
   REAL_ONLY_THRESHOLD,
