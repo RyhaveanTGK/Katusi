@@ -19,6 +19,9 @@ const userSchema = new mongoose.Schema({
   emailVerified:   { type: Boolean, default: false },
   emailVerifiedAt: { type: Date,    default: null },
 
+  // ── İnterfeys dili (default: en) ──
+  locale:   { type: String, enum: ['en','az','tr','ru','ka'], default: 'en' },
+
   balance:  { type: Number, default: 0 },
   stars:    { type: Number, default: 0 },      // ümumi ulduz balansı
   periodStars:   { type: Number, default: 0 }, // 24 saatlıq liderboard ulduzları
