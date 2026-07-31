@@ -181,7 +181,12 @@
     background:radial-gradient(ellipse, rgba(0,0,0,.45), transparent 70%);
     filter:blur(2px);
   }
-  .ball.pop{ animation: ball-3d-pop .5s cubic-bezier(.22,.9,.25,1) both; }
+  /* Pop bitdikdən sonra süzülmə animasiyası AVTOMATİK davam edir — daş donmur */
+  .ball.pop{
+    animation:
+      ball-3d-pop .5s cubic-bezier(.22,.9,.25,1) both,
+      ball-float 4s linear .5s infinite;
+  }
   /* Axıcı 3D çıxış: fırlanaraq yaxınlaşır, yumşaq oturur */
   @keyframes ball-3d-pop{
     0%   { transform: perspective(600px) translate3d(0,-38px,-160px) rotateX(-35deg) rotateY(-220deg) scale(.45); opacity:0; filter:blur(3px); }
@@ -397,16 +402,28 @@ function statusLabel(s){ return s === 'started' ? 'Oyun başladı' : s === 'ende
 /* Oyun başladıqdan sonra geri sayım göstərilmir */
 function renderTimer(){}
 
+/* Çıxan daşlar siyahısı: yalnız YENİ daşlar əlavə olunur —
+   bütün siyahı hər dəfə yenidən qurulmur (donma və titrəmə olmur). */
+var drawListCount = 0;
 function renderDrawList(){
   var box = document.getElementById('drawList');
-  box.innerHTML = '';
-  // çıxan daşlar alt-alta yox, soldan sağa bir sıra ilə düzülür
-  drawnNumbers.forEach(function(n, i, arr){
+  if (!box) return;
+  if (drawnNumbers.length < drawListCount){   // yeni raund → sıfırdan
+    box.innerHTML = '';
+    drawListCount = 0;
+  }
+  if (drawnNumbers.length === drawListCount) return;
+  var prev = box.querySelector('.draw-item.latest');
+  if (prev) prev.classList.remove('latest');
+  var frag = document.createDocumentFragment();
+  for (var i = drawListCount; i < drawnNumbers.length; i++){
     var d = document.createElement('div');
-    d.className = 'draw-item' + (i === arr.length - 1 ? ' latest' : '');
-    d.textContent = n;
-    box.appendChild(d);
-  });
+    d.className = 'draw-item' + (i === drawnNumbers.length - 1 ? ' latest' : '');
+    d.textContent = drawnNumbers[i];
+    frag.appendChild(d);
+  }
+  box.appendChild(frag);
+  drawListCount = drawnNumbers.length;
   box.scrollLeft = box.scrollWidth;
 }
 
@@ -471,14 +488,22 @@ function syncTicketDom(){
     box.classList.toggle('won', !!card.isWinner);
   });
 }
-/* rAF ilə yumşaq yeniləmə (yüksək FPS, donma yoxdur) */
+/* Yumşaq yeniləmə: DOM yalnız dəyişiklik olduqda sinxronlaşır.
+   Hər kadrda işləyən ağır dövr yoxdur → animasiyalar donmur. */
+var ticketDirty = true;
+function markTicketsDirty(){ ticketDirty = true; }
 (function(){
-  var last = 0;
-  function loop(t){
-    if (t - last > 220){ last = t; syncTicketDom(); }
-    requestAnimationFrame(loop);
+  function loop(){
+    if (!document.hidden && ticketDirty){
+      ticketDirty = false;
+      requestAnimationFrame(syncTicketDom);
+    }
+    setTimeout(loop, 400);
   }
-  requestAnimationFrame(loop);
+  loop();
+  // Vaxtı keçən daşların (qırmızı X) yenilənməsi üçün yüngül təkan
+  setInterval(function(){ if (!document.hidden) markTicketsDirty(); }, 1000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) markTicketsDirty(); });
 })();
 
 /* ── Oyunçular siyahısı (person düyməsi) ── */
@@ -666,7 +691,7 @@ function ticketNode(card, index){
     }).then(function(r){ return r.json(); }).then(function(res){
       if (res.error) {
         toast(res.error);
-        if (res.missed) { card.missed = (card.missed || []).concat([number]); syncTicketDom(); }
+        if (res.missed) { card.missed = (card.missed || []).concat([number]); markTicketsDirty(); }
         return poll();
       }
       if (res.card) { card.marked = res.card.marked_numbers || []; }
@@ -748,6 +773,7 @@ function syncState(data){
 
   drawnNumbers = data.drawn_numbers || drawnNumbers;
   trackDrawn();
+  markTicketsDirty();
   renderDrawList();
   renderPlayers(data);
   if (typeof data.balance === 'number' && window.animateBalance && Math.abs(window.getBalance() - data.balance) >= 0.005) {
