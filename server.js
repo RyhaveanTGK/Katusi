@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const { ensureDefaultRooms, startGameLoop } = require('./services/gameEngine');
 const { startBotPolling } = require('./services/telegramBot');
+const starLeague = require('./services/starLeague');
 const { ensureDefaultPaymentMethods } = require('./services/paymentMethods');
 
 const app  = express();
@@ -126,6 +127,8 @@ async function connectDB(attempt = 1) {
     await ensureDefaultPaymentMethods();
     startGameLoop();
     try { startBotPolling(); } catch (e) { console.error('Telegram polling start failed:', e.message); }
+    // 24 saatlıq ulduz liderboardı — uduşlar avtomatik köçürülür
+    try { starLeague.start(); } catch (e) { console.error('Star league start failed:', e.message); }
   } catch (e) {
     const wait = Math.min(30000, attempt * 5000);
     console.error(`MongoDB error (cəhd ${attempt}):`, e.message, `— ${wait / 1000}s sonra yenidən`);
