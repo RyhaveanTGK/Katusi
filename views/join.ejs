@@ -1,191 +1,80 @@
 <!DOCTYPE html>
-<html lang="az">
+<html lang="<%= locale %>">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Otaq – One Loto</title>
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/loto.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>One Loto – <%= t('auth.login') %></title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Exo+2:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--purple-bg:#3d0d62;--purple-dark:#2a0848;--purple-mid:#5a1a90;--gold:#f5c518;--orange-btn:#f5a623}
+@keyframes float1{0%,100%{transform:translateY(0) rotate(-15deg)}50%{transform:translateY(-8px) rotate(-15deg)}}
+@keyframes float2{0%,100%{transform:translateY(0) rotate(12deg)}50%{transform:translateY(-6px) rotate(12deg)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#3d0d62;overflow-x:hidden;width:100%}
+body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background:#3d0d62;color:#fff;min-height:100vh;overflow-x:hidden;position:relative}
+.hero{padding-top:18px;min-height:100vh;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,rgba(120,40,200,.6) 0%,transparent 65%)}
+.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 15% 25%,rgba(255,255,255,.04) 1px,transparent 1px),radial-gradient(circle at 80% 15%,rgba(255,255,255,.06) 1px,transparent 1px),radial-gradient(circle at 60% 70%,rgba(255,255,255,.04) 1px,transparent 1px),radial-gradient(circle at 30% 80%,rgba(255,255,255,.05) 1px,transparent 1px);background-size:120px 120px,90px 90px,150px 150px,80px 80px;pointer-events:none}
+.bingo-card{position:absolute;background:linear-gradient(135deg,#7b35c4,#5a1a90);border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.grid{display:grid;gap:3px}.g5{grid-template-columns:repeat(5,1fr)}
+.bc-cell{width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:rgba(255,255,255,.85)}
+.bc-cell.empty{background:rgba(255,255,255,.06)}
+.bc-card-1{top:68px;left:-22px;transform:rotate(-18deg);animation:float1 4s ease-in-out infinite;z-index:2}
+.bc-card-2{top:55px;right:-18px;transform:rotate(14deg);animation:float2 3.5s ease-in-out infinite;z-index:2}
+.lball{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3),inset 0 3px 6px rgba(255,255,255,.4),0 4px 10px rgba(0,0,0,.4);z-index:3}
+.lb-red{background:radial-gradient(circle at 35% 30%,#ff7070,#cc1010)}
+.lb-blue{background:radial-gradient(circle at 35% 30%,#60a0ff,#1a3fbf)}
+.lb-green{background:radial-gradient(circle at 35% 30%,#60e060,#0d8c0d)}
+.content-wrap{position:relative;z-index:10;max-width:414px;margin:0 auto;padding:100px 20px 30px}
+.logo-center{text-align:center;margin-bottom:26px;animation:fadeInUp .6s ease}
+.logo-main{font-family:'Exo 2','Nunito',sans-serif;font-size:44px;font-weight:900;letter-spacing:-1px;line-height:1}
+.logo-main .gold{color:#f5c518}.logo-main .white{color:#fff}
+.logo-sub{font-size:13px;color:rgba(255,255,255,.55);margin-top:6px;letter-spacing:.5px}
+.form-card{background:linear-gradient(145deg,rgba(107,47,168,.55),rgba(45,8,72,.7));border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:28px 22px;backdrop-filter:blur(12px);animation:fadeInUp .7s ease}
+.form-title{font-size:22px;font-weight:900;text-align:center;margin-bottom:22px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:800;color:rgba(255,255,255,.7);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase}
+.form-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:#f5c518}
+.form-input::placeholder{color:rgba(255,255,255,.35)}
+.pwd-wrap{position:relative}.pwd-wrap .form-input{padding-right:48px}
+.eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);display:flex;align-items:center}
+.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:14px;text-align:center}
+.btn-login,.btn-register,.btn-admin{width:100%;padding:15px;color:#fff;font-size:16px;font-weight:900;border:none;border-radius:16px;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:4px;text-decoration:none;display:block;text-align:center}
+.btn-login{background:linear-gradient(180deg,#ffd060 0%,#f59200 100%);box-shadow:0 4px 14px rgba(245,162,35,.45)}
+.btn-register{background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);margin-top:12px}
+.btn-admin{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);margin-top:12px;font-weight:700;font-size:14px;color:#f5c518}
+.register-link{text-align:center;font-size:13px;color:rgba(255,255,255,.5);margin-top:18px}
+.register-link a{color:#f5c518;font-weight:800;text-decoration:none}
+</style>
 </head>
 <body>
-
-<%- include('partials/topnav', { user: user }) %>
-
-<div class="gamebar">
-  <div class="statbar">
-    <div class="stat-pill">
-      <div class="bet"><%= Number(room.entryFee || 0).toFixed(2) %><span class="mult"><%= room.prizeMultiplier || 'x2' %></span></div>
-      <div class="item"><span class="material-symbols-outlined">person</span><span id="playerCount"><%= room.players.length %></span></div>
-      <div class="sep"></div>
-      <div class="item"><span class="material-symbols-outlined">emoji_events</span><span id="roomPrize"><%= Number(ticketPrize || 0).toFixed(2) %> ₼</span></div>
+<%- include('partials/lang-switch', { locale: locale, locales: locales, next: '/login' }) %>
+<div class="hero">
+  <div class="bingo-card bc-card-1"><div class="grid g5"><div class="bc-cell empty"></div><div class="bc-cell">89</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">8</div><div class="bc-cell">36</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">79</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div></div></div>
+  <div class="bingo-card bc-card-2"><div class="grid g5"><div class="bc-cell empty"></div><div class="bc-cell">12</div><div class="bc-cell">25</div><div class="bc-cell empty"></div><div class="bc-cell">66</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">41</div><div class="bc-cell empty"></div><div class="bc-cell">72</div></div></div>
+  <div class="lball lb-red" style="width:38px;height:38px;font-size:13px;top:130px;left:38px;">47</div>
+  <div class="lball lb-blue" style="width:32px;height:32px;font-size:12px;top:175px;right:44px;">13</div>
+  <div class="lball lb-green" style="width:26px;height:26px;font-size:11px;top:105px;right:80px;">82</div>
+  <div class="content-wrap">
+    <div class="logo-center">
+      <div class="logo-main"><span class="gold">One</span> <span class="white">Loto</span></div>
     </div>
-    <button class="icon-btn" id="soundBtn" type="button" aria-label="Səs"><span class="material-symbols-outlined" id="soundIcon">volume_up</span></button>
-  </div>
-</div>
-
-<div class="wrap">
-  <% if (typeof error !== 'undefined' && error) { %><div class="error-msg"><%= error %></div><% } %>
-  <div id="ticketList"></div>
-  <div class="hint">Bilet rəqəmlərini <b>yenilə</b> və ya <b>dəyiş</b> ilə seçin, artıq bileti <b>sil</b>. Maksimum <%= maxTickets %> bilet.</div>
-</div>
-
-<form method="POST" action="/join/<%= room._id %>" id="buyForm">
-  <input type="hidden" name="tickets" id="ticketsField">
-  <input type="hidden" name="quantity" id="quantityField" value="1">
-  <div class="buybar">
-    <div class="buybar-inner">
-      <button class="buy-btn" type="submit" id="buyBtn">
-        <div class="buy-main">BİLET AL <span id="buyTotal"><%= Number(room.entryFee || 0).toFixed(2) %></span> ₼</div>
-        <div class="buy-sub">Qazan ⭐ <%= room.starPrize || 0 %></div>
-      </button>
-      <div class="qty">
-        <button class="qty-btn minus" type="button" id="minusBtn" aria-label="Azalt">−</button>
-        <div class="qty-box">
-          <div class="qty-label">Biletlər</div>
-          <div class="qty-val" id="qtyVal">1</div>
-        </div>
-        <button class="qty-btn plus" type="button" id="plusBtn" aria-label="Artır">+</button>
-      </div>
+    <div class="form-card">
+      <div class="form-title"><%= t('auth.login.title') %></div>
+      <div style="text-align:center;font-size:12.5px;color:rgba(255,255,255,.55);margin:-14px 0 18px;"><%= t('auth.login.sub') %></div>
+      <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
+      <form method="POST" action="/login">
+        <div class="form-group"><label class="form-label"><%= t('auth.username') %> / <%= t('auth.email') %></label><input class="form-input" type="text" name="login" placeholder="<%= t('auth.username') %>" required></div>
+        <div class="form-group"><label class="form-label"><%= t('auth.password') %></label><div class="pwd-wrap"><input class="form-input" type="password" name="password" id="pwdInput" placeholder="<%= t('auth.password') %>" required><button type="button" class="eye-btn" onclick="togglePwd()"><svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+        <button type="submit" class="btn-login"><%= t('auth.submit_login') %></button>
+      </form>
+      <a class="btn-register" href="/register"><%= t('auth.register') %></a>
+      <div class="register-link"><%= t('auth.no_account') %> <a href="/register"><%= t('auth.submit_register') %></a></div>
     </div>
   </div>
-</form>
-
-<div class="toast" id="toast"></div>
-
-<script src="/assets/js/loto-sound.js"></script>
-<script>
-var MAX_TICKETS = <%= maxTickets %>;
-var ENTRY_FEE   = <%= Number(room.entryFee || 0) %>;
-var POOL        = <%- JSON.stringify(previewCards) %>;
-var tickets     = [POOL[0]];
-var MY_NAME     = <%- JSON.stringify(user.username) %>;
-var lastStake   = null;
-
-function renderPlayers(){ /* onlayn oyunçular siyahısı silindi */ }
-
-function toast(msg){
-  var el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(window.__t); window.__t = setTimeout(function(){ el.classList.remove('show'); }, 2000);
-}
-
-/* ── random bilet generatoru (klient tərəfi önizləmə) ── */
-function genCard(){
-  var cols=[[1,9],[10,19],[20,29],[30,39],[40,49],[50,59],[60,69],[70,79],[80,90]];
-  var card=[[],[],[]], used=[];
-  for(var i=0;i<9;i++) used.push({});
-  for(var r=0;r<3;r++){
-    card[r]=new Array(9).fill(0);
-    var chosen=[];
-    while(chosen.length<5){ var c=Math.floor(Math.random()*9); if(chosen.indexOf(c)<0) chosen.push(c); }
-    chosen.sort(function(a,b){return a-b;});
-    chosen.forEach(function(c){
-      var min=cols[c][0], max=cols[c][1], v;
-      do { v=Math.floor(Math.random()*(max-min+1))+min; } while(used[c][v]);
-      used[c][v]=true; card[r][c]=v;
-    });
-  }
-  return card;
-}
-
-function ticketNode(numbers, index){
-  var box = document.createElement('div');
-  box.className = 'ticket';
-  var tools = document.createElement('div');
-  tools.className = 'ticket-tools';
-  tools.innerHTML =
-    '<button class="tool" data-act="refresh" type="button"><span class="material-symbols-outlined">refresh</span><span class="tool-label">yenilə</span></button>' +
-    '<button class="tool" data-act="delete" type="button"><span class="material-symbols-outlined">delete</span><span class="tool-label">sil</span></button>' +
-    '<button class="tool" data-act="change" type="button"><span class="material-symbols-outlined">edit</span><span class="tool-label">dəyiş</span></button>' +
-    '<span class="ticket-no">#' + (index + 1) + '</span>';
-  box.appendChild(tools);
-
-  var grid = document.createElement('div');
-  grid.className = 'grid';
-  numbers.forEach(function(row){
-    row.forEach(function(n){
-      var cell = document.createElement('div');
-      cell.className = 'cell' + (n ? '' : ' empty');
-      cell.textContent = n || '';
-      grid.appendChild(cell);
-    });
-  });
-  box.appendChild(grid);
-
-  tools.addEventListener('click', function(e){
-    var btn = e.target.closest('.tool');
-    if (!btn) return;
-    var act = btn.dataset.act;
-    if (act === 'delete') {
-      if (tickets.length === 1) return toast('Ən azı 1 bilet olmalıdır');
-      tickets.splice(index, 1);
-      LotoSound.place();
-      render();
-      return toast('Bilet silindi');
-    }
-    tickets[index] = genCard();
-    LotoSound.place();
-    render();
-    toast(act === 'refresh' ? 'Bilet yeniləndi' : 'Bilet dəyişdirildi');
-  });
-
-  return box;
-}
-
-function render(){
-  var list = document.getElementById('ticketList');
-  list.innerHTML = '';
-  tickets.forEach(function(t, i){ list.appendChild(ticketNode(t, i)); });
-  document.getElementById('qtyVal').textContent = tickets.length;
-  document.getElementById('buyTotal').textContent = (ENTRY_FEE * tickets.length).toFixed(2);
-  document.getElementById('minusBtn').disabled = tickets.length <= 1;
-  document.getElementById('plusBtn').disabled  = tickets.length >= MAX_TICKETS;
-  document.getElementById('quantityField').value = tickets.length;
-  document.getElementById('ticketsField').value = JSON.stringify(tickets);
-}
-
-document.getElementById('plusBtn').addEventListener('click', function(){
-  if (tickets.length >= MAX_TICKETS) return toast('Maksimum ' + MAX_TICKETS + ' bilet');
-  tickets.push(POOL[tickets.length] || genCard());
-  LotoSound.place();
-  render();
-});
-document.getElementById('minusBtn').addEventListener('click', function(){
-  if (tickets.length <= 1) return toast('Ən azı 1 bilet olmalıdır');
-  tickets.pop();
-  LotoSound.place();
-  render();
-});
-document.getElementById('buyForm').addEventListener('submit', function(){
-  document.getElementById('buyBtn').disabled = true;
-  document.getElementById('ticketsField').value = JSON.stringify(tickets);
-});
-
-/* ── səs aç/bağla ── */
-(function(){
-  var btn = document.getElementById('soundBtn');
-  var icon = document.getElementById('soundIcon');
-  function paint(){ icon.textContent = LotoSound.isOn() ? 'volume_up' : 'volume_off'; }
-  paint();
-  btn.addEventListener('click', function(){ LotoSound.toggle(); paint(); });
-})();
-
-/* ── canlı otaq statistikası ── */
-function poll(){
-  fetch('/api/room/<%= room._id %>').then(function(r){ return r.json(); }).then(function(d){
-    if (!d || d.error) return;
-    document.getElementById('playerCount').textContent = d.player_count;
-    document.getElementById('roomPrize').textContent = Number(d.ticket_prize || 0).toFixed(2) + ' ₼';
-    renderPlayers(d);
-    if (typeof d.balance === 'number' && window.animateBalance && Math.abs(window.getBalance() - d.balance) >= 0.005) {
-      window.animateBalance(d.balance);
-    }
-  }).catch(function(){});
-}
-render();
-poll();
-setInterval(poll, 2500);
-</script>
+</div>
+<script>function togglePwd(){const i=document.getElementById('pwdInput'),ic=document.getElementById('eyeIcon'),show=i.type==='password';i.type=show?'text':'password';ic.innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}</script>
+<script src="/assets/js/noselect.js"></script>
 </body>
 </html>
