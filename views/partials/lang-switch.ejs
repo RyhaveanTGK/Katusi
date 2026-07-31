@@ -1,0 +1,66 @@
+<%
+/* Dil dəyişmə düyməsi — sağ üst küncdə (login, register, digər səhifələr).
+   İstifadə: <%- include('partials/lang-switch', { locale: locale, locales: locales, next: '/login' }) %> */
+var _cur   = (typeof locale !== 'undefined' && locale) ? locale : 'en';
+var _list  = (typeof locales !== 'undefined' && locales) ? locales : [];
+var _next  = (typeof next !== 'undefined' && next) ? next : '';
+var _meta  = _list.filter(function(l){ return l.code === _cur; })[0] || _list[0] || { flag:'🌐', native:'English', code:'en' };
+%>
+<style>
+.lang-switch{ position:fixed; top:14px; right:14px; z-index:1200; font-family:'Rubik','Inter',sans-serif; }
+.lang-switch.inline{ position:static; }
+.lang-btn{
+  display:flex; align-items:center; gap:7px; cursor:pointer;
+  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.20);
+  color:#fff; padding:8px 12px; border-radius:99px; font-size:12.5px; font-weight:700;
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  transition:background .18s ease, transform .12s ease;
+}
+.lang-btn:hover{ background:rgba(255,255,255,.18); }
+.lang-btn:active{ transform:scale(.95); }
+.lang-btn .chev{ font-size:10px; opacity:.7; transition:transform .2s ease; }
+.lang-switch.open .lang-btn .chev{ transform:rotate(180deg); }
+.lang-menu{
+  position:absolute; right:0; top:calc(100% + 8px); min-width:186px;
+  background:linear-gradient(180deg,#4a1178,#2c0a49);
+  border:1px solid rgba(245,197,24,.30); border-radius:16px; padding:6px;
+  box-shadow:0 18px 40px -14px rgba(0,0,0,.75);
+  opacity:0; visibility:hidden; transform:translateY(-8px) scale(.97);
+  transition:opacity .18s ease, transform .18s ease, visibility .18s;
+}
+.lang-switch.inline .lang-menu{ position:absolute; }
+.lang-switch.open .lang-menu{ opacity:1; visibility:visible; transform:translateY(0) scale(1); }
+.lang-item{
+  display:flex; align-items:center; gap:10px; text-decoration:none;
+  color:rgba(255,255,255,.85); font-size:13px; font-weight:600;
+  padding:9px 11px; border-radius:11px; transition:background .15s ease, color .15s ease;
+}
+.lang-item:hover{ background:rgba(255,255,255,.09); color:#fff; }
+.lang-item.on{ background:rgba(245,197,24,.16); color:#f5c518; font-weight:800; }
+.lang-item .cur{ margin-left:auto; font-size:11px; opacity:.65; font-weight:700; }
+.lang-flag{ font-size:16px; line-height:1; }
+</style>
+
+<div class="lang-switch" id="langSwitch">
+  <div class="lang-btn" onclick="document.getElementById('langSwitch').classList.toggle('open')">
+    <span class="lang-flag"><%= _meta.flag %></span>
+    <span><%= (_meta.code || 'en').toUpperCase() %></span>
+    <span class="chev">▼</span>
+  </div>
+  <div class="lang-menu">
+    <% _list.forEach(function(l){ %>
+      <a class="lang-item <%= l.code === _cur ? 'on' : '' %>"
+         href="/lang/<%= l.code %><%= _next ? ('?next=' + encodeURIComponent(_next)) : '' %>">
+        <span class="lang-flag"><%= l.flag %></span>
+        <span><%= l.native || l.label %></span>
+        <span class="cur"><%= l.symbol || '' %></span>
+      </a>
+    <% }); %>
+  </div>
+</div>
+<script>
+document.addEventListener('click', function(e){
+  var el = document.getElementById('langSwitch');
+  if (el && !el.contains(e.target)) el.classList.remove('open');
+});
+</script>
