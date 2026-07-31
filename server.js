@@ -75,6 +75,24 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── Çoxdilli dəstək (en default | az | tr | ru | ka) ──
+const i18n = require('./services/i18n');
+app.use(i18n.middleware);
+
+// Dil dəyişmə: /lang/tr?next=/wallet
+app.get('/lang/:code', async (req, res) => {
+  const code = i18n.normalizeLocale(req.params.code);
+  req.session.locale = code;
+  if (req.session.userId) {
+    try {
+      const User = require('./models/User');
+      await User.updateOne({ _id: req.session.userId }, { $set: { locale: code } });
+    } catch (e) { /* sessiya dili yenə işləyir */ }
+  }
+  const next = String(req.query.next || req.get('referer') || '/');
+  return res.redirect(next.startsWith('/') ? next : '/');
+});
+
 // Routes
 const authRoutes    = require('./routes/auth');
 const gameRoutes    = require('./routes/game');
