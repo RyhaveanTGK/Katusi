@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
  */
 const paymentMethodSchema = new mongoose.Schema({
   key:        { type: String, required: true, trim: true },              // vakifbank, sberbank, crypto_usdt ...
-  locale:     { type: String, required: true, enum: ['az', 'tr', 'ru', 'en'], index: true },
+  locale:     { type: String, required: true, enum: ['az', 'tr', 'ru', 'ka', 'en'], index: true },
   name:       { type: String, required: true, trim: true },              // Vakıf Bank
   kind:       { type: String, enum: ['bank', 'iban', 'transfer', 'crypto'], default: 'bank' },
   logo:       { type: String, default: '' },                             // /assets/banks/xxx.svg
