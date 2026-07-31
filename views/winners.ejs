@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="az">
+<html lang="<%= locale %>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Qaliblər – One Loto</title>
+<meta name="theme-color" content="#3d0d62">
+<title><%= t('winners.title') %> – One Loto</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{ box-sizing:border-box; margin:0; padding:0; }
@@ -15,50 +16,107 @@ html,body{ overflow-x:hidden; }
   --secondary-purple:#5c2491;
 }
 body{
-  background:var(--bg-purple); color:#fff;
-  font-family:'Inter',sans-serif; min-height:100vh;
+  background:
+    radial-gradient(900px 460px at 50% -140px, rgba(245,197,24,.20), transparent 70%),
+    radial-gradient(700px 380px at 110% 40%, rgba(122,45,176,.35), transparent 65%),
+    var(--bg-purple);
+  color:#fff; font-family:'Inter',sans-serif; min-height:100vh;
   padding-top:72px; padding-bottom:24px;
 }
-.wrap{ width:100%; max-width:414px; margin:0 auto; padding:14px 14px 24px; }
-.page-title{ font-size:22px; font-weight:900; margin-bottom:4px; }
-.page-sub{ font-size:12.5px; color:rgba(255,255,255,.55); margin-bottom:14px; line-height:1.5; }
+.wrap{ width:100%; max-width:430px; margin:0 auto; padding:14px 14px 24px; }
+
+/* ── Başlıq + kubok ── */
+.hero{
+  position:relative; display:flex; align-items:center; gap:14px;
+  margin-bottom:16px;
+}
+.hero img.trophy{
+  width:86px; height:86px; object-fit:contain; flex:0 0 86px;
+  filter: drop-shadow(0 14px 22px rgba(245,197,24,.35));
+  animation: floaty 3.4s ease-in-out infinite;
+}
+@keyframes floaty{ 0%,100%{ transform:translateY(0) rotate(-2deg);} 50%{ transform:translateY(-9px) rotate(2deg);} }
+.page-title{ font-size:24px; font-weight:900; letter-spacing:-.4px; }
+.page-sub{ font-size:12.5px; color:rgba(255,255,255,.58); margin-top:4px; line-height:1.5; }
 
 /* ── Dövr paneli ── */
 .cycle-box{
-  background:linear-gradient(160deg, rgba(245,197,24,.16), rgba(92,36,145,.35));
+  position:relative; overflow:hidden;
+  background:linear-gradient(160deg, rgba(245,197,24,.18), rgba(92,36,145,.42));
   border:1px solid rgba(245,197,24,.32);
-  border-radius:16px; padding:14px; margin-bottom:14px;
+  border-radius:20px; padding:15px; margin-bottom:16px;
 }
+.cycle-box::after{
+  content:''; position:absolute; top:0; left:-60%; width:45%; height:100%;
+  background:linear-gradient(100deg, transparent, rgba(255,255,255,.16), transparent);
+  animation: shine 4.5s ease-in-out infinite;
+}
+@keyframes shine{ 0%{ left:-60%; } 55%,100%{ left:120%; } }
 .cycle-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-.cycle-lbl{ font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:rgba(255,255,255,.6); }
-.cycle-timer{ font-size:22px; font-weight:900; color:var(--primary-yellow); font-variant-numeric:tabular-nums; }
-.cycle-prizes{ display:flex; gap:6px; margin-top:12px; }
-.cp{ flex:1; background:rgba(0,0,0,.22); border-radius:11px; padding:8px 6px; text-align:center; }
-.cp .r{ font-size:10.5px; font-weight:800; color:rgba(255,255,255,.6); }
-.cp .v{ font-size:13px; font-weight:900; margin-top:3px; }
-.cp.g1 .v{ color:#ffd700; } .cp.g2 .v{ color:#d8d8d8; } .cp.g3 .v{ color:#e2a06a; } .cp.g4 .v{ color:#9be6b4; }
+.cycle-lbl{ font-size:10.5px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:rgba(255,255,255,.6); }
+.cycle-timer{ font-size:26px; font-weight:900; color:var(--primary-yellow); font-variant-numeric:tabular-nums; margin-top:2px; }
+.pulse-dot{
+  width:9px; height:9px; border-radius:50%; background:#48d597; display:inline-block; margin-right:6px;
+  box-shadow:0 0 0 0 rgba(72,213,151,.7); animation: pulse 1.8s infinite;
+}
+@keyframes pulse{ 70%{ box-shadow:0 0 0 10px rgba(72,213,151,0);} 100%{ box-shadow:0 0 0 0 rgba(72,213,151,0);} }
+.cycle-prizes{ display:flex; gap:6px; margin-top:13px; }
+.cp{ flex:1; background:rgba(0,0,0,.24); border-radius:12px; padding:9px 6px; text-align:center; border:1px solid rgba(255,255,255,.06); }
+.cp .r{ font-size:10px; font-weight:800; color:rgba(255,255,255,.6); }
+.cp .v{ font-size:13.5px; font-weight:900; margin-top:3px; display:flex; align-items:center; justify-content:center; gap:3px; }
+.cp .v img{ width:12px; height:12px; }
+.cp.g1 .v{ color:#ffd700; } .cp.g2 .v{ color:#dcdcdc; } .cp.g3 .v{ color:#e2a06a; } .cp.g4 .v{ color:#9be6b4; }
+
+/* ── Podium (ilk 3) ── */
+.podium{ display:grid; grid-template-columns:1fr 1.15fr 1fr; gap:8px; align-items:end; margin-bottom:16px; }
+.pod{
+  background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12); border-radius:18px;
+  padding:12px 8px 12px; text-align:center; position:relative;
+  animation: rise .55s cubic-bezier(.2,.8,.25,1) both;
+}
+.pod.p1{ border-color:rgba(245,197,24,.55); background:linear-gradient(180deg, rgba(245,197,24,.20), rgba(245,197,24,.05)); padding-top:16px; padding-bottom:18px; animation-delay:.05s; }
+.pod.p2{ animation-delay:.15s; } .pod.p3{ animation-delay:.25s; }
+@keyframes rise{ from{ opacity:0; transform:translateY(18px) scale(.96);} to{ opacity:1; transform:none;} }
+.pod .ava{
+  width:52px; height:52px; border-radius:50%; margin:0 auto 8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; font-weight:900; color:#2b0e46;
+  border:2.5px solid rgba(255,255,255,.55);
+  box-shadow:0 8px 20px -8px rgba(0,0,0,.7);
+}
+.pod.p1 .ava{ width:62px; height:62px; font-size:22px; }
+.pod .medal{ position:absolute; top:-12px; right:8px; width:34px; height:42px; animation: swing 3s ease-in-out infinite; }
+.pod.p1 .medal{ width:40px; height:49px; top:-16px; }
+@keyframes swing{ 0%,100%{ transform:rotate(-6deg);} 50%{ transform:rotate(6deg);} }
+.pod .nm{ font-size:12.5px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pod .st{ font-size:12px; font-weight:900; color:var(--primary-yellow); margin-top:3px; display:flex; align-items:center; justify-content:center; gap:3px; }
+.pod .st img{ width:13px; height:13px; }
+.pod .pz{ font-size:10.5px; color:rgba(255,255,255,.55); margin-top:2px; }
 
 /* ── Mənim yerim ── */
 .me-box{
   display:flex; align-items:center; gap:12px;
-  background:rgba(245,197,24,.12); border:1px solid rgba(245,197,24,.35);
-  border-radius:14px; padding:12px 14px; margin-bottom:14px;
+  background:linear-gradient(120deg, rgba(245,197,24,.18), rgba(245,197,24,.07));
+  border:1px solid rgba(245,197,24,.38);
+  border-radius:16px; padding:12px 14px; margin-bottom:14px;
 }
 .me-rank{
-  width:38px; height:38px; border-radius:12px; flex:0 0 38px;
+  width:40px; height:40px; border-radius:13px; flex:0 0 40px;
   display:flex; align-items:center; justify-content:center;
   font-size:14px; font-weight:900; color:#3d2200;
   background:linear-gradient(135deg,#ffd700,#f0a800);
+  box-shadow:0 8px 18px -8px rgba(245,197,24,.9);
 }
 .me-info{ flex:1; min-width:0; }
 .me-t{ font-size:13.5px; font-weight:800; }
-.me-s{ font-size:11.5px; color:rgba(255,255,255,.6); margin-top:2px; }
+.me-s{ font-size:11.5px; color:rgba(255,255,255,.62); margin-top:2px; }
 .me-p{ font-size:14px; font-weight:900; color:var(--primary-yellow); text-align:right; flex-shrink:0; }
 
-.tab-row{ display:flex; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.15); margin-bottom:14px; }
+.tab-row{ display:flex; border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.15); margin-bottom:14px; }
 .tab-btn{
-  flex:1; padding:11px 6px; font-size:12.5px; font-weight:700; border:none; cursor:pointer;
-  background:rgba(255,255,255,.07); color:rgba(255,255,255,.7); transition:background .2s,color .2s;
+  flex:1; padding:12px 6px; font-size:12.5px; font-weight:800; border:none; cursor:pointer;
+  background:rgba(255,255,255,.06); color:rgba(255,255,255,.7); transition:background .2s,color .2s;
   font-family:'Inter',sans-serif;
 }
 .tab-btn.active{ background:var(--secondary-purple); color:#fff; }
@@ -66,53 +124,51 @@ body{
 .rank-row{
   display:flex; align-items:center; gap:11px;
   padding:11px 13px; background:rgba(255,255,255,.05);
-  border-radius:12px; margin-bottom:7px; border:1px solid rgba(255,255,255,.08);
+  border-radius:14px; margin-bottom:8px; border:1px solid rgba(255,255,255,.08);
+  animation: slidein .45s ease both; transition: transform .15s ease, background .15s ease;
 }
+.rank-row:hover{ background:rgba(255,255,255,.09); transform:translateX(2px); }
+@keyframes slidein{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
 .rank-row.mine{ border-color:rgba(245,197,24,.55); background:rgba(245,197,24,.1); }
 .rank-medal{
-  width:32px; height:32px; border-radius:50%; flex:0 0 32px;
+  width:34px; height:34px; border-radius:50%; flex:0 0 34px;
   display:flex; align-items:center; justify-content:center;
-  font-weight:800; font-size:13.5px; color:#3d2200;
-  border:2px solid rgba(255,255,255,.5);
+  font-weight:900; font-size:13px; color:#3d2200;
+  border:2px solid rgba(255,255,255,.45); background:rgba(255,255,255,.14);
 }
-.rank-1{ background:linear-gradient(135deg,#ffd700,#f0a800); }
-.rank-2{ background:linear-gradient(135deg,#c0c0c0,#a0a0a0); }
-.rank-3{ background:linear-gradient(135deg,#cd7f32,#a0522d); }
-.rank-other{ background:rgba(255,255,255,.14); color:#fff; border-color:rgba(255,255,255,.28); font-size:12.5px; }
+.rank-medal img{ width:34px; height:42px; border:0; }
+.rank-medal.plain{ color:#fff; font-size:12.5px; }
+.rank-ava{
+  width:34px; height:34px; border-radius:50%; flex:0 0 34px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:900; color:#2b0e46; border:2px solid rgba(255,255,255,.35);
+}
 .rank-info{ flex:1; min-width:0; }
-.rank-name{ font-size:14.5px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rank-stats{ font-size:11.5px; color:rgba(255,255,255,.5); margin-top:2px; display:flex; align-items:center; gap:5px; }
+.rank-name{ font-size:14px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rank-stats{ font-size:11.5px; color:rgba(255,255,255,.5); margin-top:2px; }
 .rank-right{ flex-shrink:0; text-align:right; }
-.rank-stars{ font-size:14.5px; font-weight:900; color:#fff; white-space:nowrap; }
+.rank-stars{ font-size:14px; font-weight:900; color:#fff; white-space:nowrap; display:flex; align-items:center; gap:4px; justify-content:flex-end; }
+.rank-stars img{ width:14px; height:14px; }
 .rank-prize{ font-size:11.5px; font-weight:800; color:var(--primary-yellow); margin-top:2px; white-space:nowrap; }
 
 .recent-item{
-  display:flex; align-items:center; gap:10px;
+  display:flex; align-items:center; gap:11px;
   padding:11px 13px; background:rgba(255,255,255,.05);
-  border-radius:12px; margin-bottom:7px; border:1px solid rgba(255,255,255,.08);
+  border-radius:14px; margin-bottom:8px; border:1px solid rgba(255,255,255,.08);
+  animation: slidein .45s ease both;
 }
-.ri-icon{ font-size:22px; flex-shrink:0; }
+.recent-item img.ci{ width:30px; height:30px; flex:0 0 30px; animation: pop 2.6s ease-in-out infinite; }
+@keyframes pop{ 0%,100%{ transform:scale(1) rotate(0);} 50%{ transform:scale(1.14) rotate(8deg);} }
 .ri-info{ flex:1; min-width:0; }
-.ri-name{ font-size:14px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ri-room{ font-size:11.5px; color:rgba(255,255,255,.5); }
-.ri-prize{ font-size:14.5px; font-weight:900; color:#1cb85d; flex-shrink:0; }
-.ri-date{ font-size:10.5px; color:rgba(255,255,255,.4); margin-top:2px; }
+.ri-name{ font-size:13.5px; font-weight:800; }
+.ri-room{ font-size:11.5px; color:rgba(255,255,255,.55); margin-top:1px; }
+.ri-date{ font-size:10.5px; color:rgba(255,255,255,.38); margin-top:1px; }
+.ri-prize{ font-size:14px; font-weight:900; color:#48d597; white-space:nowrap; }
 
-.empty-state{ text-align:center; padding:38px 20px; color:rgba(255,255,255,.4); }
-.empty-state .icon{ font-size:44px; margin-bottom:10px; }
-.note{ font-size:11px; line-height:1.6; color:rgba(255,255,255,.42); margin-top:14px; text-align:center; }
-
-@media (max-width:370px){
-  .rank-row{ padding:10px 11px; gap:9px; }
-  .rank-medal{ width:29px; height:29px; flex:0 0 29px; font-size:12px; }
-  .rank-name{ font-size:13.5px; }
-  .rank-stars{ font-size:13.5px; }
-  .cycle-timer{ font-size:19px; }
-  .cp .v{ font-size:11.5px; }
-}
-@supports (padding: max(0px)) {
-  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
-}
+.empty-state{ text-align:center; padding:34px 16px; color:rgba(255,255,255,.45); font-size:13px; }
+.empty-state img{ width:64px; height:64px; opacity:.65; margin-bottom:10px; }
+.note{ font-size:11.5px; color:rgba(255,255,255,.45); line-height:1.6; margin-top:12px; text-align:center; }
+@supports (padding: max(0px)) { body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); } }
 </style>
 </head>
 <body>
@@ -125,69 +181,103 @@ function fmtStars(n){
   if (n >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'K';
   return String(n);
 }
+var AVA = ['#f5c518,#f08a00','#7ee8c1,#22a06b','#9ec5ff,#3f6fd4','#ffb0c8,#e0457b','#d7b3ff,#8a3ffc','#ffd9a0,#e07b39'];
+function avaStyle(name){
+  var i = 0, s = String(name || '?');
+  for (var k=0;k<s.length;k++) i = (i + s.charCodeAt(k)) % AVA.length;
+  var c = AVA[i].split(',');
+  return 'background:linear-gradient(135deg,' + c[0] + ',' + c[1] + ');';
+}
+function initials(name){
+  var s = String(name || '?').trim();
+  return (s.charAt(0) || '?').toUpperCase() + (s.charAt(1) || '').toUpperCase();
+}
+var intl = localeMeta.intl;
+var top3 = leaders.slice(0, 3);
+var rest = leaders.slice(3);
+var medalImg = ['/assets/winners/medal-gold.svg','/assets/winners/medal-silver.svg','/assets/winners/medal-bronze.svg'];
 %>
 
 <div class="wrap">
-  <div class="page-title">⭐ Qaliblər</div>
-  <div class="page-sub">
-    Liderboard ən çox ulduz yığan oyunçulara görədir — bütün otaqlarda
-    biletin qiymətinə görə ulduz qazanırsınız.
+  <div class="hero">
+    <img class="trophy" src="/assets/winners/trophy.png" alt="<%= t('winners.title') %>" width="86" height="86">
+    <div>
+      <div class="page-title"><%= t('winners.title') %></div>
+      <div class="page-sub"><%= t('winners.sub') %></div>
+    </div>
   </div>
 
   <div class="cycle-box">
     <div class="cycle-top">
       <div>
-        <div class="cycle-lbl">Uduşlara qalan vaxt</div>
-        <div class="cycle-timer" id="cycleTimer" data-left="<%= secondsLeft %>">--:--:--</div>
+        <div class="cycle-lbl"><span class="pulse-dot"></span><%= t('winners.time_left') %></div>
+        <div class="cycle-timer" id="cycleTimer" data-left="<%= secondsLeft %>" data-payout="<%= t('winners.payout_now') %>">--:--:--</div>
       </div>
-      <div style="font-size:34px;line-height:1;">⭐</div>
+      <img src="/assets/winners/star.svg" alt="star" width="42" height="42" style="animation:swing 2.6s ease-in-out infinite;">
     </div>
     <div class="cycle-prizes">
-      <div class="cp g1"><div class="r">1-ci</div><div class="v"><%= fmtStars(prizes.first) %></div></div>
-      <div class="cp g2"><div class="r">2-ci</div><div class="v"><%= fmtStars(prizes.second) %></div></div>
-      <div class="cp g3"><div class="r">3-cü</div><div class="v"><%= fmtStars(prizes.third) %></div></div>
-      <div class="cp g4"><div class="r">4–<%= prizes.size %></div><div class="v"><%= fmtStars(prizes.rest) %></div></div>
+      <div class="cp g1"><div class="r">1</div><div class="v"><%= fmtStars(prizes.first) %><img src="/assets/winners/star.svg" alt=""></div></div>
+      <div class="cp g2"><div class="r">2</div><div class="v"><%= fmtStars(prizes.second) %><img src="/assets/winners/star.svg" alt=""></div></div>
+      <div class="cp g3"><div class="r">3</div><div class="v"><%= fmtStars(prizes.third) %><img src="/assets/winners/star.svg" alt=""></div></div>
+      <div class="cp g4"><div class="r">4–<%= prizes.size %></div><div class="v"><%= fmtStars(prizes.rest) %><img src="/assets/winners/star.svg" alt=""></div></div>
     </div>
   </div>
+
+  <% if (top3.length) { %>
+  <div class="podium">
+    <% [1,0,2].forEach(function(idx){ var r = top3[idx]; if(!r) { %><div></div><% return; } %>
+      <div class="pod p<%= r.rank %>">
+        <img class="medal" src="<%= medalImg[r.rank-1] %>" alt="#<%= r.rank %>">
+        <div class="ava" style="<%= avaStyle(r.name) %>"><%= initials(r.name) %></div>
+        <div class="nm"><%= r.name %></div>
+        <div class="st"><%= fmtStars(r.periodStars) %><img src="/assets/winners/star.svg" alt=""></div>
+        <div class="pz">+<%= fmtStars(r.prize) %> <%= t('winners.prize') %></div>
+      </div>
+    <% }); %>
+  </div>
+  <% } %>
 
   <div class="me-box">
     <div class="me-rank"><%= me.rank ? '#' + me.rank : '—' %></div>
     <div class="me-info">
       <div class="me-t"><%= user.username %></div>
       <div class="me-s">
-        Bu dövrdə <%= me.periodStars.toLocaleString('az-AZ') %> ulduz
-        <% if (!me.rank) { %> • siyahıya düşmək üçün oyna<% } %>
+        <%= Number(me.periodStars || 0).toLocaleString(intl) %> <%= t('winners.period_stars') %><% if (!me.rank) { %> • <%= t('winners.play_to_rank') %><% } %>
       </div>
     </div>
-    <div class="me-p"><%= me.prize > 0 ? '+' + fmtStars(me.prize) + ' ⭐' : '—' %></div>
+    <div class="me-p"><%= me.prize > 0 ? '+' + fmtStars(me.prize) : '—' %></div>
   </div>
 
   <div class="tab-row">
-    <button class="tab-btn active" onclick="showTab('top')">Ulduz liderboardu</button>
-    <button class="tab-btn" onclick="showTab('recent')">Son qaliblər</button>
+    <button class="tab-btn active" onclick="showTab('top')"><%= t('winners.tab_top') %></button>
+    <button class="tab-btn" onclick="showTab('recent')"><%= t('winners.tab_recent') %></button>
   </div>
 
   <div id="tab-top">
     <% if (!leaders.length) { %>
-      <div class="empty-state"><div class="icon">⭐</div><div>Bu dövrdə hələ ulduz yığan yoxdur</div></div>
+      <div class="empty-state">
+        <img src="/assets/winners/star.svg" alt="">
+        <div><%= t('winners.empty') %></div>
+      </div>
     <% } %>
-    <% leaders.forEach(function(r){ %>
-      <div class="rank-row <%= (!r.isBot && String(r.id) === String(user._id)) ? 'mine' : '' %>">
-        <div class="rank-medal <%= r.rank === 1 ? 'rank-1' : r.rank === 2 ? 'rank-2' : r.rank === 3 ? 'rank-3' : 'rank-other' %>"><%= r.rank %></div>
+    <% rest.forEach(function(r, i){ %>
+      <div class="rank-row <%= (!r.isBot && String(r.id) === String(user._id)) ? 'mine' : '' %>" style="animation-delay:<%= Math.min(i * 0.04, 0.5) %>s">
+        <div class="rank-medal plain"><%= r.rank %></div>
+        <div class="rank-ava" style="<%= avaStyle(r.name) %>"><%= initials(r.name) %></div>
         <div class="rank-info">
           <div class="rank-name"><%= r.name %></div>
-          <div class="rank-stats"><%= r.gamesPlayed %> bilet • ümumi <%= fmtStars(r.stars) %> ⭐</div>
+          <div class="rank-stats"><%= r.gamesPlayed %> <%= t('winners.tickets') %> • <%= t('winners.total') %> <%= fmtStars(r.stars) %></div>
         </div>
         <div class="rank-right">
-          <div class="rank-stars"><%= r.periodStars.toLocaleString('az-AZ') %> ⭐</div>
-          <div class="rank-prize">uduş +<%= fmtStars(r.prize) %></div>
+          <div class="rank-stars"><%= Number(r.periodStars || 0).toLocaleString(intl) %><img src="/assets/winners/star.svg" alt=""></div>
+          <div class="rank-prize"><%= t('winners.prize') %> +<%= fmtStars(r.prize) %></div>
         </div>
       </div>
     <% }); %>
     <div class="note">
-      Hər 24 saatdan bir uduşlar avtomatik balansa köçürülür və sayğaclar sıfırlanır.
+      <%= t('winners.note') %>
       <% if (lastCycle) { %>
-        <br>Son ödəniş: <%= new Date(lastCycle.paidAt).toLocaleString('az-AZ', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) %>
+        <br><%= t('winners.last_payout') %>: <%= new Date(lastCycle.paidAt).toLocaleString(intl, {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) %>
         · <%= fmtStars(lastCycle.totalPaid) %> ⭐
       <% } %>
     </div>
@@ -195,17 +285,20 @@ function fmtStars(n){
 
   <div id="tab-recent" style="display:none;">
     <% if (!recentGames.length) { %>
-      <div class="empty-state"><div class="icon">🎯</div><div>Hələ heç bir oyun bitməyib</div></div>
+      <div class="empty-state">
+        <img src="/assets/winners/confetti.svg" alt="">
+        <div><%= t('winners.empty_recent') %></div>
+      </div>
     <% } %>
-    <% recentGames.forEach(function(g){ %>
-      <div class="recent-item">
-        <div class="ri-icon">🎊</div>
+    <% recentGames.forEach(function(g, i){ %>
+      <div class="recent-item" style="animation-delay:<%= Math.min(i * 0.05, 0.5) %>s">
+        <img class="ci" src="/assets/winners/confetti.svg" alt="">
         <div class="ri-info">
-          <div class="ri-name"><%= g.userId ? g.userId.username : 'İstifadəçi' %></div>
-          <div class="ri-room"><%= g.roomId ? g.roomId.name : 'Otaq' %></div>
-          <div class="ri-date"><%= new Date(g.playedAt).toLocaleString('az-AZ', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) %></div>
+          <div class="ri-name"><%= g.userId ? g.userId.username : '—' %></div>
+          <div class="ri-room"><%= g.roomId ? g.roomId.name : '' %></div>
+          <div class="ri-date"><%= new Date(g.playedAt).toLocaleString(intl, {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) %></div>
         </div>
-        <div class="ri-prize">+<%= g.prize.toFixed(2) %> ₼</div>
+        <div class="ri-prize">+<%= money(g.prize) %></div>
       </div>
     <% }); %>
   </div>
@@ -223,10 +316,11 @@ function showTab(tab){
 }
 (function(){
   var el = document.getElementById('cycleTimer');
+  if (!el) return;
   var left = parseInt(el.dataset.left || '0', 10);
   function two(n){ return (n<10?'0':'') + n; }
   function paint(){
-    if (left <= 0){ el.textContent = 'Uduşlar paylanır…'; return; }
+    if (left <= 0){ el.textContent = el.dataset.payout; return; }
     var h = Math.floor(left/3600), m = Math.floor((left%3600)/60), s = left%60;
     el.textContent = two(h)+':'+two(m)+':'+two(s);
     left -= 1;
