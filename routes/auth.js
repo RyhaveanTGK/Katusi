@@ -178,6 +178,7 @@ router.post('/verify-email', async (req, res) => {
 
     req.session.pendingVerifyUserId = null;
     req.session.userId   = user._id.toString();
+    if (user.locale) req.session.locale = user.locale;
     req.session.username = user.username;
     req.session.isAdmin  = user.isAdmin;
 
@@ -276,6 +277,7 @@ router.post('/login', requireGuest, async (req, res) => {
     }
 
     req.session.userId   = user._id.toString();
+    if (user.locale) req.session.locale = user.locale;
     req.session.username = user.username;
     req.session.isAdmin  = user.isAdmin;
     // Admin istifadəçi birbaşa admin panelinə düşür.
