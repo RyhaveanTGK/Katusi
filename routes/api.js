@@ -8,6 +8,7 @@ const WinnerLog = require('../models/WinnerLog');
 const DepositCounter = require('../models/DepositCounter');
 const { flatCardNumbers, isCardComplete, isCardFull, linePrize, computeStakeTotal, LEAVE_COMMISSION, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake, canMarkNumber, missedNumbersFor, basePotOf, findJoinableRoom, MARK_GRACE_SEC, capacityOf, startsInSec } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
+const starLeague = require('../services/starLeague');
 
 const apiAuth = (req, res, next) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
@@ -337,7 +338,8 @@ router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
     if (isStars) user.stars = Number(user.stars || 0) - totalFee;
     else user.balance = Number(user.balance || 0) - totalFee;
     user.gamesPlayed = Number(user.gamesPlayed || 0) + quantity;
-    await user.save();
+    // Biletin qiymətinə görə ulduz (24 saatlıq liderboard üçün)
+    await starLeague.awardStars(user, room, quantity);
 
     if (!room.players.map(String).includes(String(user._id))) {
       room.players.push(user._id);
