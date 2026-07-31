@@ -14,8 +14,15 @@ const userSchema = new mongoose.Schema({
   passportPhoto:  { type: String, default: '' },               // Passport şəkili (URL)
   facePhoto:      { type: String, default: '' },               // Üz şəkili (URL)
   isVerified:     { type: Boolean, default: false },
+
+  // ── E-poçt doğrulaması (Resend ilə göndərilən 6 rəqəmli kod) ──
+  emailVerified:   { type: Boolean, default: false },
+  emailVerifiedAt: { type: Date,    default: null },
+
   balance:  { type: Number, default: 0 },
-  stars:    { type: Number, default: 0 },
+  stars:    { type: Number, default: 0 },      // ümumi ulduz balansı
+  periodStars:   { type: Number, default: 0 }, // 24 saatlıq liderboard ulduzları
+  starPrizesWon: { type: Number, default: 0 }, // liderboarddan qazanılmış ulduzlar
   referralCode: { type: String, unique: true },
   referredBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   isAdmin:  { type: Boolean, default: false },
