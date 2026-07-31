@@ -78,19 +78,19 @@ body{ padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
   <div class="quicknav-inner">
     <a href="/" class="qn-item <%= _active === 'home' ? 'active' : '' %>">
       <span class="material-symbols-outlined">home</span>
-      <span class="qn-label">Ana səhifə</span>
+      <span class="qn-label"><%= t('nav.home') %></span>
     </a>
     <a href="/winners" class="qn-item <%= _active === 'winners' ? 'active' : '' %>">
       <span class="material-symbols-outlined">emoji_events</span>
-      <span class="qn-label">Qaliblər</span>
+      <span class="qn-label"><%= t('nav.winners') %></span>
     </a>
     <a href="/profile/referral" class="qn-item <%= _active === 'referral' ? 'active' : '' %>">
       <span class="material-symbols-outlined">group</span>
-      <span class="qn-label">Dəvət</span>
+      <span class="qn-label"><%= t('nav.referral') %></span>
     </a>
     <a href="/profile" class="qn-item <%= (_active === 'profile' || _active === 'wallet') ? 'active' : '' %>">
       <span class="material-symbols-outlined">person</span>
-      <span class="qn-label">Profil</span>
+      <span class="qn-label"><%= t('nav.profile') %></span>
     </a>
   </div>
 </nav>
