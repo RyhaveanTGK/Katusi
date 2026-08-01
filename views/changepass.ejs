@@ -68,6 +68,29 @@ body{ background:#3d0d62; color:#fff; font-family:'Inter',sans-serif; min-height
   border:none; border-radius:12px; cursor:pointer;
   font-family:'Inter',sans-serif; margin-top:4px;
 }
+.code-box{ display:flex; gap:8px; justify-content:space-between; margin:6px 0 4px; }
+.code-box input{
+  flex:1; min-width:0; text-align:center; padding:14px 0;
+  background:rgba(0,0,0,.28); border:1.5px solid rgba(255,255,255,.2);
+  border-radius:12px; color:#f5c518; font-size:22px; font-weight:900;
+  font-family:'Inter',monospace; outline:none;
+}
+.code-box input:focus{ border-color:#f5c518; }
+.mail-note{ font-size:13px; color:rgba(255,255,255,.75); line-height:1.55; margin-bottom:14px; }
+.mail-note b{ color:#f5c518; }
+.timer{ text-align:center; font-size:12.5px; font-weight:700; color:rgba(255,255,255,.6); margin-top:10px; }
+.timer b{ color:#f5c518; }
+.row-2{ display:flex; gap:8px; margin-top:10px; }
+.btn-ghost{
+  flex:1; padding:12px; background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18); color:#fff;
+  border-radius:12px; font-size:13px; font-weight:800; cursor:pointer; font-family:'Inter',sans-serif;
+}
+.step-badge{
+  display:inline-block; font-size:11px; font-weight:800; letter-spacing:.4px;
+  background:rgba(245,197,24,.16); color:#f5c518; border:1px solid rgba(245,197,24,.35);
+  border-radius:99px; padding:4px 11px; margin-bottom:12px;
+}
 .help-text{
   font-size:12px; color:rgba(255,255,255,.55);
   margin-top:14px; line-height:1.5;
@@ -92,42 +115,77 @@ body{ background:#3d0d62; color:#fff; font-family:'Inter',sans-serif; min-height
   <% if (success) { %><div class="success-msg"><%= success %></div><% } %>
 
   <div class="form-section">
-    <form method="POST" action="/profile/changepass">
-      <div class="form-group">
-        <label class="form-label">Köhnə şifrə</label>
-        <div class="pwd-wrap">
-          <input class="form-input" type="password" name="oldpass" id="p1" placeholder="Mövcud şifrəniz" required autocomplete="current-password">
-          <button type="button" class="eye-btn" onclick="togglePwd('p1','i1')">
-            <svg id="i1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
+    <% if (typeof step !== 'undefined' && step === 'verify') { %>
+      <!-- ══════ ADDIM 2 · E-poçt təsdiq kodu (2FA) ══════ -->
+      <div class="step-badge">ADDIM 2 / 2 · E-POÇT TƏSDİQİ</div>
+      <div class="mail-note">
+        Təhlükəsizlik üçün <b><%= maskedEmail %></b> ünvanına 6 rəqəmli təsdiq kodu göndərdik.
+        Kodu daxil etmədən şifrəniz DƏYİŞMİR.
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Yeni şifrə (min. 6 simvol)</label>
-        <div class="pwd-wrap">
-          <input class="form-input" type="password" name="newpass" id="p2" placeholder="Yeni şifrəniz" minlength="6" required autocomplete="new-password">
-          <button type="button" class="eye-btn" onclick="togglePwd('p2','i2')">
-            <svg id="i2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
+      <form method="POST" action="/profile/changepass/verify" id="codeForm">
+        <label class="form-label">Təsdiq kodu</label>
+        <input type="hidden" name="code" id="codeValue">
+        <div class="code-box">
+          <input class="cd" type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code">
+          <input class="cd" type="text" inputmode="numeric" maxlength="1">
+          <input class="cd" type="text" inputmode="numeric" maxlength="1">
+          <input class="cd" type="text" inputmode="numeric" maxlength="1">
+          <input class="cd" type="text" inputmode="numeric" maxlength="1">
+          <input class="cd" type="text" inputmode="numeric" maxlength="1">
         </div>
-      </div>
+        <div class="timer" id="timer" data-left="<%= secondsLeft %>">Kodun etibarlılıq müddəti: <b>--:--</b></div>
+        <button type="submit" class="btn-save" style="margin-top:14px;">Təsdiqlə və şifrəni dəyiş</button>
+      </form>
 
-      <div class="form-group">
-        <label class="form-label">Yeni şifrəni təsdiqlə</label>
-        <div class="pwd-wrap">
-          <input class="form-input" type="password" name="newpass2" id="p3" placeholder="Yeni şifrəni təkrarlayın" minlength="6" required autocomplete="new-password">
-          <button type="button" class="eye-btn" onclick="togglePwd('p3','i3')">
-            <svg id="i3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
+      <div class="row-2">
+        <form method="POST" action="/profile/changepass/resend" style="flex:1;">
+          <button type="submit" class="btn-ghost">Yeni kod göndər</button>
+        </form>
+        <form method="POST" action="/profile/changepass/cancel" style="flex:1;">
+          <button type="submit" class="btn-ghost">Ləğv et</button>
+        </form>
+      </div>
+    <% } else { %>
+      <!-- ══════ ADDIM 1 · Şifrələr ══════ -->
+      <div class="step-badge">ADDIM 1 / 2 · YENİ ŞİFRƏ</div>
+      <form method="POST" action="/profile/changepass">
+        <div class="form-group">
+          <label class="form-label">Köhnə şifrə</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" name="oldpass" id="p1" placeholder="Mövcud şifrəniz" required autocomplete="current-password">
+            <button type="button" class="eye-btn" onclick="togglePwd('p1','i1')">
+              <svg id="i1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <button type="submit" class="btn-save">Şifrəni dəyiş</button>
-    </form>
+        <div class="form-group">
+          <label class="form-label">Yeni şifrə (min. 6 simvol)</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" name="newpass" id="p2" placeholder="Yeni şifrəniz" minlength="6" required autocomplete="new-password">
+            <button type="button" class="eye-btn" onclick="togglePwd('p2','i2')">
+              <svg id="i2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Yeni şifrəni təsdiqlə</label>
+          <div class="pwd-wrap">
+            <input class="form-input" type="password" name="newpass2" id="p3" placeholder="Yeni şifrəni təkrarlayın" minlength="6" required autocomplete="new-password">
+            <button type="button" class="eye-btn" onclick="togglePwd('p3','i3')">
+              <svg id="i3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save">E-poçta təsdiq kodu göndər</button>
+      </form>
+    <% } %>
 
     <div class="help-text">
-      ⓘ Şifrəniz heç vaxt e-poçt və ya Telegram vasitəsilə soruşulmur. Şübhəli sorğu aldığınızda dərhal <code>support@onelotto.com</code> ünvanına yazın.
+      ⓘ Şifrə dəyişikliyi e-poçt təsdiqi (2FA) tələb edir. Şifrəniz heç vaxt e-poçt və ya Telegram vasitəsilə soruşulmur.
     </div>
   </div>
 </div>
@@ -135,6 +193,47 @@ body{ background:#3d0d62; color:#fff; font-family:'Inter',sans-serif; min-height
 <%- include('partials/footer', { activePage: 'profile' }) %>
 
 <script>
+/* ── 2FA kod xanaları ── */
+(function(){
+  var boxes = document.querySelectorAll('.code-box .cd');
+  var hidden = document.getElementById('codeValue');
+  if (!boxes.length || !hidden) return;
+  function sync(){
+    var v = ''; boxes.forEach(function(b){ v += (b.value || '').replace(/\D/g,''); });
+    hidden.value = v;
+  }
+  boxes.forEach(function(b, i){
+    b.addEventListener('input', function(){
+      b.value = (b.value || '').replace(/\D/g,'').slice(0,1);
+      if (b.value && boxes[i+1]) boxes[i+1].focus();
+      sync();
+    });
+    b.addEventListener('keydown', function(e){
+      if (e.key === 'Backspace' && !b.value && boxes[i-1]) boxes[i-1].focus();
+    });
+    b.addEventListener('paste', function(e){
+      var d = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+      if (!d) return;
+      e.preventDefault();
+      for (var k = 0; k < boxes.length; k++) boxes[k].value = d[k] || '';
+      sync();
+      (boxes[Math.min(d.length, boxes.length - 1)]).focus();
+    });
+  });
+  if (boxes[0]) boxes[0].focus();
+
+  var t = document.getElementById('timer');
+  if (t) {
+    var left = parseInt(t.dataset.left, 10) || 0;
+    (function tick(){
+      if (left <= 0){ t.innerHTML = 'Kodun vaxtı bitdi — <b>yeni kod göndərin</b>'; return; }
+      var m = Math.floor(left / 60), s2 = left % 60;
+      t.innerHTML = 'Kodun etibarlılıq müddəti: <b>' + m + ':' + (s2 < 10 ? '0' : '') + s2 + '</b>';
+      left--; setTimeout(tick, 1000);
+    })();
+  }
+})();
+
 function togglePwd(id,icId){
   const i=document.getElementById(id), ic=document.getElementById(icId);
   const show=i.type==='password';
