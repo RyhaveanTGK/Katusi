@@ -4,11 +4,12 @@
 var _cur   = (typeof locale !== 'undefined' && locale) ? locale : 'en';
 var _list  = (typeof locales !== 'undefined' && locales) ? locales : [];
 var _next  = (typeof next !== 'undefined' && next) ? next : '';
+var _inline = (typeof inline !== 'undefined' && inline) ? ' inline' : '';
 var _meta  = _list.filter(function(l){ return l.code === _cur; })[0] || _list[0] || { flag:'🌐', native:'English', code:'en' };
 %>
 <style>
 .lang-switch{ position:fixed; top:14px; right:14px; z-index:1200; font-family:'Rubik','Inter',sans-serif; }
-.lang-switch.inline{ position:static; }
+.lang-switch.inline{ position:relative; top:auto; right:auto; z-index:20; display:flex; align-items:center; }
 .lang-btn{
   display:flex; align-items:center; gap:7px; cursor:pointer;
   background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.20);
@@ -41,7 +42,7 @@ var _meta  = _list.filter(function(l){ return l.code === _cur; })[0] || _list[0]
 .lang-flag{ font-size:16px; line-height:1; }
 </style>
 
-<div class="lang-switch" id="langSwitch">
+<div class="lang-switch<%= _inline %>" id="langSwitch">
   <div class="lang-btn" onclick="document.getElementById('langSwitch').classList.toggle('open')">
     <span class="lang-flag"><%= _meta.flag %></span>
     <span><%= (_meta.code || 'en').toUpperCase() %></span>
