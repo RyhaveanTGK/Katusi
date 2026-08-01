@@ -1,6 +1,6 @@
 <%
 /* Dil dəyişmə düyməsi — sağ üst küncdə (login, register, digər səhifələr).
-   İstifadə: <%- include('partials/lang-switch', { locale: locale, locales: locales, next: '/login' }) %> */
+   Istifade: include('partials/lang-switch', { locale, locales, next: '/login' }) */
 var _cur   = (typeof locale !== 'undefined' && locale) ? locale : 'en';
 var _list  = (typeof locales !== 'undefined' && locales) ? locales : [];
 var _next  = (typeof next !== 'undefined' && next) ? next : '';
