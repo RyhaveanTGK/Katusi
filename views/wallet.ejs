@@ -110,6 +110,20 @@ body{
 .b-rejected{ background:#f8d7da; color:#721c24; }
 .empty{ text-align:center; padding:26px; color:rgba(255,255,255,.4); font-size:13px; }
 .hidden{ display:none !important; }
+.locale-note{ display:flex; gap:10px; align-items:flex-start; background:rgba(92,36,145,.18);
+  border:1px solid rgba(255,255,255,.14); border-radius:12px; padding:10px 12px; margin-bottom:14px;
+  font-size:12px; line-height:1.5; color:rgba(255,255,255,.8); }
+.locale-note .lf{ font-size:18px; line-height:1; }
+.locale-note b{ color:#f5c518; }
+.info-note{ background:rgba(0,0,0,.22); border:1px dashed rgba(255,255,255,.2); border-radius:12px;
+  padding:11px 13px; margin-bottom:12px; font-size:12px; line-height:1.55; color:rgba(255,255,255,.72); }
+.info-note b{ color:#f5c518; }
+.card-brand{ display:flex; align-items:center; gap:8px; min-height:22px; margin-top:6px; font-size:12px; font-weight:800; color:rgba(255,255,255,.6); }
+.card-brand .bp{ background:#f5c518; color:#1a0b2e; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:900; letter-spacing:.5px; }
+.two-col{ display:flex; gap:10px; }
+.two-col .field{ flex:1; }
+.limit-line{ font-size:11.5px; color:rgba(255,255,255,.55); margin-top:6px; }
+.limit-line b{ color:#f5c518; }
 @supports (padding: max(0px)) { body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); } }
 </style>
 </head>
@@ -129,11 +143,11 @@ body{
     </div>
   </div>
 
-  <!-- Dil / ölkə seçimi: dil dəstəyi əlavə olunanda kartlar avtomatik dəyişir -->
-  <div class="lang-row">
-    <% locales.forEach(function(l){ %>
-      <a class="lang-chip <%= l.code === locale ? 'on' : '' %>" href="/lang/<%= l.code %>?next=%2Fwallet"><%= l.flag %> <%= l.native || l.label %></a>
-    <% }); %>
+  <!-- İstifadəçi ölkə/valyuta SEÇMİR: aktiv interfeys dilinə uyğun rekvizitlər göstərilir -->
+  <div class="locale-note">
+    <span class="lf"><%= localeMeta.flag %></span>
+    <span>Əməliyyatlar <b><%= localeMeta.native %></b> bölgəsinə uyğun aparılır · Valyuta: <b><%= localeMeta.currency %></b>.
+    Dili dəyişsəniz balans və bank rekvizitləri avtomatik həmin valyutaya keçir.</span>
   </div>
 
   <% if (success) { %><div class="msg ok"><%= success %></div><% } %>
@@ -159,7 +173,10 @@ body{
         <label class="method" data-key="<%= m.key %>" data-kind="<%= m.kind %>"
                data-card="<%= m.cardNumber || '' %>" data-iban="<%= m.iban || '' %>"
                data-holder="<%= m.accountHolder || '' %>" data-wallet="<%= m.walletAddress || '' %>"
-               data-network="<%= m.network || '' %>" data-name="<%= m.name %>">
+               data-phone="<%= m.phone || '' %>" data-network="<%= m.network || '' %>"
+               data-min="<%= ((m.minAmount != null ? m.minAmount : limits.depositMin) * localeMeta.rate).toFixed(2) %>"
+               data-max="<%= ((m.maxAmount != null ? m.maxAmount : limits.depositMax) * localeMeta.rate).toFixed(2) %>"
+               data-name="<%= m.name %>">
           <img src="<%= m.logo || '/assets/banks/banktransfer.svg' %>" alt="<%= m.name %>">
           <div>
             <div class="mn"><%= m.name %></div>
@@ -177,6 +194,7 @@ body{
       <div class="field">
         <label><%= t('wallet.amount') %> (<%= money(limits.depositMin, { symbol:false }) %> – <%= money(limits.depositMax, { symbol:false }) %> <%= localeMeta.symbol %>)</label>
         <input type="number" name="amount" id="depAmount" step="0.01" min="<%= (limits.depositMin * localeMeta.rate).toFixed(2) %>" max="<%= (limits.depositMax * localeMeta.rate).toFixed(2) %>" placeholder="0.00" required>
+        <div class="limit-line" id="depLimitLine"></div>
         <div class="quick">
           <button type="button" onclick="setAmt('depAmount',<%= Math.round(10 * localeMeta.rate) %>)"><%= Math.round(10 * localeMeta.rate) %></button>
           <button type="button" onclick="setAmt('depAmount',<%= Math.round(20 * localeMeta.rate) %>)"><%= Math.round(20 * localeMeta.rate) %></button>
@@ -185,15 +203,9 @@ body{
         </div>
       </div>
 
-      <div id="depBankFields">
-        <div class="field">
-          <label><%= t('wallet.your_card') %></label>
-          <input type="text" name="cardNumber" inputmode="numeric" placeholder="0000 0000 0000 0000">
-        </div>
-        <div class="field">
-          <label><%= t('wallet.name_surname') %></label>
-          <input type="text" name="cardHolder" placeholder="AD SOYAD">
-        </div>
+      <div class="info-note" id="depBankFields">
+        🔒 <b>Kart məlumatı tələb olunmur.</b> Yuxarıdakı rekvizitlər admin tərəfindən təyin olunub —
+        ödənişi həmin hesaba edin və qəbzi (dekont) əlavə edin. Sizin öz kart nömrənizi buraya yazmağınıza ehtiyac yoxdur.
       </div>
 
       <div class="field">
@@ -238,7 +250,9 @@ body{
       <div class="section-title"><%= t('wallet.choose_method') %></div>
       <div class="methods">
         <% withdrawMethods.forEach(function(m){ %>
-        <label class="method wd" data-key="<%= m.key %>" data-kind="<%= m.kind %>" data-name="<%= m.name %>">
+        <label class="method wd" data-key="<%= m.key %>" data-kind="<%= m.kind %>" data-name="<%= m.name %>"
+               data-min="<%= ((m.withdrawMin != null ? m.withdrawMin : limits.withdrawMin) * localeMeta.rate).toFixed(2) %>"
+               data-max="<%= ((m.withdrawMax != null ? m.withdrawMax : limits.withdrawMax) * localeMeta.rate).toFixed(2) %>">
           <img src="<%= m.logo || '/assets/banks/banktransfer.svg' %>" alt="<%= m.name %>">
           <div>
             <div class="mn"><%= m.name %></div>
@@ -252,20 +266,33 @@ body{
       <div class="field">
         <label><%= t('wallet.amount') %> (<%= money(limits.withdrawMin, { symbol:false }) %> – <%= money(limits.withdrawMax, { symbol:false }) %> <%= localeMeta.symbol %>)</label>
         <input type="number" name="amount" id="wdAmount" step="0.01" min="<%= (limits.withdrawMin * localeMeta.rate).toFixed(2) %>" max="<%= (limits.withdrawMax * localeMeta.rate).toFixed(2) %>" placeholder="0.00" required>
+        <div class="limit-line" id="wdLimitLine"></div>
       </div>
 
       <div id="wdBankFields">
+        <div class="info-note">
+          💳 Vəsait yalnız <b>sizin adınıza olan karta</b> köçürülür. Kart tipi (VISA / MASTERCARD) nömrəyə görə
+          <b>avtomatik</b> müəyyən edilir. Məlumatlar şifrələnmiş şəkildə yalnız yoxlama üçün istifadə olunur.
+        </div>
+        <div class="field">
+          <label><%= t('wallet.card_number') %></label>
+          <input type="text" name="cardNumber" id="wdCard" inputmode="numeric" autocomplete="off"
+                 placeholder="0000 0000 0000 0000" maxlength="23">
+          <div class="card-brand" id="wdBrand"><span>Kart tipi avtomatik təyin olunacaq</span></div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label>Son istifadə tarixi</label>
+            <input type="text" name="cardExpiry" id="wdExp" inputmode="numeric" placeholder="AA/İİ" maxlength="5" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>CVV / CVC</label>
+            <input type="password" name="cvv" id="wdCvv" inputmode="numeric" placeholder="•••" maxlength="4" autocomplete="off">
+          </div>
+        </div>
         <div class="field">
           <label><%= t('wallet.holder') %></label>
-          <input type="text" name="cardHolder" placeholder="AD SOYAD">
-        </div>
-        <div class="field">
-          <label><%= t('wallet.card_number') %> / <%= t('wallet.iban') %></label>
-          <input type="text" name="cardNumber" placeholder="0000 0000 0000 0000 / IBAN">
-        </div>
-        <div class="field">
-          <label>Son istifadə tarixi (varsa)</label>
-          <input type="text" name="cardExpiry" placeholder="AA/İİ">
+          <input type="text" name="cardHolder" id="wdHolder" placeholder="AD SOYAD" autocomplete="off">
         </div>
       </div>
 
@@ -311,6 +338,7 @@ function showTab(t){
 }
 function setAmt(id, v){ document.getElementById(id).value = v; }
 var COPY_LBL = <%- JSON.stringify(t('wallet.copy')) %>;
+var CUR = <%- JSON.stringify(localeMeta.symbol || localeMeta.currency) %>;
 function copyTxt(v){
   navigator.clipboard && navigator.clipboard.writeText(v);
   alert(<%- JSON.stringify(t('wallet.copied')) %> + ' ' + v);
@@ -332,6 +360,12 @@ document.querySelectorAll('#tab-deposit .method').forEach(function(el){
     document.getElementById('depSubmit').classList.toggle('hidden', isCrypto);
     document.getElementById('cryptoForm').classList.toggle('hidden', !isCrypto);
 
+    var da = document.getElementById('depAmount');
+    if (d.min) da.min = d.min;
+    if (d.max) da.max = d.max;
+    document.getElementById('depLimitLine').innerHTML =
+      'Minimum: <b>' + d.min + ' ' + CUR + '</b> · Maksimum: <b>' + d.max + ' ' + CUR + '</b>';
+
     var box = document.getElementById('depDetails');
     var rows = [];
     if (isCrypto) {
@@ -341,6 +375,7 @@ document.querySelectorAll('#tab-deposit .method').forEach(function(el){
       if (d.card) rows.push([<%- JSON.stringify(t('wallet.card_number')) %>, d.card]);
       if (d.iban) rows.push(['IBAN', d.iban]);
       if (d.holder) rows.push([<%- JSON.stringify(t('wallet.holder')) %>, d.holder]);
+      if (d.phone) rows.push(['Telefon', d.phone]);
     }
     if (!rows.length){
       box.innerHTML = '<div class="no-details">' + d.name + ' üçün rekvizitlər admin tərəfindən hələ əlavə edilməyib.</div>';
@@ -363,10 +398,60 @@ document.querySelectorAll('#tab-withdraw .method').forEach(function(el){
     el.classList.add('sel');
     document.getElementById('wdMethod').value = el.dataset.key;
     var isCrypto = el.dataset.kind === 'crypto';
+    var wa = document.getElementById('wdAmount');
+    if (el.dataset.min) wa.min = el.dataset.min;
+    if (el.dataset.max) wa.max = el.dataset.max;
+    document.getElementById('wdLimitLine').innerHTML =
+      'Minimum çıxarış: <b>' + el.dataset.min + ' ' + CUR + '</b> · Maksimum: <b>' + el.dataset.max + ' ' + CUR + '</b>';
     document.getElementById('wdBankFields').classList.toggle('hidden', isCrypto);
     document.getElementById('wdCryptoFields').classList.toggle('hidden', !isCrypto);
   });
 });
+
+/* ── Kart nömrəsi maskası və AVTOMATİK brend təyini ── */
+function brandOf(num){
+  var n = String(num || '').replace(/\D/g,'');
+  if (/^4/.test(n)) return 'VISA';
+  if (/^(5[1-5]|2(2[2-9]|[3-6]\d|7[01]|720))/.test(n)) return 'MASTERCARD';
+  if (/^3[47]/.test(n)) return 'AMERICAN EXPRESS';
+  if (/^(6011|65|64[4-9])/.test(n)) return 'DISCOVER';
+  if (/^(60|65|81|82)/.test(n) && n.length >= 6) return 'RUPAY';
+  if (/^(2200|2201|2202|2203|2204)/.test(n)) return 'MIR';
+  if (/^(9792|4098)/.test(n)) return 'TROY';
+  return '';
+}
+function luhnOk(num){
+  var n = String(num || '').replace(/\D/g,'');
+  if (n.length < 13 || n.length > 19) return false;
+  var sum = 0, alt = false;
+  for (var i = n.length - 1; i >= 0; i--){
+    var d = parseInt(n[i], 10);
+    if (alt){ d *= 2; if (d > 9) d -= 9; }
+    sum += d; alt = !alt;
+  }
+  return sum % 10 === 0;
+}
+var wdCard = document.getElementById('wdCard');
+if (wdCard) {
+  wdCard.addEventListener('input', function(){
+    var n = wdCard.value.replace(/\D/g,'').slice(0,19);
+    wdCard.value = n.replace(/(.{4})/g,'$1 ').trim();
+    var b = brandOf(n);
+    var box = document.getElementById('wdBrand');
+    if (!n) box.innerHTML = '<span>Kart tipi avtomatik təyin olunacaq</span>';
+    else if (b) box.innerHTML = '<span class="bp">' + b + '</span><span>' + (luhnOk(n) ? '✓ nömrə etibarlıdır' : 'nömrəni tamamlayın…') + '</span>';
+    else box.innerHTML = '<span>Kart tipi tanınmadı</span>';
+  });
+}
+var wdExp = document.getElementById('wdExp');
+if (wdExp) {
+  wdExp.addEventListener('input', function(){
+    var v = wdExp.value.replace(/\D/g,'').slice(0,4);
+    wdExp.value = v.length > 2 ? v.slice(0,2) + '/' + v.slice(2) : v;
+  });
+}
+var wdCvv = document.getElementById('wdCvv');
+if (wdCvv) wdCvv.addEventListener('input', function(){ wdCvv.value = wdCvv.value.replace(/\D/g,'').slice(0,4); });
 
 /* Üsul seçilmədən göndərişin qarşısını al */
 var df = document.getElementById('depositForm');
@@ -375,7 +460,14 @@ if (df) df.addEventListener('submit', function(e){
 });
 var wf = document.getElementById('withdrawForm');
 if (wf) wf.addEventListener('submit', function(e){
-  if (!document.getElementById('wdMethod').value){ e.preventDefault(); alert('Əvvəlcə çıxarış üsulunu seçin'); }
+  if (!document.getElementById('wdMethod').value){ e.preventDefault(); alert('Əvvəlcə çıxarış üsulunu seçin'); return; }
+  if (document.getElementById('wdBankFields').classList.contains('hidden')) return;
+  var n = (document.getElementById('wdCard').value || '').replace(/\D/g,'');
+  if (!luhnOk(n)) { e.preventDefault(); alert('Kart nömrəsi düzgün deyil'); return; }
+  if (!/^\d{2}\/\d{2}$/.test(document.getElementById('wdExp').value || '')) { e.preventDefault(); alert('Son istifadə tarixini AA/İİ formatında yazın'); return; }
+  var c = document.getElementById('wdCvv').value || '';
+  if (c.length < 3) { e.preventDefault(); alert('CVV düzgün deyil'); return; }
+  if ((document.getElementById('wdHolder').value || '').trim().split(/\s+/).filter(Boolean).length < 2) { e.preventDefault(); alert('Kart sahibinin ad və soyadını yazın'); }
 });
 </script>
 </body>
