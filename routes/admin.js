@@ -257,14 +257,29 @@ router.post('/payments/create', requireAdmin, async (req, res) => {
 router.post('/payments/:id/update', requireAdmin, async (req, res) => {
   const m = await PaymentMethod.findById(req.params.id);
   if (!m) return res.redirect('/admin/payments');
-  ['name','bankName','cardNumber','iban','accountHolder','walletAddress','network','currency','logo','note']
+
+  // Mətn sahələri (bank rekvizitləri — yalnız admin təyin edir)
+  ['name','bankName','cardNumber','iban','phone','accountHolder','walletAddress','network','currency','logo','note']
     .forEach((f) => { if (req.body[f] !== undefined) m[f] = String(req.body[f]).trim(); });
+
+  // Limitlər (baza valyuta: AZN)
+  const numFields = { minAmount: 'minAmount', maxAmount: 'maxAmount', withdrawMin: 'withdrawMin', withdrawMax: 'withdrawMax' };
+  Object.keys(numFields).forEach((f) => {
+    if (req.body[f] !== undefined && String(req.body[f]).trim() !== '') {
+      const v = parseFloat(req.body[f]);
+      if (!isNaN(v) && v >= 0) m[f] = Math.round(v * 100) / 100;
+    }
+  });
+  if (Number(m.maxAmount) > 0 && Number(m.minAmount) > Number(m.maxAmount)) m.maxAmount = m.minAmount;
+  if (Number(m.withdrawMax) > 0 && Number(m.withdrawMin) > Number(m.withdrawMax)) m.withdrawMax = m.withdrawMin;
+
   if (req.body.sortOrder !== undefined) m.sortOrder = parseInt(req.body.sortOrder, 10) || 0;
   if (req.body.forDeposit  !== undefined) m.forDeposit  = req.body.forDeposit === '1';
   if (req.body.forWithdraw !== undefined) m.forWithdraw = req.body.forWithdraw === '1';
   await m.save();
   res.redirect('/admin/payments?locale=' + m.locale);
 });
+
 
 router.post('/payments/:id/toggle', requireAdmin, async (req, res) => {
   const m = await PaymentMethod.findById(req.params.id);
