@@ -69,10 +69,10 @@ input[type="date"].form-input{color-scheme:dark;}
 </style>
 </head>
 <body>
-<%- include('partials/lang-switch', { locale: locale, locales: locales, next: '/register' }) %>
 <nav class="topnav">
   <div style="font-size:20px;font-weight:900;color:#e8001a;">One Loto</div>
   <div class="nav-btns">
+    <%- include('partials/lang-switch', { locale: locale, locales: locales, next: '/register', inline: true }) %>
     <button class="btn-giris" onclick="location.href='/login'">Giriş</button>
     <button class="btn-qeydiyyat" onclick="location.href='/register'">Qeydiyyat</button>
   </div>
