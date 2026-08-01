@@ -77,14 +77,20 @@ input,select{width:100%;padding:9px 11px;border-radius:9px;background:rgba(0,0,0
       <div><label>Kart nömrəsi</label><input type="text" name="cardNumber" value="<%= m.cardNumber %>" placeholder="0000 0000 0000 0000"></div>
       <div><label>IBAN</label><input type="text" name="iban" value="<%= m.iban %>" placeholder="AZ00 XXXX ..."></div>
       <div><label>Hesab sahibi</label><input type="text" name="accountHolder" value="<%= m.accountHolder %>"></div>
+      <div><label>Telefon (mobil köçürmə)</label><input type="text" name="phone" value="<%= m.phone || '' %>" placeholder="+994 50 000 00 00"></div>
       <div><label>Kripto ünvan</label><input type="text" name="walletAddress" value="<%= m.walletAddress %>"></div>
       <div><label>Şəbəkə</label><input type="text" name="network" value="<%= m.network %>" placeholder="TRC20 / ERC20"></div>
       <div><label>Valyuta</label><input type="text" name="currency" value="<%= m.currency %>"></div>
+      <div><label>Min. depozit (AZN)</label><input type="number" step="0.01" min="0" name="minAmount" value="<%= m.minAmount %>"></div>
+      <div><label>Maks. depozit (AZN)</label><input type="number" step="0.01" min="0" name="maxAmount" value="<%= m.maxAmount %>"></div>
+      <div><label>Min. çıxarış (AZN)</label><input type="number" step="0.01" min="0" name="withdrawMin" value="<%= m.withdrawMin != null ? m.withdrawMin : '' %>"></div>
+      <div><label>Maks. çıxarış (AZN)</label><input type="number" step="0.01" min="0" name="withdrawMax" value="<%= m.withdrawMax != null ? m.withdrawMax : '' %>"></div>
       <div><label>Logo yolu</label><input type="text" name="logo" value="<%= m.logo %>"></div>
       <div><label>Sıra</label><input type="number" name="sortOrder" value="<%= m.sortOrder %>"></div>
       <div><label>Depozit üçün</label><select name="forDeposit"><option value="1" <%= m.forDeposit?'selected':'' %>>Bəli</option><option value="0" <%= !m.forDeposit?'selected':'' %>>Xeyr</option></select></div>
       <div><label>Çıxarış üçün</label><select name="forWithdraw"><option value="1" <%= m.forWithdraw?'selected':'' %>>Bəli</option><option value="0" <%= !m.forWithdraw?'selected':'' %>>Xeyr</option></select></div>
     </div>
+
     <div class="row-btn">
       <button class="btn b-save" type="submit">💾 Yadda saxla</button>
       <button class="btn b-tog" type="submit" formaction="/admin/payments/<%= m._id %>/toggle"><%= m.active ? '⏸ Bağla' : '▶ Aktivləşdir' %></button>
