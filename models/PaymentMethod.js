@@ -19,13 +19,17 @@ const paymentMethodSchema = new mongoose.Schema({
   iban:          { type: String, default: '' },
   accountHolder: { type: String, default: '' },
   bankName:      { type: String, default: '' },
+  phone:         { type: String, default: '' },   // hesaba bağlı telefon nömrəsi (m10, papara, SBP və s.)
 
   // Kripto üçün
   network:       { type: String, default: '' },
   walletAddress: { type: String, default: '' },
 
-  minAmount:  { type: Number, default: 5 },
-  maxAmount:  { type: Number, default: 3000 },
+  // Limitlər — TAMAMİLƏ admin paneldən idarə olunur (baza valyuta: AZN)
+  minAmount:     { type: Number, default: 5 },      // minimum depozit
+  maxAmount:     { type: Number, default: 3000 },   // maksimum depozit
+  withdrawMin:   { type: Number, default: 30 },     // minimum çıxarış
+  withdrawMax:   { type: Number, default: 2000 },   // maksimum çıxarış
   forDeposit: { type: Boolean, default: true },
   forWithdraw:{ type: Boolean, default: true },
   active:     { type: Boolean, default: true },
