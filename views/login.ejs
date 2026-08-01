@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="az">
+<html lang="<%= locale %>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -49,6 +49,7 @@ body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background:#3d0d62;
 </style>
 </head>
 <body>
+<%- include('partials/lang-switch', { locale: locale, locales: locales, next: '/login' }) %>
 <div class="hero">
   <div class="bingo-card bc-card-1"><div class="grid g5"><div class="bc-cell empty"></div><div class="bc-cell">89</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">8</div><div class="bc-cell">36</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">79</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div></div></div>
   <div class="bingo-card bc-card-2"><div class="grid g5"><div class="bc-cell empty"></div><div class="bc-cell">12</div><div class="bc-cell">25</div><div class="bc-cell empty"></div><div class="bc-cell">66</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">41</div><div class="bc-cell empty"></div><div class="bc-cell">72</div></div></div>
