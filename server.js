@@ -10,6 +10,7 @@ const { ensureDefaultRooms, startGameLoop } = require('./services/gameEngine');
 const { startBotPolling } = require('./services/telegramBot');
 const starLeague = require('./services/starLeague');
 const { ensureDefaultPaymentMethods } = require('./services/paymentMethods');
+const keepAlive = require('./services/keepAlive');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -44,6 +45,10 @@ app.get('/healthz', (req, res) => {
     db: mongoose.connection.readyState === 1 ? 'connected' : 'connecting'
   });
 });
+
+// ── UptimeRobot / monitor endpoint-ləri (/uptime, /ping) ──
+// Render Free planı 15 dəqiqə sorğusuz qaldıqda yuxuya gedir.
+keepAlive.mount(app);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: '10mb' }));
@@ -136,6 +141,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`One Loto running on port ${PORT}`);
 });
 server.on('error', (e) => console.error('HTTP server error:', e.message));
+
+// Serveri oyaq saxla (self-ping) — UptimeRobot ilə birlikdə işləyir
+try { keepAlive.start(); } catch (e) { console.error('Keep-alive start failed:', e.message); }
 
 async function connectDB(attempt = 1) {
   try {
