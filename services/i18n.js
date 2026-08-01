@@ -289,6 +289,22 @@ function translate(key, code) {
   return (DICT[l] && DICT[l][key]) || DICT[DEFAULT_LOCALE][key] || key;
 }
 
+// ── Post-render tərcümə: şablonlarda qalan AZ mətnləri hədəf dilə çevirir ──
+const PHRASES = require('./phrases');
+const PHRASE_KEYS = Object.keys(PHRASES).sort((a, b) => b.length - a.length);
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const PHRASE_RE = PHRASE_KEYS.length
+  ? new RegExp(PHRASE_KEYS.map(escapeRe).join('|'), 'g')
+  : null;
+
+function translateHtml(html, locale) {
+  if (!PHRASE_RE || locale === 'az' || typeof html !== 'string') return html;
+  return html.replace(PHRASE_RE, (m) => {
+    const row = PHRASES[m];
+    return (row && row[locale]) || (row && row.en) || m;
+  });
+}
+
 /** Express middleware — res.locals.t / locale / locales / money */
 function middleware(req, res, next) {
   const fromQuery = req.query && req.query.lang;
@@ -303,10 +319,23 @@ function middleware(req, res, next) {
   res.locals.t = (key) => translate(key, locale);
   res.locals.money = (amountAzn, opts) => money(amountAzn, locale, opts);
   res.locals.currency = localeMeta(locale).symbol;
+
+  // res.render nəticəsini tərcümə süzgəcindən keçir
+  const origRender = res.render.bind(res);
+  res.render = function (view, opts, cb) {
+    if (typeof opts === 'function') { cb = opts; opts = {}; }
+    return origRender(view, opts || {}, (err, html) => {
+      if (err) return cb ? cb(err) : req.next(err);
+      const out = translateHtml(html, locale);
+      if (cb) return cb(null, out);
+      res.send(out);
+    });
+  };
   next();
 }
 
 module.exports = {
   LOCALES, DEFAULT_LOCALE, normalizeLocale, localeMeta,
-  convert, money, translate, t: translate, middleware
+  convert, money, translate, t: translate, translateHtml, middleware
 };
+
