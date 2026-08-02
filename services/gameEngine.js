@@ -236,55 +236,133 @@ function winnerVisible(room) {
   return room.status === 'ended';
 }
 
-async function ensureDefaultRooms() {
-  const count = await Room.countDocuments({});
-  if (count > 0) {
-    await Room.updateMany(
-      { $or: [ { ticketLabel: { $exists: false } }, { starPrize: { $exists: false } }, { prizeMultiplier: { $exists: false } }, { currentRoundId: { $exists: false } } ] },
-      {
-        $set: {
-          ticketLabel: 'TAM BİLET',
-          starPrize: 20,
-          prizeMultiplier: 'x2',
-          themeColor: '#1f9b3b',
-          currentRoundId: 1,
-          drawIntervalSec: DRAW_INTERVAL_SEC,
-          roundDurationSec: ROUND_DURATION_SEC
-        }
-      }
-    );
-    await Room.updateMany({ status: { $ne: 'started' } }, { $set: { nextGameAt: null } });
-    // Bütün otaqlarda maksimum oyunçu 5
-    await Room.updateMany({}, { $set: { maxPlayers: MAX_PLAYERS } });
-    // Şəxsi otaqlarda süni oyunçu olmur, digər bütün otaqlarda olur
-    await Room.updateMany({ isCustom: true }, { $set: { botsEnabled: false, bots: [], botStake: 0 } });
-    await Room.updateMany({ isCustom: { $ne: true } }, { $set: { botsEnabled: true } });
-    // Yeni sahələri köhnə otaqlara əlavə et
-    await Room.updateMany(
-      { markGraceSec: { $exists: false } },
-      { $set: { markGraceSec: MARK_GRACE_SEC, drawnAt: [], basePot: 0 } }
-    );
-    const all = await Room.find({ isCustom: { $ne: true } });
-    for (const r of all) {
-      const key = `${r.type || 'classic'}:${Number(r.entryFee || 0).toFixed(2)}`;
-      if (r.templateKey !== key) { r.templateKey = key; await r.save(); }
-    }
-    return;
-  }
+/** DEFAULT_ROOMS-dan bir otağın "şablon" açarı */
+function defaultKeyOf(def) {
+  return `${def.type || 'classic'}:${Number(def.entryFee || 0).toFixed(2)}`;
+}
 
-  const rooms = DEFAULT_ROOMS.map((room) => ({
-    ...room,
-    status: 'waiting',
-    prize: 0,
-    jackpot: 0,
-    currentRoundId: 1,
+/** Şablondan otaq sahələri (DB-dəki otaqla sinxronlaşdırılan hissə) */
+function roomShapeOf(def) {
+  return {
+    name: def.name,
+    ticketLabel: def.ticketLabel || 'TAM BİLET',
+    type: def.type || 'classic',
+    entryFee: Number(def.entryFee || 0),
+    starPrize: Number(def.starPrize || 0),
+    prizeMultiplier: def.prizeMultiplier || 'x2',
+    themeColor: def.themeColor || '#1f9b3b',
+    maxPlayers: MAX_PLAYERS,
+    jackpotEnabled: def.jackpotEnabled !== false,
+    sortOrder: Number(def.sortOrder || 0),
+    templateKey: defaultKeyOf(def),
     drawIntervalSec: DRAW_INTERVAL_SEC,
     roundDurationSec: ROUND_DURATION_SEC,
-    markGraceSec: MARK_GRACE_SEC,
-    templateKey: `${room.type || 'classic'}:${Number(room.entryFee || 0).toFixed(2)}`,
-    nextGameAt: null
-  }));
-  await Room.insertMany(rooms);
+    markGraceSec: MARK_GRACE_SEC
+  };
+}
+
+/** Otaq boşdur? (silinə bilər) */
+async function isRoomRemovable(room) {
+  if (!room) return false;
+  if (room.status === 'started') return false;
+  if ((room.players || []).length) return false;
+  const cards = await GameCard.countDocuments({ roomId: room._id, roundId: room.currentRoundId || 1 });
+  return cards === 0;
+}
+
+/**
+ * DEFAULT_ROOMS ilə bazadakı otaqları SİNXRONLAŞDIRIR.
+ * Əvvəllər baza boş olmayanda seed tamamilə buraxılırdı — buna görə
+ * kodda dəyişdirilən/yeni əlavə edilən otaqlar heç vaxt işə düşmürdü.
+ */
+async function syncDefaultRooms() {
+  const keys = [];
+
+  for (const def of DEFAULT_ROOMS) {
+    const key = defaultKeyOf(def);
+    keys.push(key);
+    const shape = roomShapeOf(def);
+
+    let base = await Room.findOne({ isCustom: { $ne: true }, isClone: { $ne: true }, templateKey: key });
+    if (!base) {
+      base = await Room.findOne({
+        isCustom: { $ne: true },
+        isClone: { $ne: true },
+        type: shape.type,
+        entryFee: shape.entryFee
+      });
+    }
+
+    if (base) {
+      await Room.updateOne({ _id: base._id }, { $set: shape });
+    } else {
+      await Room.create({
+        ...shape,
+        status: 'waiting',
+        prize: 0,
+        jackpot: 0,
+        currentRoundId: 1,
+        botsEnabled: true,
+        isCustom: false,
+        isClone: false,
+        nextGameAt: null
+      });
+    }
+
+    // Klon otaqlar da yeni şablona uyğunlaşdırılır (ad istisna olmaqla)
+    const cloneShape = { ...shape };
+    delete cloneShape.name;
+    await Room.updateMany(
+      { isCustom: { $ne: true }, isClone: true, templateKey: key },
+      { $set: cloneShape }
+    );
+  }
+
+  // Şablonda olmayan köhnə (şəxsi olmayan) otaqlar — boşdursa silinir
+  const stale = await Room.find({ isCustom: { $ne: true }, templateKey: { $nin: keys } });
+  for (const r of stale) {
+    try {
+      if (await isRoomRemovable(r)) await Room.deleteOne({ _id: r._id });
+    } catch (e) {
+      console.error('syncDefaultRooms cleanup error:', e.message);
+    }
+  }
+}
+
+async function ensureDefaultRooms() {
+  // ── Köhnə sənədlər üçün miqrasiyalar ──
+  await Room.updateMany(
+    { $or: [ { ticketLabel: { $exists: false } }, { starPrize: { $exists: false } }, { prizeMultiplier: { $exists: false } }, { currentRoundId: { $exists: false } } ] },
+    {
+      $set: {
+        ticketLabel: 'TAM BİLET',
+        starPrize: 20,
+        prizeMultiplier: 'x2',
+        themeColor: '#1f9b3b',
+        currentRoundId: 1,
+        drawIntervalSec: DRAW_INTERVAL_SEC,
+        roundDurationSec: ROUND_DURATION_SEC
+      }
+    }
+  );
+  await Room.updateMany({ status: { $ne: 'started' } }, { $set: { nextGameAt: null } });
+  await Room.updateMany({}, { $set: { maxPlayers: MAX_PLAYERS } });
+  await Room.updateMany({ isCustom: true }, { $set: { botsEnabled: false, bots: [], botStake: 0 } });
+  await Room.updateMany({ isCustom: { $ne: true } }, { $set: { botsEnabled: true } });
+  await Room.updateMany(
+    { markGraceSec: { $exists: false } },
+    { $set: { markGraceSec: MARK_GRACE_SEC, drawnAt: [], basePot: 0 } }
+  );
+
+  // Şəxsi otaqlarda templateKey-i tamamla (save() yox, atomik update)
+  const customs = await Room.find({ isCustom: true }).select('_id type entryFee templateKey');
+  for (const r of customs) {
+    const key = `${r.type || 'classic'}:${Number(r.entryFee || 0).toFixed(2)}`;
+    if (r.templateKey !== key) await Room.updateOne({ _id: r._id }, { $set: { templateKey: key } });
+  }
+
+  // ── Kodda təyin edilmiş otaqları bazaya tətbiq et ──
+  await syncDefaultRooms();
 }
 
 /** Otaqda toplanmış ümumi mərc (real + süni oyunçular) */
@@ -324,7 +402,7 @@ async function startRoom(room) {
   // Linya faizləri raund boyunca dəyişməyən bank üzərindən hesablanır
   room.basePot = Number(Math.max(Number(room.stakeTotal || 0), Number(room.prize || 0)).toFixed(2));
   room.markGraceSec = Number(room.markGraceSec || MARK_GRACE_SEC);
-  await room.save();
+  await safeSave(room);
   // Süni oyunçular da bilet qiymətinə görə ulduz yığır (24 saatlıq liderboard)
   try {
     for (const b of (room.bots || [])) {
@@ -360,7 +438,7 @@ async function resetRoomForNextRound(room) {
   room.botWinIntended = false;
   room.currentRoundId = Number(room.currentRoundId || 1) + 1;
   room.nextGameAt = null;
-  await room.save();
+  await safeSave(room);
 }
 
 async function logWinner(room, { name, userId, prize, numbers, synthetic }) {
@@ -440,7 +518,7 @@ async function settleCard(room, card) {
 
   await card.save();
   room.markModified('roundWinners');
-  await room.save();
+  await safeSave(room);
 
   result.prize = Number(total.toFixed(2));
   result.lines = pending.length;
@@ -467,7 +545,7 @@ async function settleBotLines(room, bot, rows) {
   }
   room.markModified('roundWinners');
   room.markModified('bots');
-  await room.save();
+  await safeSave(room);
 }
 
 async function maybeFinishRound() {
@@ -532,7 +610,7 @@ async function drawNextNumber(room) {
   room.lastDrawAt = new Date();
 
   const events = bots.applyDrawToBots(room, next);
-  await room.save();
+  await safeSave(room);
 
   for (const ev of events) {
     if (ev.rows && ev.rows.length) await settleBotLines(room, ev.bot, ev.rows);
@@ -541,7 +619,7 @@ async function drawNextNumber(room) {
   if (fullEvent) {
     fullEvent.bot.fullCard = true;
     room.markModified('bots');
-    await room.save();
+    await safeSave(room);
     await finishRound(room, {
       name: fullEvent.bot.name,
       userId: null,
@@ -652,7 +730,28 @@ async function finishRound(room, override = null) {
   room.winnerPrize = room.finalWinnerPrize;
   room.lastWinnerName = room.finalWinnerName;
   room.lastWinnerNums = room.finalWinnerNums;
-  await room.save();
+  await safeSave(room);
+}
+
+/**
+ * Otağı təhlükəsiz yadda saxlayır.
+ * Paralel deploy/işçi prosesləri eyni sənədi dəyişəndə mongoose VersionError
+ * atır ("No matching document found for id ... version ..."). Bu, bütün tick
+ * dövrünü dayandırırdı və növbəti (yeni) otaqlar heç vaxt işlənmirdi.
+ */
+async function safeSave(doc) {
+  if (!doc) return false;
+  try {
+    await doc.save();
+    return true;
+  } catch (e) {
+    const name = e && e.name;
+    if (name === 'VersionError' || name === 'DocumentNotFoundError') {
+      // Sənəd silinib və ya başqa proses tərəfindən yenilənib — bu tick buraxılır
+      return false;
+    }
+    throw e;
+  }
 }
 
 async function tick() {
@@ -663,6 +762,7 @@ async function tick() {
     const now = Date.now();
 
     for (const room of rooms) {
+     try {
       // ── Oyun gedir ──
       if (room.status === 'started') {
         const roundEndsAt = room.roundEndsAt ? new Date(room.roundEndsAt).getTime() : 0;
@@ -695,27 +795,27 @@ async function tick() {
       if (visiblePlayerCount(room) >= cap) {
         if (!room.nextGameAt) {
           room.nextGameAt = new Date(now + START_COUNTDOWN_SEC * 1000);
-          await room.save();
+          await safeSave(room);
           continue;
         }
         if (new Date(room.nextGameAt).getTime() <= now) await startRoom(room);
         continue;
       }
-      if (room.nextGameAt) { room.nextGameAt = null; await room.save(); }
+      if (room.nextGameAt) { room.nextGameAt = null; await safeSave(room); }
 
       // Klon otaqlar real oyunçu gəlməyincə boş qalır
       const canBots = bots.allowBots(room, cap) && (!room.isClone || reals > 0);
 
       if (!canBots) {
         // Şəxsi otaq / 3+ real oyunçu / boş klon otaq: yalnız real oyunçular
-        if ((room.bots || []).length) { bots.clearBots(room); await room.save(); }
+        if ((room.bots || []).length) { bots.clearBots(room); await safeSave(room); }
         if (!room.isCustom && reals >= 2) {
-          if (!room.botFillAt) { room.botFillAt = new Date(now + 30000); await room.save(); continue; }
+          if (!room.botFillAt) { room.botFillAt = new Date(now + 30000); await safeSave(room); continue; }
           if (new Date(room.botFillAt).getTime() <= now) { await startRoom(room); continue; }
         } else if (room.botFillAt) {
           room.botFillAt = null;
   room.botWaitUntil = null;
-          await room.save();
+          await safeSave(room);
         }
         await cleanupSpareRooms(room);
         continue;
@@ -755,14 +855,18 @@ async function tick() {
           }
           room.botWaitUntil = null;
           room.botFillAt = null;
-          await room.save();
+          await safeSave(room);
           await startRoom(room);
           continue;
         }
       }
 
-      if (changed) await room.save();
+      if (changed) await safeSave(room);
       await cleanupSpareRooms(room);
+     } catch (err) {
+       // Bir otağın xətası digər otaqları dayandırmamalıdır
+       console.error(`Room tick error (${room && room.name}):`, err && err.message);
+     }
     }
   } finally {
     ticking = false;
@@ -796,7 +900,7 @@ async function ensureSpareRoom(room) {
   try {
     if (!room || room.isCustom) return null;
     const key = templateKeyOf(room);
-    if (!room.templateKey) { room.templateKey = key; await room.save(); }
+    if (!room.templateKey) { room.templateKey = key; await safeSave(room); }
 
     const siblings = await Room.find({
       isCustom: { $ne: true },
