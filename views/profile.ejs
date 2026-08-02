@@ -175,7 +175,7 @@ body{
 
   <div class="balance-card">
     <div class="balance-label">Balansınız</div>
-    <div class="balance-value"><%= user.balance.toFixed(2) %> <span class="man">₼</span></div>
+    <div class="balance-value"><%= money(user.balance || 0, { symbol: false }) %> <span class="man"><%= localeMeta.symbol %></span></div>
     <div class="balance-actions">
       <a href="/wallet" class="bal-btn deposit">
         <span class="material-symbols-outlined" style="font-size:16px;">add_circle</span>Yüklə
@@ -189,7 +189,7 @@ body{
   <div class="glass-panel">
     <div class="info-row"><span class="info-label">Oynanılan oyunlar</span><span class="info-value"><%= user.gamesPlayed %></span></div>
     <div class="info-row"><span class="info-label">Qazanılan oyunlar</span><span class="info-value"><%= user.gamesWon %></span></div>
-    <div class="info-row"><span class="info-label">Ümumi qazanc</span><span class="info-value"><%= user.totalWon.toFixed(2) %> ₼</span></div>
+    <div class="info-row"><span class="info-label">Ümumi qazanc</span><span class="info-value"><%= money(user.totalWon || 0) %></span></div>
     <div class="info-row"><span class="info-label">Referral kodu</span><span class="info-value" style="font-family:monospace;font-size:12px;"><%= user.referralCode %></span></div>
   </div>
 
