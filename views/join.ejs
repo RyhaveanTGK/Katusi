@@ -3,78 +3,144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>One Loto – <%= t('auth.login') %></title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Exo+2:wght@600;700;800;900&display=swap" rel="stylesheet">
+<title><%= t('join.title') %> – One Loto</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-:root{--purple-bg:#3d0d62;--purple-dark:#2a0848;--purple-mid:#5a1a90;--gold:#f5c518;--orange-btn:#f5a623}
-@keyframes float1{0%,100%{transform:translateY(0) rotate(-15deg)}50%{transform:translateY(-8px) rotate(-15deg)}}
-@keyframes float2{0%,100%{transform:translateY(0) rotate(12deg)}50%{transform:translateY(-6px) rotate(12deg)}}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-*{box-sizing:border-box;margin:0;padding:0}
-html{background:#3d0d62;overflow-x:hidden;width:100%}
-body{font-family:'Nunito','Exo 2',Helvetica,Arial,sans-serif;background:#3d0d62;color:#fff;min-height:100vh;overflow-x:hidden;position:relative}
-.hero{padding-top:18px;min-height:100vh;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,rgba(120,40,200,.6) 0%,transparent 65%)}
-.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 15% 25%,rgba(255,255,255,.04) 1px,transparent 1px),radial-gradient(circle at 80% 15%,rgba(255,255,255,.06) 1px,transparent 1px),radial-gradient(circle at 60% 70%,rgba(255,255,255,.04) 1px,transparent 1px),radial-gradient(circle at 30% 80%,rgba(255,255,255,.05) 1px,transparent 1px);background-size:120px 120px,90px 90px,150px 150px,80px 80px;pointer-events:none}
-.bingo-card{position:absolute;background:linear-gradient(135deg,#7b35c4,#5a1a90);border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.grid{display:grid;gap:3px}.g5{grid-template-columns:repeat(5,1fr)}
-.bc-cell{width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:rgba(255,255,255,.85)}
-.bc-cell.empty{background:rgba(255,255,255,.06)}
-.bc-card-1{top:68px;left:-22px;transform:rotate(-18deg);animation:float1 4s ease-in-out infinite;z-index:2}
-.bc-card-2{top:55px;right:-18px;transform:rotate(14deg);animation:float2 3.5s ease-in-out infinite;z-index:2}
-.lball{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;box-shadow:inset 0 -4px 8px rgba(0,0,0,.3),inset 0 3px 6px rgba(255,255,255,.4),0 4px 10px rgba(0,0,0,.4);z-index:3}
-.lb-red{background:radial-gradient(circle at 35% 30%,#ff7070,#cc1010)}
-.lb-blue{background:radial-gradient(circle at 35% 30%,#60a0ff,#1a3fbf)}
-.lb-green{background:radial-gradient(circle at 35% 30%,#60e060,#0d8c0d)}
-.content-wrap{position:relative;z-index:10;max-width:414px;margin:0 auto;padding:100px 20px 30px}
-.logo-center{text-align:center;margin-bottom:26px;animation:fadeInUp .6s ease}
-.logo-main{font-family:'Exo 2','Nunito',sans-serif;font-size:44px;font-weight:900;letter-spacing:-1px;line-height:1}
-.logo-main .gold{color:#f5c518}.logo-main .white{color:#fff}
-.logo-sub{font-size:13px;color:rgba(255,255,255,.55);margin-top:6px;letter-spacing:.5px}
-.form-card{background:linear-gradient(145deg,rgba(107,47,168,.55),rgba(45,8,72,.7));border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:28px 22px;backdrop-filter:blur(12px);animation:fadeInUp .7s ease}
-.form-title{font-size:22px;font-weight:900;text-align:center;margin-bottom:22px}
-.form-group{margin-bottom:16px}
-.form-label{display:block;font-size:12px;font-weight:800;color:rgba(255,255,255,.7);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase}
-.form-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s}
-.form-input:focus{border-color:#f5c518}
-.form-input::placeholder{color:rgba(255,255,255,.35)}
-.pwd-wrap{position:relative}.pwd-wrap .form-input{padding-right:48px}
-.eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);display:flex;align-items:center}
-.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:14px;text-align:center}
-.btn-login,.btn-register,.btn-admin{width:100%;padding:15px;color:#fff;font-size:16px;font-weight:900;border:none;border-radius:16px;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:4px;text-decoration:none;display:block;text-align:center}
-.btn-login{background:linear-gradient(180deg,#ffd060 0%,#f59200 100%);box-shadow:0 4px 14px rgba(245,162,35,.45)}
-.btn-register{background:linear-gradient(180deg,#9b4dd4 0%,#6b1fa8 100%);margin-top:12px}
-.btn-admin{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);margin-top:12px;font-weight:700;font-size:14px;color:#f5c518}
-.register-link{text-align:center;font-size:13px;color:rgba(255,255,255,.5);margin-top:18px}
-.register-link a{color:#f5c518;font-weight:800;text-decoration:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#160a26;color:#fff;font-family:'Rubik',sans-serif;padding:78px 0 96px}
+.wrap{max-width:520px;margin:0 auto;padding:0 14px}
+.room-head{background:linear-gradient(180deg,#3a0f60,#26093f);border:1px solid rgba(245,197,24,.25);border-radius:20px;padding:14px 16px;margin-bottom:14px;box-shadow:0 18px 34px -20px rgba(0,0,0,.8)}
+.rh-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rh-name{font-size:16px;font-weight:900}
+.rh-state{font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:99px;background:rgba(31,155,59,.18);color:#5fd07a;display:flex;align-items:center;gap:5px}
+.rh-state.starting{background:rgba(229,57,53,.16);color:#ff8a80}
+.rh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.rh-cell{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:9px 10px;text-align:center}
+.rh-lbl{font-size:10.5px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.4px}
+.rh-val{font-size:15px;font-weight:900;color:#f5c518;margin-top:3px}
+.error-msg{background:rgba(232,0,26,.15);border:1px solid rgba(232,0,26,.3);border-radius:12px;padding:10px 14px;font-size:13px;color:#ff8080;margin-bottom:12px;text-align:center;font-weight:700}
+.sec-title{font-size:12.5px;font-weight:800;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.6px;margin:0 2px 8px}
+.qty{display:flex;gap:8px;margin-bottom:14px}
+.qty button{flex:1;padding:12px 0;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:15px;font-weight:900;cursor:pointer;transition:.15s}
+.qty button.on{background:linear-gradient(180deg,#ffd060,#f59200);color:#3a1c00;border-color:transparent;box-shadow:0 8px 18px -8px rgba(245,162,35,.8)}
+.ticket{background:linear-gradient(180deg,#ffffff,#f1e7ff);border-radius:16px;padding:10px;margin-bottom:10px;box-shadow:0 12px 24px -16px rgba(0,0,0,.9)}
+.t-head{display:flex;align-items:center;justify-content:space-between;margin:0 4px 8px}
+.t-name{font-size:12px;font-weight:900;color:#4a1178}
+.t-price{font-size:12px;font-weight:900;color:#8a2be2}
+.grid9{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.cell{aspect-ratio:1/1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#2b1044;background:#ffe9a8}
+.cell.empty{background:rgba(74,17,120,.07)}
+.total-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:linear-gradient(180deg,rgba(22,10,38,.6),#160a26 40%);padding:12px 14px calc(14px + env(safe-area-inset-bottom))}
+.total-inner{max-width:520px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.total-sum{flex:1}
+.ts-l{font-size:11px;font-weight:700;color:rgba(255,255,255,.55)}
+.ts-v{font-size:19px;font-weight:900;color:#f5c518}
+.btn-buy{border:none;cursor:pointer;padding:15px 22px;border-radius:16px;font-family:inherit;font-size:16px;font-weight:900;color:#3a1c00;background:linear-gradient(180deg,#ffd060,#f59200);box-shadow:0 10px 22px -10px rgba(245,162,35,.9)}
+.btn-buy:disabled{opacity:.55;cursor:not-allowed}
+.back{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.65);text-decoration:none;font-size:13px;font-weight:700;margin-bottom:10px}
 </style>
 </head>
 <body>
-<%- include('partials/lang-switch', { locale: locale, locales: locales, next: '/login' }) %>
-<div class="hero">
-  <div class="bingo-card bc-card-1"><div class="grid g5"><div class="bc-cell empty"></div><div class="bc-cell">89</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">8</div><div class="bc-cell">36</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">79</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell empty"></div></div></div>
-  <div class="bingo-card bc-card-2"><div class="grid g5"><div class="bc-cell empty"></div><div class="bc-cell">12</div><div class="bc-cell">25</div><div class="bc-cell empty"></div><div class="bc-cell">66</div><div class="bc-cell empty"></div><div class="bc-cell empty"></div><div class="bc-cell">41</div><div class="bc-cell empty"></div><div class="bc-cell">72</div></div></div>
-  <div class="lball lb-red" style="width:38px;height:38px;font-size:13px;top:130px;left:38px;">47</div>
-  <div class="lball lb-blue" style="width:32px;height:32px;font-size:12px;top:175px;right:44px;">13</div>
-  <div class="lball lb-green" style="width:26px;height:26px;font-size:11px;top:105px;right:80px;">82</div>
-  <div class="content-wrap">
-    <div class="logo-center">
-      <div class="logo-main"><span class="gold">One</span> <span class="white">Loto</span></div>
+<%- include('partials/topnav', { user: user }) %>
+
+<div class="wrap">
+  <a class="back" href="/"><span class="material-symbols-outlined" style="font-size:18px">arrow_back</span><%= t('common.back') %></a>
+
+  <div class="room-head">
+    <div class="rh-top">
+      <div class="rh-name"><%= room.ticketLabel || t('join.full_ticket') %></div>
+      <div class="rh-state <%= displayStatus === 'starting' ? 'starting' : '' %>">
+        <span class="material-symbols-outlined" style="font-size:15px"><%= displayStatus === 'starting' ? 'hourglass_top' : 'group' %></span>
+        <%= displayStatus === 'starting' ? t('join.starting') : t('join.waiting') %>
+      </div>
     </div>
-    <div class="form-card">
-      <div class="form-title"><%= t('auth.login.title') %></div>
-      <div style="text-align:center;font-size:12.5px;color:rgba(255,255,255,.55);margin:-14px 0 18px;"><%= t('auth.login.sub') %></div>
-      <% if (error) { %><div class="error-msg"><%= error %></div><% } %>
-      <form method="POST" action="/login">
-        <div class="form-group"><label class="form-label"><%= t('auth.username') %> / <%= t('auth.email') %></label><input class="form-input" type="text" name="login" placeholder="<%= t('auth.username') %>" required></div>
-        <div class="form-group"><label class="form-label"><%= t('auth.password') %></label><div class="pwd-wrap"><input class="form-input" type="password" name="password" id="pwdInput" placeholder="<%= t('auth.password') %>" required><button type="button" class="eye-btn" onclick="togglePwd()"><svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-        <button type="submit" class="btn-login"><%= t('auth.submit_login') %></button>
-      </form>
-      <a class="btn-register" href="/register"><%= t('auth.register') %></a>
-      <div class="register-link"><%= t('auth.no_account') %> <a href="/register"><%= t('auth.submit_register') %></a></div>
+    <div class="rh-grid">
+      <div class="rh-cell"><div class="rh-lbl"><%= t('join.entry_fee') %></div><div class="rh-val"><%= money(room.entryFee || 0) %></div></div>
+      <div class="rh-cell"><div class="rh-lbl"><%= t('join.players') %></div><div class="rh-val"><%= playerCount %>/<%= roomSize %></div></div>
+      <div class="rh-cell"><div class="rh-lbl"><%= t('join.prize') %></div><div class="rh-val"><%= money(ticketPrize || room.prize || 0) %></div></div>
     </div>
   </div>
+
+  <% if (typeof error !== 'undefined' && error) { %><div class="error-msg"><%= error %></div><% } %>
+
+  <div class="sec-title"><%= t('join.ticket_count') %></div>
+  <div class="qty" id="qtyBar">
+    <% for (var q = 1; q <= maxTickets; q++) { %>
+      <button type="button" data-q="<%= q %>" class="<%= q === 1 ? 'on' : '' %>"><%= q %></button>
+    <% } %>
+  </div>
+
+  <div class="sec-title"><%= t('join.your_tickets') %></div>
+  <div id="tickets">
+    <% previewCards.forEach(function(card, i){ %>
+      <div class="ticket" data-i="<%= i %>" style="<%= i === 0 ? '' : 'display:none' %>">
+        <div class="t-head">
+          <div class="t-name"><%= t('join.ticket') %> #<%= i + 1 %></div>
+          <div class="t-price"><%= money(room.entryFee || 0) %></div>
+        </div>
+        <div class="grid9">
+          <% card.forEach(function(row){ row.forEach(function(n){ %>
+            <div class="cell <%= n ? '' : 'empty' %>"><%= n || '' %></div>
+          <% }); }); %>
+        </div>
+      </div>
+    <% }); %>
+  </div>
 </div>
-<script>function togglePwd(){const i=document.getElementById('pwdInput'),ic=document.getElementById('eyeIcon'),show=i.type==='password';i.type=show?'text':'password';ic.innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}</script>
-<script src="/assets/js/noselect.js"></script>
+
+<form method="POST" action="/join/<%= room._id %>" id="buyForm">
+  <input type="hidden" name="tickets" id="ticketsInput">
+  <input type="hidden" name="quantity" id="qtyInput" value="1">
+  <div class="total-bar">
+    <div class="total-inner">
+      <div class="total-sum">
+        <div class="ts-l"><%= t('join.total') %></div>
+        <div class="ts-v" id="totalVal"><%= money(room.entryFee || 0) %></div>
+      </div>
+      <button type="submit" class="btn-buy" id="buyBtn"><%= t('join.buy') %></button>
+    </div>
+  </div>
+</form>
+
+<script>
+(function(){
+  var CARDS = <%- JSON.stringify(previewCards) %>;
+  var FEE   = <%= Number(room.entryFee || 0) %>;
+  var RATE  = <%= Number(localeMeta.rate || 1) %>;
+  var SYM   = <%- JSON.stringify(localeMeta.symbol) %>;
+  var qty = 1;
+
+  function fmt(azn){ return (azn * RATE).toFixed(2) + ' ' + SYM; }
+
+  function paint(){
+    document.querySelectorAll('#qtyBar button').forEach(function(b){
+      b.classList.toggle('on', Number(b.dataset.q) === qty);
+    });
+    document.querySelectorAll('#tickets .ticket').forEach(function(t){
+      t.style.display = Number(t.dataset.i) < qty ? '' : 'none';
+    });
+    document.getElementById('totalVal').textContent = fmt(FEE * qty);
+    document.getElementById('qtyInput').value = qty;
+    document.getElementById('ticketsInput').value = JSON.stringify(CARDS.slice(0, qty));
+  }
+
+  document.getElementById('qtyBar').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-q]');
+    if (!b) return;
+    qty = Number(b.dataset.q) || 1;
+    paint();
+  });
+
+  document.getElementById('buyForm').addEventListener('submit', function(){
+    var btn = document.getElementById('buyBtn');
+    btn.disabled = true;
+    setTimeout(function(){ btn.disabled = false; }, 6000);
+  });
+
+  paint();
+})();
+</script>
+<%- include('partials/footer', { activePage: 'home' }) %>
 </body>
 </html>
