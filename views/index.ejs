@@ -130,6 +130,23 @@ body{
 
 .slot{ width:120px; flex:0 0 120px; display:flex; flex-direction:column; align-items:flex-end; transform: translate(8px, 3px); }
 .jackpot-text{ color:#d6303a; font-size:14px; font-weight:900; letter-spacing:.5px; margin-bottom:2px; margin-right:6px; text-transform:uppercase; }
+/* ── Animasiyalı JACKPOT ── */
+.pc-up{ animation: pcUp .6s ease } .pc-down{ animation: pcDown .6s ease }
+@keyframes pcUp{ 0%{ transform:translateY(6px); opacity:.2; color:#5fd07a } 100%{ transform:none; opacity:1 } }
+@keyframes pcDown{ 0%{ transform:translateY(-6px); opacity:.2; color:#ff8a80 } 100%{ transform:none; opacity:1 } }
+.jackpot-text{ position:relative; background:linear-gradient(90deg,#ff5252,#ffd166,#ff5252); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation: jpShine 2.6s linear infinite; text-shadow:none; }
+@keyframes jpShine{ 0%{ background-position:0% 0 } 100%{ background-position:200% 0 } }
+.machine{ filter: drop-shadow(0 0 0 rgba(245,197,24,0)); transition: filter .3s ease; }
+.machine.hit{ animation: jpShake .6s ease; filter: drop-shadow(0 0 10px rgba(255,196,0,.85)); }
+@keyframes jpShake{ 0%,100%{ transform:translateY(0) } 20%{ transform:translateY(-3px) rotate(-1.5deg) } 45%{ transform:translateY(2px) rotate(1.5deg) } 70%{ transform:translateY(-1px) } }
+.barrel{ overflow:hidden; }
+.barrel::before{ content:''; position:absolute; inset:0; border-radius:22px; background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.65) 48%,transparent 62%); transform:translateX(-120%); animation: jpSweep 3.4s ease-in-out infinite; pointer-events:none; }
+@keyframes jpSweep{ 0%,72%{ transform:translateX(-120%) } 100%{ transform:translateX(120%) } }
+.reel{ position:relative; overflow:hidden; }
+.reel.spin{ animation: jpReel .42s cubic-bezier(.25,.9,.3,1); }
+@keyframes jpReel{ 0%{ transform:translateY(-90%); filter:blur(1.4px) } 60%{ filter:blur(.4px) } 100%{ transform:translateY(0); filter:blur(0) } }
+.jp-pop{ position:absolute; right:0; top:-16px; font-size:11px; font-weight:900; color:#ffd166; text-shadow:0 2px 6px rgba(0,0,0,.7); animation: jpPop 1.2s ease forwards; pointer-events:none; }
+@keyframes jpPop{ 0%{ opacity:0; transform:translateY(6px) } 25%{ opacity:1 } 100%{ opacity:0; transform:translateY(-14px) } }
 .machine{ position:relative; width:104px; height:42px; margin-right:2px; }
 .barrel{
   position:absolute; bottom:4px; left:7px;
@@ -265,28 +282,28 @@ body{
 <div class="stack">
   <div class="create-bar">
     <a class="btn-create" href="/room/create">
-      <span class="material-symbols-outlined">add_circle</span> Otaq yarat
+      <span class="material-symbols-outlined">add_circle</span> <%= t('room.create') %>
     </a>
   </div>
   <% if (!rooms.length) { %>
-    <div class="empty">Hazırda aktiv otaq yoxdur</div>
+    <div class="empty"><%= t('room.empty') %></div>
   <% } %>
   <% rooms.forEach(function(room){ %>
     <a href="<%= room.hasJoined ? '/gamestart/' + room._id : '/join/' + room._id %>"
        class="card"
        style="border-color:<%= room.displayStatus === 'starting' ? '#e53935' : (room.displayStatus === 'started' ? '#9aa0a4' : '#1f9b3b') %>"
        data-room-id="<%= room._id %>"
-       data-state="<%= room.displayStatus %>">
-      <% if (room.isCustom) { %><span class="badge-private">Şəxsi</span><% } %>
+       data-state="<%= room.displayStatus %>" data-private="<%= room.isCustom ? 1 : 0 %>">
+      <% if (room.isCustom) { %><span class="badge-private"><%= t('room.private') %></span><% } %>
       <div class="row-top">
         <div class="top-left">
-          <div class="full-ticket"><%= room.ticketLabel || 'TAM BİLET' %></div>
+          <div class="full-ticket"><%= t('join.full_ticket') %></div>
           <div class="chip-row">
-            <div class="classic"><span class="lbl">Classic</span><span><%= Number(room.entryFee || 0).toFixed(2) %></span><span>₼</span></div>
+            <div class="classic"><span class="lbl">Classic</span><span><%= money(room.entryFee || 0, { symbol: false }) %></span><span><%= localeMeta.symbol %></span></div>
             <div class="stars-wrap">
               <div class="stars">
                 <div class="top"><span class="star">★</span><span class="js-star-prize"><%= room.starPrize || Math.round((room.entryFee || 1) * 100) %></span></div>
-                <div class="win">qazan</div>
+                <div class="win"><%= t('room.win') %></div>
               </div>
               <div class="mult js-mult"><%= room.prizeMultiplier || 'x2' %></div>
             </div>
@@ -294,9 +311,9 @@ body{
         </div>
         <div class="top-right">
           <span class="status js-status st-<%= room.displayStatus %>">
-            <% if (room.displayStatus==='started') { %><span class="material-symbols-outlined">play_circle</span>Başladı
-            <% } else if (room.displayStatus==='starting') { %><span class="material-symbols-outlined">hourglass_top</span>Başlayır
-            <% } else { %><span class="material-symbols-outlined">group</span>Oyunçu gözlənilir<% } %>
+            <% if (room.displayStatus==='started') { %><span class="material-symbols-outlined">play_circle</span><%= t('room.started') %>
+            <% } else if (room.displayStatus==='starting') { %><span class="material-symbols-outlined">hourglass_top</span><%= t('room.starting') %>
+            <% } else { %><span class="material-symbols-outlined">group</span><%= t('room.waiting') %><% } %>
           </span>
           <span class="time js-time st-<%= room.displayStatus %>">
             <span class="material-symbols-outlined">schedule</span>
@@ -314,12 +331,12 @@ body{
         <div class="body-left">
           <div class="prize">
             <div class="coins"><i class="coin c1"></i><i class="coin c2"></i><i class="coin c3"></i></div>
-            <span class="js-prize" data-val="<%= Number(room.prize || 0).toFixed(2) %>"><%= Number(room.prize || 0).toFixed(2) %></span><span>₼</span>
+            <span class="js-prize" data-val="<%= Number(room.prize || 0).toFixed(2) %>"><%= money(room.prize || 0, { symbol: false }) %></span><span><%= localeMeta.symbol %></span>
           </div>
-          <div class="players"><span class="pcount js-players"><%= room.playerCount %></span><span class="ptext">onlayn oyunçular</span></div>
+          <div class="players"><span class="pcount js-players" data-real="<%= room.playerCount %>"><%= room.playerCount %></span><span class="ptext"><%= t('room.online') %></span></div>
         </div>
         <div class="slot" <%= room.jackpotEnabled ? '' : 'style="display:none"' %>>
-          <div class="jackpot-text">JACKPOT</div>
+          <div class="jackpot-text"><%= t('room.jackpot') %></div>
           <div class="machine">
             <div class="barrel js-barrel" data-jackpot="<%= Number(room.jackpot || 0) %>" data-ratio="<%= Number(room.jackpotRatio || 1) %>">
               <% var jp = String(Math.round((Number(room.jackpot||0))*( Number(room.jackpotRatio||1) ))).padStart(3,'0').slice(-3).split(''); %>
@@ -335,19 +352,19 @@ body{
             <span class="num-ball"><%= n %></span>
           <%   });
              } else { %>
-            <span style="font-size:12px;color:#9aa0a4;font-weight:700;">Son qalib gözlənilir</span>
+            <span style="font-size:12px;color:#9aa0a4;font-weight:700;"><%= t('room.last_winners') %></span>
           <% } %>
         </div>
         <div class="amount-pill <%= room.hasJoined ? 'resume' : '' %>">
           <span class="material-symbols-outlined"><%= room.hasJoined ? 'play_circle' : 'sports_esports' %></span>
-          <span class="js-pill"><%= room.hasJoined ? 'Oyuna qayıt' : Number(room.entryFee || 0).toFixed(2) + ' ₼' %></span>
+          <span class="js-pill"><%= room.hasJoined ? t('room.return') : money(room.entryFee || 0) %></span>
         </div>
       </div>
       <% if (room.lastWinnerName) { %>
       <div class="last-winner">
         <span class="lw-name"><%= room.lastWinnerName %></span>
         <span class="lw-nums"><% (room.lastWinnerNums||[]).slice(0,5).forEach(function(n){ %><i><%= n %></i><% }) %></span>
-        <span class="lw-prize"><%= Number(room.winnerPrize || 0).toFixed(2) %>₼</span>
+        <span class="lw-prize"><%= money(room.winnerPrize || 0) %></span>
       </div>
       <% } %>
     </a>
@@ -363,8 +380,41 @@ function setJackpot(el,val,ratio){
   if(!el) return;
   var d = Math.round((parseFloat(val)||0)*(parseFloat(ratio)||1));
   var s = String(d).padStart(3,'0').slice(-3);
+  var prev = el.dataset.shown || '';
   var reels = el.querySelectorAll('.reel');
-  if (reels.length>=3){ reels[0].textContent=s[0]; reels[1].textContent=s[1]; reels[2].textContent=s[2]; }
+  if (reels.length < 3) return;
+  for (var i=0;i<3;i++){
+    if (prev[i] === s[i]) continue;
+    (function(reel, digit, idx){
+      setTimeout(function(){
+        reel.classList.remove('spin');
+        void reel.offsetWidth;
+        reel.classList.add('spin');
+        var steps = 6, n = 0;
+        var iv = setInterval(function(){
+          n++;
+          reel.textContent = String(Math.floor(Math.random()*10));
+          if (n >= steps){ clearInterval(iv); reel.textContent = digit; }
+        }, 45);
+      }, idx * 90);
+    })(reels[i], s[i], i);
+  }
+  if (prev && prev !== s){
+    var machine = el.closest('.machine');
+    if (machine){
+      machine.classList.remove('hit'); void machine.offsetWidth; machine.classList.add('hit');
+      setTimeout(function(){ machine.classList.remove('hit'); }, 700);
+      var diff = parseInt(s,10) - parseInt(prev || '0',10);
+      if (diff > 0){
+        var pop = document.createElement('span');
+        pop.className = 'jp-pop';
+        pop.textContent = '+' + diff;
+        machine.appendChild(pop);
+        setTimeout(function(){ if (pop.parentNode) pop.parentNode.removeChild(pop); }, 1200);
+      }
+    }
+  }
+  el.dataset.shown = s;
 }
 /* ── Otağın ümumi mərci: + / − animasiyalı ── */
 function animatePrize(card, value){
@@ -375,11 +425,11 @@ function animatePrize(card, value){
   if (!isFinite(from)) from = parseFloat(el.textContent) || 0;
   var delta = Math.round((value - from) * 100) / 100;
   el.dataset.val = value.toFixed(2);
-  if (Math.abs(delta) < 0.005){ el.textContent = value.toFixed(2); return; }
+  if (Math.abs(delta) < 0.005){ el.textContent = window.olMoney(value, false); return; }
 
   var f = document.createElement('span');
   f.className = 'prize-float ' + (delta > 0 ? 'up' : 'down');
-  f.textContent = (delta > 0 ? '+' : '−') + Math.abs(delta).toFixed(2) + ' ₼';
+  f.textContent = (delta > 0 ? '+' : '−') + window.olMoney(Math.abs(delta));
   wrap.appendChild(f);
   setTimeout(function(){ if (f.parentNode) f.parentNode.removeChild(f); }, 1250);
 
@@ -392,15 +442,15 @@ function animatePrize(card, value){
   (function step(now){
     var t = Math.min(1, (now - start) / dur);
     var e = 1 - Math.pow(1 - t, 3);
-    el.textContent = (from + delta * e).toFixed(2);
-    if (t < 1) requestAnimationFrame(step); else el.textContent = value.toFixed(2);
+    el.textContent = window.olMoney(from + delta * e, false);
+    if (t < 1) requestAnimationFrame(step); else el.textContent = window.olMoney(value, false);
   })(start);
 }
 
 function setStatusText(status){
-  if (status==='started') return '<span class="material-symbols-outlined">play_circle</span>Başladı';
-  if (status==='starting') return '<span class="material-symbols-outlined">hourglass_top</span>Başlayır';
-  return '<span class="material-symbols-outlined">group</span>Oyunçu gözlənilir';
+  if (status==='started') return '<span class="material-symbols-outlined">play_circle</span>'+window.OL_T.started;
+  if (status==='starting') return '<span class="material-symbols-outlined">hourglass_top</span>'+window.OL_T.starting;
+  return '<span class="material-symbols-outlined">group</span>'+window.OL_T.waiting;
 }
 function applyState(card, info){
   card.dataset.state = info.status;
@@ -415,12 +465,13 @@ function applyState(card, info){
     tm.textContent = info.status === 'started'
       ? fmtTime(info.secs_left || 0)
       : (Number(info.starts_in || 0) > 0
-          ? 'Başlayır ' + Number(info.starts_in) + 's'
+          ? window.OL_T.starting + ' ' + Number(info.starts_in) + 's'
           : (info.player_count || 0) + '/' + (info.room_size || 5));
   }
   var tmWrap = card.querySelector('.js-time');
   if (tmWrap) tmWrap.className = 'time js-time st-'+info.status;
-  var pe = card.querySelector('.js-players'); if (pe) pe.textContent = info.player_count;
+  var pe = card.querySelector('.js-players');
+  if (pe){ pe.dataset.real = info.player_count; if ((parseInt(pe.textContent,10)||0) < info.player_count) pe.textContent = info.player_count; }
   animatePrize(card, parseFloat(info.prize || 0));
   var barrel = card.querySelector('.js-barrel');
   if (barrel && info.jackpot!==null && info.jackpot!==undefined) setJackpot(barrel, info.jackpot, info.jackpot_ratio||1);
@@ -429,10 +480,10 @@ function applyState(card, info){
   var lw = card.querySelector('.last-winner');
   if (info.last_winner_name){
     var nums = (info.last_winner_nums||[]).slice(0,5).map(function(n){ return '<i>'+n+'</i>'; }).join('');
-    var prize = (parseFloat(info.winner_prize||0)).toFixed(2);
+    var prize = window.olMoney(info.winner_prize||0);
     var html = '<span class="lw-name">'+info.last_winner_name+'</span>'
              + '<span class="lw-nums">'+nums+'</span>'
-             + '<span class="lw-prize">'+prize+'₼</span>';
+             + '<span class="lw-prize">'+prize+'</span>';
     if (lw){ lw.innerHTML = html; }
     else {
       lw = document.createElement('div');
@@ -442,6 +493,36 @@ function applyState(card, info){
     }
   }
 }
+/* ── Onlayn oyunçu simulyasiyası: otaqlara giriş/çıxış effekti ── */
+(function(){
+  function bump(el, next){
+    if (!el) return;
+    var cur = parseInt(el.textContent, 10) || 0;
+    if (next === cur) return;
+    el.textContent = next;
+    el.classList.remove('pc-up','pc-down');
+    void el.offsetWidth;
+    el.classList.add(next > cur ? 'pc-up' : 'pc-down');
+    setTimeout(function(){ el.classList.remove('pc-up','pc-down'); }, 700);
+  }
+  function step(){
+    document.querySelectorAll('.card').forEach(function(card){
+      if (card.dataset.private === '1') return;           // şəxsi otaqlarda simulyasiya yoxdur
+      if (card.dataset.state === 'started') return;
+      var el = card.querySelector('.js-players');
+      if (!el) return;
+      var real = parseInt(el.dataset.real || el.textContent, 10) || 0;
+      var size = parseInt(card.querySelector('.js-time-text') ? card.querySelector('.js-time-text').dataset.size : 5, 10) || 5;
+      var shown = parseInt(el.textContent, 10) || real;
+      var delta = Math.random() < 0.5 ? -1 : 1;
+      var next = Math.min(size, Math.max(real, shown + delta));
+      bump(el, next);
+    });
+    setTimeout(step, 2600 + Math.random() * 3200);
+  }
+  setTimeout(step, 2200);
+})();
+
 (function(){
   function tick(){
     document.querySelectorAll('.js-time-text').forEach(function(el){
