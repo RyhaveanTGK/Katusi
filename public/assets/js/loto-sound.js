@@ -2,6 +2,10 @@
  * One Loto — səs mühərriki (WebAudio, xarici fayl tələb etmir)
  *  - LotoSound.draw(n)  → yeni daş çıxdıqda "top yuvarlanır + zəng" səsi
  *  - LotoSound.place()  → daş bilete qoyulduqda "tık" səsi
+ *  - LotoSound.buy()    → bilet alındıqda
+ *  - LotoSound.del()    → bilet/işarə silindikdə
+ *  - LotoSound.refresh()→ bilet yenilədikdə
+ *  - LotoSound.change() → bilet dəyişdirildikdə
  *  - LotoSound.win()    → bilet tam dolub qazandıqda fanfar
  *  - LotoSound.toggle() → səsi aç/bağla (localStorage-da saxlanılır)
  */
@@ -86,6 +90,39 @@
       tone({ from: 1760, to: 2640, dur: 0.09, type: 'square', vol: 0.11 });
       tone({ from: 2640, to: 3520, dur: 0.14, type: 'square', vol: 0.09, delay: 0.07 });
       tone({ from: 1320, dur: 0.18, type: 'triangle', vol: 0.07, delay: 0.05 });
+    },
+    /** bilet alındı — kassa/uğur akkordu */
+    buy: function () {
+      tone({ from: 523, to: 784, dur: 0.14, type: 'triangle', vol: 0.18 });
+      tone({ from: 784, to: 1046, dur: 0.16, type: 'triangle', vol: 0.16, delay: 0.11 });
+      tone({ from: 1046, to: 1568, dur: 0.22, type: 'sine', vol: 0.13, delay: 0.22 });
+      noise(0.07, 0.05);
+    },
+    /** bilet/işarə silindi — aşağı düşən "swoosh" */
+    del: function () {
+      noise(0.14, 0.07);
+      tone({ from: 620, to: 180, dur: 0.24, type: 'sawtooth', vol: 0.13 });
+      tone({ from: 300, to: 120, dur: 0.18, type: 'sine', vol: 0.08, delay: 0.1 });
+    },
+    /** yenilə — qısa fırlanan/qarışdıran səs */
+    refresh: function () {
+      noise(0.1, 0.06);
+      tone({ from: 440, to: 880, dur: 0.16, type: 'triangle', vol: 0.13 });
+      tone({ from: 880, to: 660, dur: 0.12, type: 'triangle', vol: 0.1, delay: 0.14 });
+    },
+    /** dəyişdir — iki addımlı "blip-blop" */
+    change: function () {
+      tone({ from: 990, to: 1320, dur: 0.09, type: 'square', vol: 0.1 });
+      tone({ from: 700, to: 520, dur: 0.11, type: 'square', vol: 0.09, delay: 0.1 });
+    },
+    /** sayğac / düymə tıkkısı */
+    tick: function () {
+      tone({ from: 900, to: 900, dur: 0.05, type: 'square', vol: 0.07 });
+    },
+    /** xəta */
+    error: function () {
+      tone({ from: 320, to: 180, dur: 0.2, type: 'sawtooth', vol: 0.12 });
+      tone({ from: 200, to: 140, dur: 0.22, type: 'sawtooth', vol: 0.1, delay: 0.12 });
     },
     /** bilet tam doldu */
     win: function () {
