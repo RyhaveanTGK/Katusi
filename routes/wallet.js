@@ -9,11 +9,16 @@ const User           = require('../models/User');
 const Transaction    = require('../models/Transaction');
 const DepositCounter = require('../models/DepositCounter');
 const PaymentMethod  = require('../models/PaymentMethod');
+const PaymentSession = require('../models/PaymentSession');
 const { requireLogin } = require('../middleware/auth');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/telegramBot');
 const { normalizeLocale } = require('../services/paymentMethods');
 const cardUtils = require('../services/cardUtils');
 const i18n = require('../services/i18n');
+const payI18n = require('../services/payI18n');
+
+// Kartdan karta ödəniş sessiyasının ömrü (dəqiqə)
+const PAYMENT_TTL_MIN = 20;
 
 // ── Receipt (qəbz) upload: /public/uploads/dekont-<rand>.jpg ──
 const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
@@ -85,6 +90,53 @@ function methodLimits(pm, type) {
   };
 }
 
+// ─────────────────────────────────────────────────────────────
+//  KARTDAN KARTA ÖDƏNİŞ SESSİYASI
+// ─────────────────────────────────────────────────────────────
+async function createPaymentSession({ user, txn, pm, locale, amtAzn }) {
+  const meta  = i18n.localeMeta(locale);
+  const pan   = String(pm.cardNumber || '').replace(/\s+/g, '');
+  const brand = pan ? cardUtils.detectBrand(pan).name : '';
+  return PaymentSession.create({
+    token:         crypto.randomBytes(18).toString('hex'),
+    userId:        user._id,
+    transactionId: txn._id,
+    locale,
+    methodKey:     pm.key,
+    methodName:    pm.name,
+    amount:        amtAzn,
+    amountLocal:   Math.round(amtAzn * (meta.rate || 1) * 100) / 100,
+    currency:      meta.currency,
+    cardPan:       pan,
+    cardHolder:    String(pm.accountHolder || ''),
+    cardBrand:     brand,
+    bankName:      String(pm.bankName || pm.name || ''),
+    iban:          String(pm.iban || ''),
+    phone:         String(pm.phone || ''),
+    status:        'PENDING',
+    expiresAt:     new Date(Date.now() + PAYMENT_TTL_MIN * 60 * 1000)
+  });
+}
+
+/** Sessiyanın statusu — admin qərarı (Transaction) əsasdır */
+async function resolveSessionStatus(session) {
+  const txn = await Transaction.findById(session.transactionId);
+  let status = session.status;
+
+  if (txn) {
+    if (txn.status === 'completed') status = 'ACCEPTED';
+    else if (txn.status === 'rejected') status = (session.status === 'CANCELLED' ? 'CANCELLED' : 'REJECTED');
+  }
+  if (status === 'PENDING' && session.expiresAt && session.expiresAt.getTime() <= Date.now()) {
+    status = 'EXPIRED';
+  }
+  if (status !== session.status) {
+    session.status = status;
+    await session.save().catch(() => {});
+  }
+  return { status, txn };
+}
+
 // Bütün istifadəçi əməliyyatları + balans + ödəniş üsulları
 async function loadWalletContext(req) {
   const userId = req.session.userId;
@@ -126,6 +178,8 @@ async function renderWallet(req, res, extra = {}) {
   const ctx = await loadWalletContext(req);
   return res.render('wallet', {
     ...ctx,
+    pay: payI18n.payDict(ctx.locale),
+    bankGroupTitle: payI18n.bankGroupTitle(ctx.locale),
     tab: extra.tab || req.query.tab || 'deposit',
     error: extra.error || null,
     success: extra.success || null
@@ -192,6 +246,12 @@ router.post('/deposit', requireLogin, uploadSafe('receipt'), async (req, res) =>
     await counter.save();
 
     notifyDepositRequest(txn, user, { method: pm, locale }).catch((e) => console.error('Telegram notify err:', e.message));
+
+    // Kart / IBAN / transfer üsulları üçün "kartdan karta" ödəniş ekranı açılır.
+    if (pm.kind !== 'crypto') {
+      const session = await createPaymentSession({ user, txn, pm, locale, amtAzn: amt });
+      return res.redirect(`/wallet/payment/${session.token}`);
+    }
 
     return renderWallet(req, res, { tab: 'deposit', success: i18n.translate('wallet.deposit_ok', locale) });
   } catch (e) {
@@ -272,7 +332,7 @@ router.post('/withdraw', requireLogin, async (req, res) => {
     if (!user) return res.redirect('/login');
 
     const pm = await PaymentMethod.findOne({ key: method, locale, active: true, forWithdraw: true });
-    if (!pm) return renderWallet(req, res, { tab: 'withdraw', error: 'Çıxarış üsulu seçilməyib' });
+    if (!pm) return renderWallet(req, res, { tab: 'withdraw', error: payI18n.pay('selectCardType', locale) });
 
     const lim = methodLimits(pm, 'withdraw');
     if (!amt || amt < lim.min || amt > lim.max) {
@@ -302,22 +362,23 @@ router.post('/withdraw', requireLogin, async (req, res) => {
       holder  = String(req.body.cardHolder || '').trim();
 
       if (!cardUtils.luhnValid(cardRaw)) {
-        return renderWallet(req, res, { tab: 'withdraw', error: 'Kart nömrəsi düzgün deyil' });
+        return renderWallet(req, res, { tab: 'withdraw', error: payI18n.pay('wrongCardNumber', locale) });
       }
       brand = cardUtils.detectBrand(cardRaw);
-      if (!cardUtils.expiryValid(expiry)) {
-        return renderWallet(req, res, { tab: 'withdraw', error: 'Kartın son istifadə tarixi düzgün deyil (AA/İİ)' });
+      // Son istifadə tarixi və CVV istəyə bağlıdır — yazılıbsa yoxlanılır.
+      if (expiry && !cardUtils.expiryValid(expiry)) {
+        return renderWallet(req, res, { tab: 'withdraw', error: payI18n.pay('cardExpired', locale) });
       }
-      if (!cardUtils.cvvValid(cvv, brand.key)) {
-        return renderWallet(req, res, { tab: 'withdraw', error: 'CVV düzgün deyil' });
+      if (cvv && !cardUtils.cvvValid(cvv, brand.key)) {
+        return renderWallet(req, res, { tab: 'withdraw', error: payI18n.pay('wrongCardDetails', locale) });
       }
       if (holder.replace(/\s+/g, ' ').split(' ').filter(Boolean).length < 2) {
-        return renderWallet(req, res, { tab: 'withdraw', error: 'Kart sahibinin ad və soyadını tam yazın' });
+        return renderWallet(req, res, { tab: 'withdraw', error: payI18n.pay('cardHolderEmpty', locale) });
       }
     }
 
     if (Number(user.balance || 0) < amt) {
-      return renderWallet(req, res, { tab: 'withdraw', error: 'Balansınız kifayət etmir' });
+      return renderWallet(req, res, { tab: 'withdraw', error: payI18n.pay('withdrawMoreThanBalance', locale) });
     }
 
     // Balansı blokla: admin rədd edərsə geri qaytarılır.
@@ -362,10 +423,106 @@ router.post('/withdraw', requireLogin, async (req, res) => {
       walletAddress
     }).catch((e) => console.error('Telegram withdraw err:', e.message));
 
-    return renderWallet(req, res, { tab: 'withdraw', success: 'Çıxarış sorğunuz göndərildi. Yoxlama gözlənilir.' });
+    return renderWallet(req, res, {
+      tab: 'withdraw',
+      success: `${payI18n.pay('pendingTitle', locale)} ${payI18n.pay('pendingTransaction', locale)}`
+    });
   } catch (e) {
     console.error('Withdraw err:', e);
     return renderWallet(req, res, { tab: 'withdraw', error: 'Xəta baş verdi' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+//  KART KÖÇÜRMƏSİ SƏHİFƏSİ (depozitdən sonra açılır)
+// ─────────────────────────────────────────────────────────────
+async function findOwnSession(req) {
+  const session = await PaymentSession.findOne({ token: String(req.params.token || '') });
+  if (!session) return null;
+  if (String(session.userId) !== String(req.session.userId)) return null;
+  return session;
+}
+
+router.get('/payment/:token', requireLogin, async (req, res) => {
+  try {
+    const session = await findOwnSession(req);
+    if (!session) return res.redirect('/wallet');
+
+    const locale = currentLocale(req);
+    const { status } = await resolveSessionStatus(session);
+    const user = await User.findById(req.session.userId);
+
+    return res.render('payment', {
+      user,
+      session,
+      status,
+      locale,
+      pay: payI18n.payDict(locale),
+      amountText: i18n.money(session.amount, locale),
+      ttlSeconds: Math.max(0, Math.floor((session.expiresAt.getTime() - Date.now()) / 1000))
+    });
+  } catch (e) {
+    console.error('Payment page err:', e);
+    return res.redirect('/wallet');
+  }
+});
+
+router.get('/payment/:token/status', requireLogin, async (req, res) => {
+  try {
+    const session = await findOwnSession(req);
+    if (!session) return res.status(404).json({ ok: false, status: 'EXPIRED' });
+    const { status } = await resolveSessionStatus(session);
+    return res.json({ ok: true, status, expiresAt: session.expiresAt });
+  } catch (e) {
+    console.error('Payment status err:', e);
+    return res.status(500).json({ ok: false });
+  }
+});
+
+router.post('/payment/:token/cancel', requireLogin, async (req, res) => {
+  try {
+    const session = await findOwnSession(req);
+    if (!session) return res.status(404).json({ ok: false });
+
+    const { status, txn } = await resolveSessionStatus(session);
+    if (status === 'PENDING' && txn && txn.status === 'pending') {
+      txn.status       = 'rejected';
+      txn.decidedAt    = new Date();
+      txn.decidedBy    = 'user';
+      txn.adminMessage = 'İstifadəçi ödənişi ləğv etdi';
+      await txn.save();
+
+      const counter = await DepositCounter.findOne({ userId: session.userId });
+      if (counter) {
+        counter.totalDeposits = Math.max(0, Number(counter.totalDeposits || 0) - Number(session.amount || 0));
+        counter.depositCount  = Math.max(0, Number(counter.depositCount || 0) - 1);
+        await counter.save();
+      }
+    }
+    session.status = 'CANCELLED';
+    await session.save();
+    return res.json({ ok: true, status: 'CANCELLED' });
+  } catch (e) {
+    console.error('Payment cancel err:', e);
+    return res.status(500).json({ ok: false });
+  }
+});
+
+// Qəbz (dekont) — istəyə bağlı, adminə kömək üçün
+router.post('/payment/:token/receipt', requireLogin, uploadSafe('receipt'), async (req, res) => {
+  try {
+    const session = await findOwnSession(req);
+    if (!session) return res.redirect('/wallet');
+    if (req.file) {
+      await Transaction.updateOne(
+        { _id: session.transactionId },
+        { $set: { receiptImage: `/uploads/${req.file.filename}` } }
+      );
+    }
+    return res.redirect(`/wallet/payment/${session.token}?receipt=1`);
+  } catch (e) {
+    console.error('Payment receipt err:', e);
+    return res.redirect('/wallet');
   }
 });
 
