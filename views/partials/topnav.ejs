@@ -1,3 +1,14 @@
+<script>
+/* ── Qlobal valyuta köməkçisi (aktiv dilə uyğun) ── */
+window.OL_RATE = <%= Number(localeMeta.rate || 1) %>;
+window.OL_SYM  = <%- JSON.stringify(localeMeta.symbol) %>;
+window.olMoney = function(azn, withSym){
+  var v = (Number(azn) || 0) * window.OL_RATE;
+  var s = v.toFixed(2);
+  return (withSym === false) ? s : s + ' ' + window.OL_SYM;
+};
+window.OL_T = <%- JSON.stringify({started:t('room.started'),starting:t('room.starting'),waiting:t('room.waiting'),online:t('room.online'),ret:t('room.return'),jackpot:t('room.jackpot')}) %>;
+</script>
 <script src="/assets/js/loto-sound.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -113,12 +124,12 @@ img.emoji{ height:1em; width:1em; margin:0 .05em 0 .1em; vertical-align:-0.12em;
   var current = parseFloat(box.dataset.balance || '0') || 0;
   var raf = null;
 
-  function paint(v){ el.textContent = (Math.round(v * 100) / 100).toFixed(2); }
+  function paint(v){ el.textContent = window.olMoney(v, false); }
 
   function floatLabel(delta){
     var f = document.createElement('span');
     f.className = 'bal-float ' + (delta > 0 ? 'up' : 'down');
-    f.textContent = (delta > 0 ? '+' : '−') + Math.abs(delta).toFixed(2) + ' ₼';
+    f.textContent = (delta > 0 ? '+' : '−') + window.olMoney(Math.abs(delta));
     box.appendChild(f);
     setTimeout(function(){ if (f.parentNode) f.parentNode.removeChild(f); }, 1300);
   }
