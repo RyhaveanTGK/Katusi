@@ -47,6 +47,39 @@ function cardToClient(card, room) {
   };
 }
 
+/**
+ * Klientdən gələn bilet rəqəmlərinin qanuniliyini yoxlayır.
+ * 3 sıra × 9 sütun, hər sırada tam 5 rəqəm, sütun aralıqlarına uyğun,
+ * təkrarlanan rəqəm olmadan.
+ */
+const CARD_COL_RANGES = [
+  [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
+  [50, 59], [60, 69], [70, 79], [80, 90]
+];
+function normalizeCardNumbers(raw) {
+  if (!Array.isArray(raw) || raw.length !== 3) return null;
+  const seen = new Set();
+  const grid = [];
+  for (const row of raw) {
+    if (!Array.isArray(row) || row.length !== 9) return null;
+    const out = [];
+    let filled = 0;
+    for (let c = 0; c < 9; c++) {
+      const n = Number(row[c]) || 0;
+      if (!n) { out.push(0); continue; }
+      const [min, max] = CARD_COL_RANGES[c];
+      if (!Number.isInteger(n) || n < min || n > max) return null;
+      if (seen.has(n)) return null;
+      seen.add(n);
+      filled++;
+      out.push(n);
+    }
+    if (filled !== 5) return null;
+    grid.push(out);
+  }
+  return grid;
+}
+
 function generateCard() { // legacy wrapper
   return generateCardNumbers();
 }
@@ -188,7 +221,8 @@ router.get('/room/:id', apiAuth, async (req, res) => {
     } : null,
     drawn_numbers:   room.drawnNumbers || [],
     current_number:  room.currentNumber,
-    star_prize:      Number(room.starPrize || 0),
+    star_prize:      starLeague.starsPerTicket(room),
+    stars_per_ticket: starLeague.starsPerTicket(room),
     multiplier:      room.prizeMultiplier || 'x2',
     current_round_id: Number(room.currentRoundId || 1),
     max_tickets:     MAX_TICKETS,
@@ -264,7 +298,13 @@ router.post('/card/:roomId/regenerate', apiAuth, async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Bilet tapılmadı' });
     if (existing.isWinner) return res.status(400).json({ error: 'Qazanan bileti dəyişmək olmaz' });
 
-    existing.numbers = generateCardNumbers();
+    // "dəyişdir" üçün klient öz seçdiyi (qanuni) rəqəmləri göndərə bilər
+    let next = null;
+    if (req.body && req.body.numbers) {
+      next = normalizeCardNumbers(req.body.numbers);
+      if (!next) return res.status(400).json({ error: 'Bilet rəqəmləri düzgün deyil' });
+    }
+    existing.numbers = next || generateCardNumbers();
     existing.markedNumbers = [];
     existing.completedAt = null;
     await existing.save();
@@ -339,8 +379,8 @@ router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
     if (isStars) user.stars = Number(user.stars || 0) - totalFee;
     else user.balance = Number(user.balance || 0) - totalFee;
     user.gamesPlayed = Number(user.gamesPlayed || 0) + quantity;
-    // Biletin qiymətinə görə ulduz (24 saatlıq liderboard üçün)
-    await starLeague.awardStars(user, room, quantity);
+    // Biletin qiymətinə görə ulduz (20 qəpik = 2 ulduz; 24 saatlıq liderboard üçün)
+    const starsGained = await starLeague.awardStars(user, room, quantity);
 
     if (!room.players.map(String).includes(String(user._id))) {
       room.players.push(user._id);
@@ -352,9 +392,7 @@ router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
 
     const created = [];
     for (let i = 0; i < quantity; i++) {
-      const numbers = incoming && Array.isArray(incoming[i]) && incoming[i].length === 3
-        ? incoming[i].map((row) => row.map((n) => Number(n) || 0))
-        : generateCardNumbers();
+      const numbers = (incoming && normalizeCardNumbers(incoming[i])) || generateCardNumbers();
       const card = new GameCard({
         userId: user._id,
         roomId: room._id,
@@ -378,7 +416,13 @@ router.post('/card/:roomId/buy', apiAuth, async (req, res) => {
       }).save();
     }
 
-    res.json({ ok: true, quantity, total: totalFee, cards: created, card: created[0] || null, balance: Number(user.balance || 0) });
+    res.json({
+      ok: true, quantity, total: totalFee, cards: created, card: created[0] || null,
+      balance: Number(user.balance || 0),
+      stars: Number(user.stars || 0),
+      stars_gained: Number(starsGained || 0),
+      stars_per_ticket: starLeague.starsPerTicket(room)
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
