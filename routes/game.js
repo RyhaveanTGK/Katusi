@@ -7,7 +7,7 @@ const GameCard = require('../models/GameCard');
 const Transaction = require('../models/Transaction');
 const WinnerLog = require('../models/WinnerLog');
 const { requireLogin } = require('../middleware/auth');
-const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, START_PLAYERS, slotsLeft, botEngine, findJoinableRoom, capacityOf, startsInSec } = require('../services/gameEngine');
+const { getDisplayStatus, getSecsLeft, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, START_PLAYERS, slotsLeft, botEngine, findJoinableRoom, capacityOf, startsInSec } = require('../services/gameEngine');
 const { hasRoomAccess } = require('./rooms');
 const starLeague = require('../services/starLeague');
 
@@ -252,8 +252,23 @@ router.get('/card-add/:roomId', requireLogin, async (req, res) => {
   try {
     const { user, room } = await getRoomAndUser(req);
     if (!room || !user) return res.redirect('/');
-    const card = await GameCard.findOne({ userId: user._id, roomId: room._id, roundId: room.currentRoundId }).sort({ playedAt: -1 });
-    res.render('card-add', { user, room, card, displayStatus: getDisplayStatus(room), secsLeft: getSecsLeft(room) });
+    const cards = await GameCard.find({ userId: user._id, roomId: room._id, roundId: room.currentRoundId })
+      .sort({ ticketIndex: 1, playedAt: 1 });
+    const roster = await roomRoster(room);
+    res.render('card-add', {
+      user,
+      room,
+      card: cards[0] || null,
+      cards,
+      roster,
+      playerCount: visiblePlayerCount(room),
+      roomSize: capacityOf(room),
+      totalStake: Number(Number(room.prize || 0).toFixed(2)),
+      starsPerTicket: starLeague.starsPerTicket(room),
+      maxTickets: MAX_TICKETS,
+      displayStatus: getDisplayStatus(room),
+      secsLeft: getSecsLeft(room)
+    });
   } catch (err) {
     res.redirect('/');
   }
