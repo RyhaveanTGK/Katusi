@@ -82,10 +82,10 @@ img.emoji{
       <span class="lg-one">One</span><span class="lg-loto">Loto</span>
     </a>
     <a class="balance-box" href="/wallet">
-      <span class="b-label">Balans:</span>
+      <span class="b-label"><%= t('wallet.balance') %>:</span>
       <span class="b-value">
-        <%= user ? user.balance.toFixed(2) : '0.00' %>
-        <span class="coin-icon">₼</span>
+        <%= user ? money(user.balance || 0, { symbol: false }) : '0.00' %>
+        <span class="coin-icon"><%= localeMeta.symbol %></span>
       </span>
     </a>
   </div>
