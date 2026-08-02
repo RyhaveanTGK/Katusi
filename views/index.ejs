@@ -302,7 +302,7 @@ body{
             <div class="classic"><span class="lbl">Classic</span><span><%= money(room.entryFee || 0, { symbol: false }) %></span><span><%= localeMeta.symbol %></span></div>
             <div class="stars-wrap">
               <div class="stars">
-                <div class="top"><span class="star">★</span><span class="js-star-prize"><%= room.starPrize || Math.round((room.entryFee || 1) * 100) %></span></div>
+                <div class="top"><span class="star">★</span><span class="js-star-prize"><%= Math.max(1, Math.round((room.entryFee || 0) * 10)) %></span></div>
                 <div class="win"><%= t('room.win') %></div>
               </div>
               <div class="mult js-mult"><%= room.prizeMultiplier || 'x2' %></div>
