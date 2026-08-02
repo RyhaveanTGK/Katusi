@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema({
       createdAt:  { type: Date, default: Date.now }
     }
   ],
+  lastDailyBonusAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
