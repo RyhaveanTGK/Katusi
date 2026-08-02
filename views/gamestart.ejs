@@ -314,12 +314,12 @@
 <div class="gamebar">
   <div class="statbar">
     <div class="stat-pill">
-      <div class="bet"><%= Number(room.entryFee || 0).toFixed(2) %><span class="mult"><%= room.prizeMultiplier || 'x2' %></span></div>
+      <div class="bet"><%= money(room.entryFee || 0) %><span class="mult"><%= room.prizeMultiplier || 'x2' %></span></div>
       <div class="item tap" id="playersBtn" role="button" tabindex="0" aria-label="Oyunçular"><span class="material-symbols-outlined">person</span><span id="playerCount"><%= playerCount || room.players.length %></span></div>
       <div class="sep"></div>
       <div class="item" id="ticketChipWrap" style="position:relative"><span class="ticket-chip" id="ticketChip"><span class="material-symbols-outlined" style="font-size:15px">confirmation_number</span><span class="tc-n" id="ticketChipCount"><%= cards.length %></span></span></div>
       <div class="sep"></div>
-      <div class="item" id="stakeItem"><span class="material-symbols-outlined">emoji_events</span><span id="roomStake"><%= Number(totalStake || 0).toFixed(2) %></span><span>&nbsp;₼</span></div>
+      <div class="item" id="stakeItem"><span class="material-symbols-outlined">emoji_events</span><span id="roomStake"><%= money(totalStake || 0, { symbol: false }) %></span><span>&nbsp;<%= localeMeta.symbol %></span></div>
     </div>
     <button class="icon-btn" id="soundBtn" type="button" aria-label="Səs"><span class="material-symbols-outlined" id="soundIcon">volume_up</span></button>
   </div>
@@ -347,7 +347,7 @@
   <div class="bottombar-inner">
     <div class="bb-info">
       <div class="bb-k">Bilet uduşu</div>
-      <div class="bb-v"><span id="ticketPrize"><%= Number(ticketPrize || 0).toFixed(2) %></span> ₼ · <span id="ticketCount"><%= cards.length %></span> bilet</div>
+      <div class="bb-v"><span id="ticketPrize"><%= money(ticketPrize || 0, { symbol: false }) %></span> <%= localeMeta.symbol %> · <span id="ticketCount"><%= cards.length %></span> <%= t('winners.tickets') %></div>
     </div>
     <a class="bb-home" href="/"><span class="material-symbols-outlined">home</span>Ana səhifə</a>
   </div>
@@ -361,7 +361,7 @@
       <button class="sheet-x" id="sheetClose" type="button" aria-label="Bağla"><span class="material-symbols-outlined">close</span></button>
     </div>
     <div class="plist" id="playersList"></div>
-    <div class="sheet-foot"><span>Ümumi mərc</span><span id="sheetTotal">0.00 ₼</span></div>
+    <div class="sheet-foot"><span>Ümumi mərc</span><span id="sheetTotal"><%= money(0) %></span></div>
   </div>
 </div>
 
@@ -525,11 +525,11 @@ function renderPlayers(data){
       '<span class="pav">' + String(p.name || '?').charAt(0).toUpperCase() + '</span>' +
       '<span class="pname">' + (p.name || 'Oyunçu') + (p.name === MY_NAME ? ' (siz)' : '') + '</span>' +
       '<span class="ptick">' + Number(p.tickets || 1) + ' bilet</span>' +
-      '<span class="pstake">' + Number(p.stake || 0).toFixed(2) + ' ₼</span>';
+      '<span class="pstake">' + window.olMoney(p.stake || 0) + '</span>';
     list.appendChild(row);
   });
   if (!roster.length) list.innerHTML = '<div class="prow"><span class="pname">Oyunçular gözlənilir…</span></div>';
-  tot.textContent = sum.toFixed(2) + ' ₼';
+  tot.textContent = window.olMoney(sum);
 }
 
 /* ── Ümumi mərc: + / − animasiyalı ── */
@@ -543,7 +543,7 @@ function setStake(value){
 
   var f = document.createElement('span');
   f.className = 'stake-float ' + (delta > 0 ? 'up' : 'down');
-  f.textContent = (delta > 0 ? '+' : '−') + Math.abs(delta).toFixed(2) + ' ₼';
+  f.textContent = (delta > 0 ? '+' : '−') + window.olMoney(Math.abs(delta));
   item.appendChild(f);
   setTimeout(function(){ if (f.parentNode) f.parentNode.removeChild(f); }, 1200);
 
@@ -626,7 +626,7 @@ function setTicketChip(n){
       .then(function(r){ return r.json(); })
       .then(function(res){
         if (res.error){ ok.disabled = false; toast(res.error); return; }
-        toast('Balansınıza ' + Number(res.refund || 0).toFixed(2) + ' ₼ qaytarıldı');
+        toast('Balansınıza ' + window.olMoney(res.refund || 0) + ' qaytarıldı');
         setTimeout(function(){ window.location.href = '/'; }, 900);
       })
       .catch(function(){ ok.disabled = false; toast('Şəbəkə xətası'); });
@@ -673,7 +673,7 @@ function ticketNode(card, index){
   foot.className = 'ticket-foot';
   foot.innerHTML = '<span>' + marks + '/' + total + '</span><span class="progress"><i style="width:' +
     (total ? Math.round(marks / total * 100) : 0) + '%"></i></span>' +
-    (card.isWinner ? '<span class="win-tag">' + Number(card.lineWins || 1) + ' linya · +' + Number(card.prize || 0).toFixed(2) + ' ₼</span>' : '<span></span>');
+    (card.isWinner ? '<span class="win-tag">' + Number(card.lineWins || 1) + ' linya · +' + window.olMoney(card.prize || 0) + '</span>' : '<span></span>');
   box.appendChild(foot);
 
   grid.addEventListener('click', function(e){
@@ -729,9 +729,9 @@ function showWin(prize, lineNo){
   var b = document.getElementById('winBanner');
   var pct = [2.4, 4.8, 7.2][Math.min(Math.max(1, Number(lineNo || 1)), 3) - 1];
   b.style.display = 'block';
-  b.innerHTML = Number(lineNo || 1) + '-ci linya doldu! <b>+' + Number(prize || 0).toFixed(2) + ' ₼</b> (' + pct + '%) balansına əlavə olundu.' +
+  b.innerHTML = Number(lineNo || 1) + '-ci linya doldu! <b>+' + window.olMoney(prize || 0) + '</b> (' + pct + '%) balansına əlavə olundu.' +
     '<br><span style="font-weight:600;font-size:13px;opacity:.85">Bileti tam doldursanız qalib elan olunursunuz.</span>';
-  toast('Qazandınız! +' + Number(prize || 0).toFixed(2) + ' ₼');
+  toast('Qazandınız! +' + window.olMoney(prize || 0));
 }
 
 var winShown = false;
