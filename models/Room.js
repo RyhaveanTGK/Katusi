@@ -6,7 +6,7 @@ const roomSchema = new mongoose.Schema({
   type:       { type: String, enum: ['classic', 'stars'], default: 'classic' },
   status:     { type: String, enum: ['waiting', 'started', 'ended'], default: 'waiting' },
   entryFee:   { type: Number, default: 1 },
-  starPrize:  { type: Number, default: 20 },
+  starPrize:  { type: Number, default: 2 },
   prizeMultiplier: { type: String, default: 'x2' },
   themeColor: { type: String, default: '#1f9b3b' },
   prize:      { type: Number, default: 0 },
