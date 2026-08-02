@@ -120,7 +120,7 @@ body{
     <div class="hero-icon">🎁</div>
     <div class="hero-title">Dostları dəvət et, qazanc əldə et!</div>
     <div class="hero-sub">Hər dəvət etdiyiniz dostun qeydiyyatdan keçməsi ilə bonus balans qazanırsınız.</div>
-    <div class="bonus-pill">Hər qeydiyyatdan 0.50 ₼ bonus</div>
+    <div class="bonus-pill"><%= money(0.5) %> — <%= t('referral.bonus_each') %></div>
   </div>
 
   <div class="stat-grid">
@@ -129,7 +129,7 @@ body{
       <div class="stat-lbl">Dəvət edilənlər</div>
     </div>
     <div class="stat-box">
-      <div class="stat-val"><%= (referralCount * 0.5).toFixed(2) %> ₼</div>
+      <div class="stat-val"><%= money(referralCount * 0.5) %></div>
       <div class="stat-lbl">Qazanılan bonus</div>
     </div>
   </div>
@@ -159,7 +159,7 @@ body{
     </div>
     <div class="how-step">
       <div class="step-num">3</div>
-      <div class="step-text"><span class="step-bold">Bonus alırsınız</span> — 0.50 ₼ bonus balansınıza avtomatik əlavə edilir</div>
+      <div class="step-text"><span class="step-bold"><%= t('referral.step_bonus') %></span> — <%= money(0.5) %> <%= t('referral.step_bonus_text') %></div>
     </div>
   </div>
 </div>
