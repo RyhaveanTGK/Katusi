@@ -3,11 +3,11 @@
 // Hər dilin öz valyutası və məzənnəsi var. Baza valyuta = AZN (bazada saxlanılan balans).
 
 const LOCALES = [
-  { code: 'en', label: 'English',    native: 'English',    flag: '🇺🇸', currency: 'USD', symbol: '$',  rate: 0.59, intl: 'en-US' },
-  { code: 'az', label: 'Azerbaijani',native: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', symbol: '₼',  rate: 1,    intl: 'az-AZ' },
-  { code: 'tr', label: 'Turkish',    native: 'Türkçe',     flag: '🇹🇷', currency: 'TRY', symbol: '₺',  rate: 24,   intl: 'tr-TR' },
-  { code: 'ru', label: 'Russian',    native: 'Русский',    flag: '🇷🇺', currency: 'RUB', symbol: '₽',  rate: 47,   intl: 'ru-RU' },
-  { code: 'ka', label: 'Georgian',   native: 'ქართული',    flag: '🇬🇪', currency: 'GEL', symbol: '₾',  rate: 1.6,  intl: 'ka-GE' }
+  { code: 'en', label: 'English',    native: 'English',    flag: '🇺🇸', currency: 'USD', symbol: '$',  rate: 0.59, intl: 'en-US', dailyBonus: 0.50 },
+  { code: 'az', label: 'Azerbaijani',native: 'Azərbaycan', flag: '🇦🇿', currency: 'AZN', symbol: '₼',  rate: 1,    intl: 'az-AZ', dailyBonus: 0.50 },
+  { code: 'tr', label: 'Turkish',    native: 'Türkçe',     flag: '🇹🇷', currency: 'TRY', symbol: '₺',  rate: 24,   intl: 'tr-TR', dailyBonus: 15 },
+  { code: 'ru', label: 'Russian',    native: 'Русский',    flag: '🇷🇺', currency: 'RUB', symbol: '₽',  rate: 47,   intl: 'ru-RU', dailyBonus: 30 },
+  { code: 'ka', label: 'Georgian',   native: 'ქართული',    flag: '🇬🇪', currency: 'GEL', symbol: '₾',  rate: 1.6,  intl: 'ka-GE', dailyBonus: 1.5 }
 ];
 
 const DEFAULT_LOCALE = 'en';
@@ -83,7 +83,41 @@ const DICT = {
     'settings.language': 'Language', 'settings.language_hint': 'Interface language, currency and deposit methods change together.',
     'settings.save': 'Save', 'settings.saved': 'Details updated', 'settings.language_saved': 'Language updated',
     'settings.change_password': 'Change password',
-    'common.error': 'Something went wrong', 'common.back': 'Back', 'common.cancel': 'Cancel'
+    'common.error': 'Something went wrong', 'common.back': 'Back',     'join.title': 'Buy tickets',
+    'join.full_ticket': 'FULL TICKET',
+    'join.starting': 'Starting',
+    'join.waiting': 'Waiting for players',
+    'join.entry_fee': 'Entry fee',
+    'join.players': 'Players',
+    'join.prize': 'Prize pool',
+    'join.ticket_count': 'How many tickets?',
+    'join.your_tickets': 'Your tickets',
+    'join.ticket': 'Ticket',
+    'join.total': 'Total',
+    'join.buy': 'Buy ticket',
+    'room.create': 'Create room',
+    'room.empty': 'No active rooms right now',
+    'room.online': 'players online',
+    'room.jackpot': 'JACKPOT',
+    'room.waiting': 'Waiting for players',
+    'room.started': 'Started',
+    'room.starting': 'Starting',
+    'room.return': 'Back to game',
+    'room.private': 'Private',
+    'room.win': 'win',
+    'room.last_winners': 'Last winners',
+    'bonus.title': 'Daily bonus',
+    'bonus.desc': 'Claim your free bonus once every 24 hours.',
+    'bonus.claim': 'Claim bonus',
+    'bonus.claimed': 'Bonus credited to your balance',
+    'bonus.next': 'Next bonus in',
+    'bonus.ready': 'Ready to claim',
+    'referral.bonus_each': 'bonus for every sign-up',
+    'referral.earned': 'Earned',
+    'referral.invited': 'Invited friends',
+    'referral.step_bonus': 'You get a bonus',
+    'referral.step_bonus_text': 'is added to your balance automatically',
+    'common.cancel': 'Cancel'
   },
 
   az: {
@@ -132,7 +166,41 @@ const DICT = {
     'settings.language': 'Dil', 'settings.language_hint': 'İnterfeys dili, valyuta və deposit üsulları birlikdə dəyişir.',
     'settings.save': 'Yadda saxla', 'settings.saved': 'Məlumatlar yeniləndi', 'settings.language_saved': 'Dil yeniləndi',
     'settings.change_password': 'Şifrəni dəyiş',
-    'common.error': 'Xəta baş verdi', 'common.back': 'Geri', 'common.cancel': 'Ləğv et'
+    'common.error': 'Xəta baş verdi', 'common.back': 'Geri',     'join.title': 'Bilet al',
+    'join.full_ticket': 'TAM BİLET',
+    'join.starting': 'Başlayır',
+    'join.waiting': 'Oyunçu gözlənilir',
+    'join.entry_fee': 'Giriş haqqı',
+    'join.players': 'Oyunçular',
+    'join.prize': 'Bank',
+    'join.ticket_count': 'Neçə bilet?',
+    'join.your_tickets': 'Biletləriniz',
+    'join.ticket': 'Bilet',
+    'join.total': 'Ümumi',
+    'join.buy': 'Bilet al',
+    'room.create': 'Otaq yarat',
+    'room.empty': 'Hazırda aktiv otaq yoxdur',
+    'room.online': 'onlayn oyunçular',
+    'room.jackpot': 'JACKPOT',
+    'room.waiting': 'Oyunçu gözlənilir',
+    'room.started': 'Başladı',
+    'room.starting': 'Başlayır',
+    'room.return': 'Oyuna qayıt',
+    'room.private': 'Şəxsi',
+    'room.win': 'qazan',
+    'room.last_winners': 'Son qaliblər',
+    'bonus.title': 'Gündəlik bonus',
+    'bonus.desc': 'Hər 24 saatdan bir pulsuz bonusunuzu alın.',
+    'bonus.claim': 'Bonusu al',
+    'bonus.claimed': 'Bonus balansınıza əlavə olundu',
+    'bonus.next': 'Növbəti bonusa qalıb',
+    'bonus.ready': 'Hazırdır',
+    'referral.bonus_each': 'hər qeydiyyatdan bonus',
+    'referral.earned': 'Qazanılıb',
+    'referral.invited': 'Dəvət olunanlar',
+    'referral.step_bonus': 'Bonus alırsınız',
+    'referral.step_bonus_text': 'balansınıza avtomatik əlavə edilir',
+    'common.cancel': 'Ləğv et'
   },
 
   tr: {
@@ -181,7 +249,41 @@ const DICT = {
     'settings.language': 'Dil', 'settings.language_hint': 'Arayüz dili, para birimi ve yatırma yöntemleri birlikte değişir.',
     'settings.save': 'Kaydet', 'settings.saved': 'Bilgiler güncellendi', 'settings.language_saved': 'Dil güncellendi',
     'settings.change_password': 'Şifre değiştir',
-    'common.error': 'Bir hata oluştu', 'common.back': 'Geri', 'common.cancel': 'İptal'
+    'common.error': 'Bir hata oluştu', 'common.back': 'Geri',     'join.title': 'Bilet al',
+    'join.full_ticket': 'TAM BİLET',
+    'join.starting': 'Başlıyor',
+    'join.waiting': 'Oyuncu bekleniyor',
+    'join.entry_fee': 'Giriş ücreti',
+    'join.players': 'Oyuncular',
+    'join.prize': 'Ödül havuzu',
+    'join.ticket_count': 'Kaç bilet?',
+    'join.your_tickets': 'Biletleriniz',
+    'join.ticket': 'Bilet',
+    'join.total': 'Toplam',
+    'join.buy': 'Bilet al',
+    'room.create': 'Oda oluştur',
+    'room.empty': 'Şu anda aktif oda yok',
+    'room.online': 'çevrimiçi oyuncu',
+    'room.jackpot': 'JACKPOT',
+    'room.waiting': 'Oyuncu bekleniyor',
+    'room.started': 'Başladı',
+    'room.starting': 'Başlıyor',
+    'room.return': 'Oyuna dön',
+    'room.private': 'Özel',
+    'room.win': 'kazan',
+    'room.last_winners': 'Son kazananlar',
+    'bonus.title': 'Günlük bonus',
+    'bonus.desc': '24 saatte bir ücretsiz bonusunu al.',
+    'bonus.claim': 'Bonusu al',
+    'bonus.claimed': 'Bonus bakiyenize eklendi',
+    'bonus.next': 'Sonraki bonusa kalan',
+    'bonus.ready': 'Hazır',
+    'referral.bonus_each': 'her kayıt için bonus',
+    'referral.earned': 'Kazanılan',
+    'referral.invited': 'Davet edilenler',
+    'referral.step_bonus': 'Bonus kazanırsınız',
+    'referral.step_bonus_text': 'otomatik olarak bakiyenize eklenir',
+    'common.cancel': 'İptal'
   },
 
   ru: {
@@ -230,7 +332,41 @@ const DICT = {
     'settings.language': 'Язык', 'settings.language_hint': 'Язык интерфейса, валюта и способы пополнения меняются вместе.',
     'settings.save': 'Сохранить', 'settings.saved': 'Данные обновлены', 'settings.language_saved': 'Язык обновлён',
     'settings.change_password': 'Сменить пароль',
-    'common.error': 'Произошла ошибка', 'common.back': 'Назад', 'common.cancel': 'Отмена'
+    'common.error': 'Произошла ошибка', 'common.back': 'Назад',     'join.title': 'Купить билеты',
+    'join.full_ticket': 'ПОЛНЫЙ БИЛЕТ',
+    'join.starting': 'Начинается',
+    'join.waiting': 'Ожидание игроков',
+    'join.entry_fee': 'Вход',
+    'join.players': 'Игроки',
+    'join.prize': 'Призовой фонд',
+    'join.ticket_count': 'Сколько билетов?',
+    'join.your_tickets': 'Ваши билеты',
+    'join.ticket': 'Билет',
+    'join.total': 'Итого',
+    'join.buy': 'Купить билет',
+    'room.create': 'Создать комнату',
+    'room.empty': 'Сейчас нет активных комнат',
+    'room.online': 'игроков онлайн',
+    'room.jackpot': 'ДЖЕКПОТ',
+    'room.waiting': 'Ожидание игроков',
+    'room.started': 'Началась',
+    'room.starting': 'Начинается',
+    'room.return': 'Вернуться в игру',
+    'room.private': 'Приватная',
+    'room.win': 'выигрыш',
+    'room.last_winners': 'Последние победители',
+    'bonus.title': 'Ежедневный бонус',
+    'bonus.desc': 'Забирайте бесплатный бонус раз в 24 часа.',
+    'bonus.claim': 'Забрать бонус',
+    'bonus.claimed': 'Бонус зачислен на баланс',
+    'bonus.next': 'Следующий бонус через',
+    'bonus.ready': 'Доступен',
+    'referral.bonus_each': 'бонус за каждую регистрацию',
+    'referral.earned': 'Заработано',
+    'referral.invited': 'Приглашено',
+    'referral.step_bonus': 'Вы получаете бонус',
+    'referral.step_bonus_text': 'автоматически зачисляется на ваш баланс',
+    'common.cancel': 'Отмена'
   },
 
   ka: {
@@ -279,7 +415,41 @@ const DICT = {
     'settings.language': 'ენა', 'settings.language_hint': 'ინტერფეისის ენა, ვალუტა და შევსების მეთოდები ერთად იცვლება.',
     'settings.save': 'შენახვა', 'settings.saved': 'მონაცემები განახლდა', 'settings.language_saved': 'ენა განახლდა',
     'settings.change_password': 'პაროლის შეცვლა',
-    'common.error': 'დაფიქსირდა შეცდომა', 'common.back': 'უკან', 'common.cancel': 'გაუქმება'
+    'common.error': 'დაფიქსირდა შეცდომა', 'common.back': 'უკან',     'join.title': 'ბილეთის ყიდვა',
+    'join.full_ticket': 'სრული ბილეთი',
+    'join.starting': 'იწყება',
+    'join.waiting': 'ველოდებით მოთამაშეებს',
+    'join.entry_fee': 'შესვლის საფასური',
+    'join.players': 'მოთამაშეები',
+    'join.prize': 'საპრიზო ფონდი',
+    'join.ticket_count': 'რამდენი ბილეთი?',
+    'join.your_tickets': 'თქვენი ბილეთები',
+    'join.ticket': 'ბილეთი',
+    'join.total': 'ჯამი',
+    'join.buy': 'ბილეთის ყიდვა',
+    'room.create': 'ოთახის შექმნა',
+    'room.empty': 'აქტიური ოთახი ამჟამად არ არის',
+    'room.online': 'მოთამაშე ონლაინ',
+    'room.jackpot': 'ჯეკპოტი',
+    'room.waiting': 'ველოდებით მოთამაშეებს',
+    'room.started': 'დაიწყო',
+    'room.starting': 'იწყება',
+    'room.return': 'თამაშში დაბრუნება',
+    'room.private': 'პირადი',
+    'room.win': 'მოიგე',
+    'room.last_winners': 'ბოლო გამარჯვებულები',
+    'bonus.title': 'დღიური ბონუსი',
+    'bonus.desc': 'მიიღეთ უფასო ბონუსი 24 საათში ერთხელ.',
+    'bonus.claim': 'ბონუსის აღება',
+    'bonus.claimed': 'ბონუსი დაემატა ბალანსს',
+    'bonus.next': 'შემდეგი ბონუსი',
+    'bonus.ready': 'ხელმისაწვდომია',
+    'referral.bonus_each': 'ბონუსი ყოველ რეგისტრაციაზე',
+    'referral.earned': 'გამომუშავებული',
+    'referral.invited': 'მოწვეული მეგობრები',
+    'referral.step_bonus': 'იღებთ ბონუსს',
+    'referral.step_bonus_text': 'ავტომატურად ემატება თქვენს ბალანსს',
+    'common.cancel': 'გაუქმება'
   }
 };
 
@@ -334,8 +504,14 @@ function middleware(req, res, next) {
   next();
 }
 
+/** Seçilmiş dilə uyğun gündəlik bonus (yerli valyutada) → AZN bazasına çevirir */
+function dailyBonusAzn(code) {
+  const m = localeMeta(code);
+  return Number(((Number(m.dailyBonus || 0.5)) / (m.rate || 1)).toFixed(4));
+}
+
 module.exports = {
   LOCALES, DEFAULT_LOCALE, normalizeLocale, localeMeta,
-  convert, money, translate, t: translate, translateHtml, middleware
+  convert, money, translate, t: translate, translateHtml, middleware, dailyBonusAzn
 };
 
