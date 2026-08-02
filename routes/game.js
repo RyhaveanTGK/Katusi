@@ -1,4 +1,5 @@
 const express = require('express');
+const i18n = require('../services/i18n');
 const router  = express.Router();
 const User    = require('../models/User');
 const Room    = require('../models/Room');
@@ -284,8 +285,11 @@ router.get('/winners', requireLogin, async (req, res) => {
     prize: Number(g.prize || 0)
   }));
 
+  const bonusAmount = i18n.dailyBonusAzn(req.session.locale || user.locale);
+
   res.render('winners', {
     user,
+    bonusAmount,
     leaders,
     me,
     secondsLeft,
