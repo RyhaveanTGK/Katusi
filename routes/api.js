@@ -9,6 +9,7 @@ const DepositCounter = require('../models/DepositCounter');
 const { flatCardNumbers, isCardComplete, isCardFull, linePrize, computeStakeTotal, LEAVE_COMMISSION, START_PLAYERS, winnerVisible, slotsLeft, getDisplayStatus, getSecsLeft, claimRoomWin, resetRoomForNextRound, generateCardNumbers, ticketPrize, MAX_TICKETS, visiblePlayerCount, roomRoster, totalStake, canMarkNumber, missedNumbersFor, basePotOf, findJoinableRoom, MARK_GRACE_SEC, capacityOf, startsInSec } = require('../services/gameEngine');
 const { notifyDecision } = require('../services/telegramBot');
 const starLeague = require('../services/starLeague');
+const i18n = require('../services/i18n');
 
 const apiAuth = (req, res, next) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
@@ -535,6 +536,44 @@ const { sendAdminMessage, escapeHtml } = require('../services/telegramBot');
 router.post('/admin/telegram/preview', apiAdmin, async (req, res) => {
   const r = await sendAdminMessage(req.body.text || '(boş test mesajı)');
   res.json({ ok: !!r, result: r });
+});
+
+
+// ── Gündəlik bonus: hər 24 saatda bir, seçilmiş dilin valyutasına uyğun ──
+router.get('/daily-bonus', apiAuth, async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  if (!user) return res.status(404).json({ error: 'not_found' });
+  const locale = i18n.normalizeLocale(req.session.locale || user.locale);
+  const amount = i18n.dailyBonusAzn(locale);
+  const last = user.lastDailyBonusAt ? new Date(user.lastDailyBonusAt).getTime() : 0;
+  const nextAt = last + 24 * 3600 * 1000;
+  res.json({
+    amount,
+    amount_text: i18n.money(amount, locale),
+    ready: Date.now() >= nextAt,
+    seconds_left: Math.max(0, Math.ceil((nextAt - Date.now()) / 1000))
+  });
+});
+
+router.post('/daily-bonus', apiAuth, async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  if (!user) return res.status(404).json({ error: 'not_found' });
+  const locale = i18n.normalizeLocale(req.session.locale || user.locale);
+  const amount = i18n.dailyBonusAzn(locale);
+  const last = user.lastDailyBonusAt ? new Date(user.lastDailyBonusAt).getTime() : 0;
+  const nextAt = last + 24 * 3600 * 1000;
+  if (Date.now() < nextAt) {
+    return res.status(429).json({ error: 'too_soon', seconds_left: Math.ceil((nextAt - Date.now()) / 1000) });
+  }
+  // Atomik yeniləmə — ikiqat bonusun qarşısını alır
+  const upd = await User.updateOne(
+    { _id: user._id, $or: [{ lastDailyBonusAt: null }, { lastDailyBonusAt: { $lte: new Date(Date.now() - 24 * 3600 * 1000) } }] },
+    { $inc: { balance: amount }, $set: { lastDailyBonusAt: new Date() } }
+
+  );
+  if (!upd.modifiedCount) return res.status(429).json({ error: 'too_soon' });
+  const fresh = await User.findById(user._id).select('balance');
+  res.json({ ok: true, amount, amount_text: i18n.money(amount, locale), balance: Number(fresh.balance || 0) });
 });
 
 module.exports = router;
