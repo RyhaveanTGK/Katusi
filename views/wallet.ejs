@@ -204,8 +204,8 @@ body{
       </div>
 
       <div class="info-note" id="depBankFields">
-        🔒 <b>Kart məlumatı tələb olunmur.</b> Yuxarıdakı rekvizitlər admin tərəfindən təyin olunub —
-        ödənişi həmin hesaba edin və qəbzi (dekont) əlavə edin. Sizin öz kart nömrənizi buraya yazmağınıza ehtiyac yoxdur.
+        🔒 <%= pay.correctInformationMessage %><br>
+        <span style="opacity:.85"><%= pay.step1 %> · <%= pay.step3 %></span>
       </div>
 
       <div class="field">
@@ -247,7 +247,7 @@ body{
       <input type="hidden" name="lang" value="<%= locale %>">
       <input type="hidden" name="method" id="wdMethod" value="">
 
-      <div class="section-title"><%= t('wallet.choose_method') %></div>
+      <div class="section-title"><%= bankGroupTitle %></div>
       <div class="methods">
         <% withdrawMethods.forEach(function(m){ %>
         <label class="method wd" data-key="<%= m.key %>" data-kind="<%= m.kind %>" data-name="<%= m.name %>"
@@ -271,28 +271,30 @@ body{
 
       <div id="wdBankFields">
         <div class="info-note">
-          💳 Vəsait yalnız <b>sizin adınıza olan karta</b> köçürülür. Kart tipi (VISA / MASTERCARD) nömrəyə görə
-          <b>avtomatik</b> müəyyən edilir. Məlumatlar şifrələnmiş şəkildə yalnız yoxlama üçün istifadə olunur.
+          💳 <b><%= pay.commissionMessage %></b><br>
+          <%= pay.correctInformationMessage %><br>
+          <span style="opacity:.8"><%= pay.bankMessage %></span>
         </div>
+        <div class="info-note" id="wdCalc" style="display:none"></div>
         <div class="field">
           <label><%= t('wallet.card_number') %></label>
           <input type="text" name="cardNumber" id="wdCard" inputmode="numeric" autocomplete="off"
-                 placeholder="0000 0000 0000 0000" maxlength="23">
-          <div class="card-brand" id="wdBrand"><span>Kart tipi avtomatik təyin olunacaq</span></div>
+                 placeholder="<%= pay.cardNumberPlaceholder %>" maxlength="23">
+          <div class="card-brand" id="wdBrand"><span><%= pay.selectCardType %></span></div>
         </div>
         <div class="two-col">
           <div class="field">
-            <label>Son istifadə tarixi</label>
-            <input type="text" name="cardExpiry" id="wdExp" inputmode="numeric" placeholder="AA/İİ" maxlength="5" autocomplete="off">
+            <label><%= pay.expiryDate %></label>
+            <input type="text" name="cardExpiry" id="wdExp" inputmode="numeric" placeholder="MM/YY" maxlength="5" autocomplete="off">
           </div>
           <div class="field">
-            <label>CVV / CVC</label>
+            <label><%= pay.cvv %></label>
             <input type="password" name="cvv" id="wdCvv" inputmode="numeric" placeholder="•••" maxlength="4" autocomplete="off">
           </div>
         </div>
         <div class="field">
           <label><%= t('wallet.holder') %></label>
-          <input type="text" name="cardHolder" id="wdHolder" placeholder="AD SOYAD" autocomplete="off">
+          <input type="text" name="cardHolder" id="wdHolder" placeholder="<%= pay.namePlaceholder %>" autocomplete="off">
         </div>
       </div>
 
@@ -330,6 +332,23 @@ body{
 <%- include('partials/footer', { activePage: 'wallet' }) %>
 
 <script>
+var PAYTXT = <%- JSON.stringify(pay) %>;
+var CUR = '<%= localeMeta.symbol %>';
+function wdRecalc(){
+  var el = document.getElementById('wdAmount');
+  var box = document.getElementById('wdCalc');
+  if (!el || !box) return;
+  var v = parseFloat(el.value || '0');
+  if (!v || v <= 0){ box.style.display = 'none'; return; }
+  var net = Math.round(v * 0.95 * 100) / 100;
+  box.style.display = 'block';
+  box.innerHTML = '💸 ' + PAYTXT.withdrawCardAmount.replace('{{amount}}', '<b>' + net.toFixed(2) + ' ' + CUR + '</b>')
+    + '<br>' + PAYTXT.withdrawBalanceReturn.replace('{{amount}}', '<b>' + v.toFixed(2) + ' ' + CUR + '</b>');
+}
+document.addEventListener('DOMContentLoaded', function(){
+  var el = document.getElementById('wdAmount');
+  if (el) el.addEventListener('input', wdRecalc);
+});
 function showTab(t){
   document.getElementById('tab-deposit').classList.toggle('hidden', t !== 'deposit');
   document.getElementById('tab-withdraw').classList.toggle('hidden', t !== 'withdraw');
