@@ -67,7 +67,7 @@ router.post('/room/create', requireLogin, async (req, res) => {
     type: 'classic',
     status: 'waiting',
     entryFee,
-    starPrize: Math.round(entryFee * 100),
+    starPrize: Math.max(1, Math.round(entryFee * 10)),
     prizeMultiplier: 'x2',
     themeColor: '#f5c518',
     maxPlayers,
