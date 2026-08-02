@@ -10,13 +10,42 @@
 //     istifadəçilərin xeyrinə seçilir. Bot olmayan otaqlarda TAM random.
 //  5) Sıra (linya) uduşları: 1-ci 2.4%, 2-ci 4.8%, 3-cü 7.2% — ortadakı mərcdən.
 
-const BOT_NAMES = [
-  'Elvin_07', 'Nigar__', 'Rashad.M', 'AynurX', 'Tural99', 'Leyla_ist',
-  'Kamran7', 'SebineN', 'OrxanZ', 'GunelM', 'Ferid_25', 'Ulviyye',
-  'Samir.A', 'Nurlan__', 'Aysel19', 'Emil_Baku', 'Zaur55', 'Lamiye_',
-  'Vusal.K', 'Sevinc__', 'Anar_92', 'Xatire.M', 'Ilkin7', 'Turkan_',
-  'Ramin__', 'Gunay.S', 'Elnur55', 'Nezrin_', 'Fuad.A', 'Aytac__'
+// ── Süni oyunçu adları: 5 dilli (AZ / TR / RU / EN / KA) ──
+// 70% qız adı, 30% oğlan adı seçilir.
+const FEMALE_BOT_NAMES = [
+  // AZ
+  'Nigar__', 'AynurX', 'Leyla_ist', 'SebineN', 'GunelM', 'Ulviyye', 'Aysel19',
+  'Lamiye_', 'Sevinc__', 'Xatire.M', 'Turkan_', 'Gunay.S', 'Nezrin_', 'Aytac__',
+  // TR
+  'Elif_34', 'ZeynepK', 'MeryemT', 'Ayse_06', 'Buse__', 'Selin.Y', 'Ecrin_35',
+  'DeryaTR', 'Hilal_16', 'Ceren__',
+  // RU
+  'Anastasia_', 'Sveta77', 'Olga.M', 'Kseniya_', 'MarinaR', 'Yulia__', 'Daria.K',
+  'Alina_99', 'Polina__', 'Katyusha',
+  // EN
+  'Emily_x', 'Sophie__', 'Olivia.J', 'Chloe_21', 'MiaW', 'Hannah__', 'Grace.L',
+  'Lily_07', 'Ava__', 'Ruby.S',
+  // KA
+  'Nino_ge', 'Tamuna__', 'Mariam.G', 'Salome_', 'Ketevan_', 'Anano__', 'Lika.ge',
+  'Elene_32', 'Tako__', 'Natia.K'
 ];
+
+const MALE_BOT_NAMES = [
+  // AZ
+  'Elvin_07', 'Rashad.M', 'Tural99', 'Kamran7', 'OrxanZ', 'Ferid_25', 'Samir.A',
+  // TR
+  'Mert_34', 'BurakTR', 'Emre.K', 'Kaan_06',
+  // RU
+  'Dmitry__', 'Sergey.V', 'Nikita_7', 'Ivan__',
+  // EN
+  'Jake_11', 'Ryan.M', 'Oliver__', 'Ethan_9',
+  // KA
+  'Giorgi_ge', 'Levan__', 'Davit.G', 'Nika_ge'
+];
+
+const FEMALE_RATIO = 0.7;   // adların 70%-i qız adı olur
+
+const BOT_NAMES = FEMALE_BOT_NAMES.concat(MALE_BOT_NAMES);
 
 const DEFAULT_ROOM_SIZE = 5;      // bütün otaqlar 5 iştirakçı ilə dolur
 const BOT_FAVOR_CHANCE  = 0.55;   // daşların 55%-i botların xeyrinə
@@ -32,14 +61,21 @@ const REAL_ONLY_THRESHOLD = 3;
 function rnd(max) { return Math.floor(Math.random() * max); }
 function pick(arr) { return arr[rnd(arr.length)]; }
 
+/** 70% qız / 30% oğlan nisbətində unikal ad seçir */
 function pickBotNames(count, exclude = []) {
-  const pool = BOT_NAMES.filter((n) => !exclude.includes(n));
+  const female = FEMALE_BOT_NAMES.filter((n) => !exclude.includes(n));
+  const male   = MALE_BOT_NAMES.filter((n) => !exclude.includes(n));
   const out = [];
-  while (out.length < count && pool.length) {
+  while (out.length < count && (female.length || male.length)) {
+    const wantFemale = Math.random() < FEMALE_RATIO;
+    let pool = wantFemale ? female : male;
+    if (!pool.length) pool = wantFemale ? male : female;
+    if (!pool.length) break;
     out.push(pool.splice(rnd(pool.length), 1)[0]);
   }
   return out;
 }
+
 
 function flat(numbers) {
   return (numbers || []).flat().filter(Boolean).map(Number);
