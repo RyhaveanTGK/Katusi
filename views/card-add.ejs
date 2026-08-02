@@ -2,9 +2,9 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#3d0d62">
-<title>Kart əlavə et – One Loto</title>
+<title>Bilet al – One Loto</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
@@ -12,196 +12,258 @@
 html,body{ overflow-x:hidden; max-width:100%; }
 body{
   font-family:'Rubik','Segoe UI',Tahoma,Arial,sans-serif;
-  background:#3d0d62; color:#fff;
-  min-height:100vh; padding-bottom:24px;
-  padding-top: 72px;
+  background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(160,60,220,.35), transparent 60%),
+    linear-gradient(180deg,#4a1173 0%,#39095c 40%,#28063f 100%);
+  background-attachment: fixed;
+  color:#fff; min-height:100vh;
+  padding-top:72px;
+  padding-bottom: calc(150px + env(safe-area-inset-bottom));
 }
-.wrap{ width:100%; max-width:430px; margin:0 auto; padding:10px 12px 24px; }
+.wrap{ width:100%; max-width:430px; margin:0 auto; padding:8px 10px 10px; }
 
-/* TOPBAR (eynı oyun çubuğu kimi) */
+/* ── ÜST OYUN ÇUBUĞU ── */
 .gamebar{
-  position:sticky; top:72px; z-index:9;
+  position:sticky; top:72px; z-index:30;
   background: linear-gradient(180deg,#7a2db0 0%,#6a25a0 55%,#5d1f90 100%);
-  padding: 8px 14px 12px;
-  box-shadow: 0 4px 18px rgba(0,0,0,.35);
-  border-radius: 0 0 22px 22px;
-  margin: 0 -2px;
+  padding:8px 12px 12px; border-radius:0 0 22px 22px;
+  box-shadow:0 6px 20px rgba(0,0,0,.4);
 }
-.statbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:0 8px; }
-.stat-pill{ display:flex; align-items:center; gap:10px; background: rgba(0,0,0,.26); border-radius:18px; padding:5px 12px; }
+.statbar{ display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; }
+.stat-pill{ display:flex; align-items:center; gap:9px; background:rgba(0,0,0,.26); border-radius:18px; padding:5px 10px; min-width:0; }
 .bet{
-  position:relative;
-  background: linear-gradient(180deg,#e6c44e,#caa130);
-  color:#fff; font-weight:900; font-size:13px;
-  border-radius:14px; padding:3px 26px 3px 12px;
+  position:relative; flex:0 0 auto;
+  background:linear-gradient(180deg,#e6c44e,#caa130);
+  color:#fff; font-weight:900; font-size:13px; border-radius:14px; padding:4px 12px;
 }
-.bet .x{ margin-left:4px; }
 .bet .x4{
-  position:absolute; top:-9px; right:-6px;
-  background:#e80000; color:#fff;
-  font-size:10px; font-weight:900;
-  border-radius:8px; padding:1px 6px;
-  border:2px solid #6a25a0;
-  min-width:24px; text-align:center;
+  position:absolute; top:-9px; right:-8px; background:#e80000; color:#fff;
+  font-size:10px; font-weight:900; border-radius:8px; padding:1px 6px;
+  border:2px solid #6a25a0; min-width:24px; text-align:center;
 }
-.item{ color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; gap:5px; }
+.item{ color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; gap:4px; position:relative; white-space:nowrap; }
 .item .material-symbols-outlined{ font-size:18px; }
-.sep{ width:1px; height:22px; background: rgba(255,255,255,.22); }
+.item.tap{ cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform .15s ease; }
+.item.tap:active{ transform:scale(.92); }
+.sep{ width:1px; height:20px; background:rgba(255,255,255,.22); flex:0 0 1px; }
+.actions-right{ display:flex; gap:8px; flex:0 0 auto; }
 .sound{
-  width:32px; height:32px; border-radius:50%;
-  background:#f5c518; color:#5a3000;
-  border:none; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; flex:0 0 auto;
-  box-shadow: 0 2px 4px rgba(0,0,0,.25);
+  width:36px; height:36px; border-radius:50%;
+  background:linear-gradient(180deg,#f8d34a,#e0a800); color:#5a3000;
+  border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
 }
+.sound:active{ transform:scale(.92); }
 .auto{
-  background: linear-gradient(180deg,#4fe06e,#14bb29);
-  color:#fff; font-weight:900; font-size:12px;
-  border-radius:14px; padding:7px 14px;
-  display:flex; align-items:center; gap:5px;
-  border:none; cursor:pointer;
+  background:linear-gradient(180deg,#4fe06e,#14bb29); color:#fff; font-weight:900; font-size:12px;
+  border-radius:16px; padding:8px 14px; display:flex; align-items:center; gap:4px; border:none; cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
 }
-.auto.off{ background: linear-gradient(180deg,#8395a7,#576574); }
+.auto.off{ background:linear-gradient(180deg,#8395a7,#576574); }
+.auto:active{ transform:scale(.95); }
 
-/* BAŞLIQ + ƏMƏLİYYAT DÜYMƏLƏRİ */
-.panel{
-  margin: 14px 0;
-  background: rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:20px; padding:12px;
+/* dəyişən dəyər animasiyaları */
+#roomPrize, #playerCount{ display:inline-block; transition:color .25s ease, transform .25s ease; }
+.val-up{ color:#4ce07a !important; transform:scale(1.16); }
+.val-down{ color:#ff7a7a !important; transform:scale(.9); }
+.float-num{
+  position:absolute; left:50%; top:-2px; transform:translateX(-50%);
+  font-size:12px; font-weight:900; pointer-events:none; white-space:nowrap; z-index:6;
+  text-shadow:0 2px 6px rgba(0,0,0,.6);
 }
-.actions-row{
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+.float-num.up{ color:#4ce07a; animation: fnUp 1.1s ease forwards; }
+.float-num.down{ color:#ff7a7a; animation: fnDown 1.1s ease forwards; }
+@keyframes fnUp{ 0%{opacity:0;transform:translate(-50%,6px) scale(.8)} 25%{opacity:1;transform:translate(-50%,-14px) scale(1.05)} 100%{opacity:0;transform:translate(-50%,-32px) scale(1)} }
+@keyframes fnDown{ 0%{opacity:0;transform:translate(-50%,-12px) scale(.8)} 25%{opacity:1;transform:translate(-50%,4px) scale(1.05)} 100%{opacity:0;transform:translate(-50%,22px) scale(1)} }
+
+/* ── KART PANELİ ── */
+.card-panel{
+  margin:12px 0; background:rgba(255,255,255,.96);
+  border-radius:20px; padding:10px; box-shadow:0 10px 28px rgba(0,0,0,.35);
 }
+.card-panel.preview{ background:rgba(255,255,255,.93); }
+.card-panel.slide-in{ animation: slideFromRight .55s cubic-bezier(.18,.9,.25,1.04) both; }
+@keyframes slideFromRight{
+  0%{ opacity:0; transform:translateX(115%) scale(.86) rotate(3deg); }
+  60%{ opacity:1; transform:translateX(-10px) scale(1.02) rotate(-1deg); }
+  100%{ opacity:1; transform:none; }
+}
+.card-panel.fade-out{ animation: cardOut .35s ease forwards; }
+@keyframes cardOut{ to{ opacity:0; transform:translateX(-40px) scale(.9); } }
+
+.actions-row{ display:flex; align-items:center; gap:6px; margin-bottom:8px; }
 .action-btn{
-  display:inline-flex; align-items:center; gap:6px;
-  padding:9px 14px; border-radius:14px;
-  font-size:13px; font-weight:800;
+  display:inline-flex; align-items:center; gap:5px;
+  padding:9px 13px; border-radius:999px; font-size:13px; font-weight:800;
   border:none; cursor:pointer; font-family:'Rubik',sans-serif;
-  color:#fff; background: rgba(255,255,255,.12);
-  transition: background .15s;
+  color:#fff; background:linear-gradient(180deg,#3a0f60,#25073f);
+  transition: transform .12s ease, filter .15s ease;
+  -webkit-tap-highlight-color:transparent;
 }
 .action-btn .material-symbols-outlined{ font-size:17px; }
-.action-btn:hover{ background: rgba(255,255,255,.18); }
+.action-btn:active{ transform:scale(.94); filter:brightness(1.25); }
+.action-btn:disabled{ opacity:.45; cursor:not-allowed; }
+.action-btn.spin .material-symbols-outlined{ animation: spin360 .6s ease; }
+@keyframes spin360{ from{ transform:rotate(0) } to{ transform:rotate(360deg) } }
+.action-btn.wiggle .material-symbols-outlined{ animation: wig .5s ease; }
+@keyframes wig{ 0%,100%{transform:rotate(0)} 25%{transform:rotate(-18deg)} 60%{transform:rotate(16deg)} }
 .dot-btn{
-  margin-left:auto; width:36px; height:36px; border-radius:50%;
-  background:#4d3a8a; color:#fff; border:none; cursor:pointer;
+  margin-left:auto; width:34px; height:34px; border-radius:50%;
+  background:transparent; color:#3a0f60; border:none; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
 }
-.dot-btn:active{ transform: scale(.94); }
+.dot-btn:active{ transform:scale(.9); }
 
-/* 3x9 KART QREFİ */
-.ticket{
-  background:#fff; border:3px solid #1d0b33;
-  border-radius:16px; padding:10px;
-  color:#191919; margin-top:10px;
-}
+.ticket{ background:#fff; border:3px solid #1d0b33; border-radius:14px; padding:6px; }
 .grid{
-  display:grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap:4px;
-  background:#9a9a9a; border:1px solid #9a9a9a;
-  border-radius:12px; overflow:hidden;
+  display:grid; grid-template-columns:repeat(9,1fr); gap:3px;
+  background:#9a9a9a; border:1px solid #9a9a9a; border-radius:10px; overflow:hidden;
 }
 .cell{
-  aspect-ratio: 1/1.05;
-  border-radius:6px; background:#fff;
+  aspect-ratio:1/1.05; border-radius:6px; background:#fff;
   display:flex; align-items:center; justify-content:center;
-  font-size: clamp(15px, 4.5vw, 19px);
-  font-weight:800; color:#161616;
-  cursor:default; user-select:none;
-  transition: transform .12s, background .12s;
+  font-size:clamp(13px,4.1vw,18px); font-weight:800; color:#161616;
+  user-select:none; transition: transform .12s, background .18s, color .18s;
 }
 .cell.empty{ background:#cecece; color:transparent; }
-.cell.marked{ background: linear-gradient(180deg,#4fe06e,#15a62d); color:#fff; box-shadow: inset 0 -2px 4px rgba(0,0,0,.2); }
-.cell.clickable{ cursor:pointer; }
-.cell.clickable:active{ transform: scale(.95); }
-.cell.flash{ animation: flash .55s ease; }
-@keyframes flash{ 0%{ background:#f5c518; color:#fff; } 100%{} }
+.cell.marked{ background:linear-gradient(180deg,#4fe06e,#15a62d); color:#fff; box-shadow: inset 0 -2px 4px rgba(0,0,0,.2); }
+.cell.pop{ animation: cellPop .38s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes cellPop{ 0%{ transform:scale(.2) rotate(-12deg); opacity:0 } 70%{ transform:scale(1.12) } 100%{ transform:none; opacity:1 } }
+.card-tag{
+  display:flex; align-items:center; justify-content:space-between;
+  margin:0 2px 6px; font-size:11px; font-weight:900; color:#3a0f60; text-transform:uppercase; letter-spacing:.4px;
+}
+.card-tag .tg{ background:rgba(58,15,96,.1); border-radius:999px; padding:3px 9px; }
+.card-tag .tg.live{ background:rgba(21,166,45,.14); color:#12822a; }
 
-/* ALIŞ PANELİ */
-.purchase{ margin-top:14px; }
-.qty-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; padding:0 4px; }
+/* ── ALT ALIŞ PANELİ ── */
+.buybar{
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  background:linear-gradient(180deg,#7a2db0 0%,#5d1f90 100%);
+  border-top:1px solid rgba(255,255,255,.14);
+  padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+  box-shadow:0 -8px 26px rgba(0,0,0,.45);
+}
+.buybar-inner{ max-width:430px; margin:0 auto; display:flex; align-items:center; gap:10px; position:relative; }
 .buy-btn{
-  flex:1;
-  background: linear-gradient(180deg,#4d86e8,#3f6fd4);
-  color:#fff; border:none; border-radius:16px;
-  padding:14px 18px;
-  font-size:14px; font-weight:900;
-  font-family:'Rubik',sans-serif; cursor:pointer;
-  display:flex; flex-direction:column; align-items:center; gap:2px;
-  text-transform:uppercase; letter-spacing:.5px;
-  transition: transform .12s, opacity .12s;
+  flex:1; min-width:0; position:relative;
+  background:linear-gradient(180deg,#4d86e8,#3564c9);
+  color:#fff; border:none; border-radius:18px; padding:12px 14px;
+  font-size:15px; font-weight:900; font-family:'Rubik',sans-serif; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:2px; text-transform:uppercase;
+  box-shadow:0 6px 18px rgba(0,0,0,.35); transition: transform .12s ease, opacity .15s ease;
+  overflow:hidden;
 }
-.buy-btn:active{ transform: scale(.97); }
-.buy-btn .qazanc{ display:flex; align-items:center; gap:4px; font-size:12px; font-weight:700; opacity:.95; letter-spacing:0; }
+.buy-btn::after{
+  content:''; position:absolute; top:0; left:-60%; width:40%; height:100%;
+  background:linear-gradient(100deg, transparent, rgba(255,255,255,.28), transparent);
+  animation: shine 3.2s linear infinite;
+}
+@keyframes shine{ 0%{ left:-60% } 55%,100%{ left:130% } }
+.buy-btn:active{ transform:scale(.97); }
 .buy-btn:disabled{ opacity:.55; cursor:not-allowed; }
-
-.qty{ display:flex; align-items:center; gap:8px; }
+.buy-btn .qazanc{ display:flex; align-items:center; gap:4px; font-size:13px; font-weight:800; color:#ffd75e; text-transform:none; }
+.qty{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
 .qty-btn{
-  width:38px; height:38px; border-radius:50%;
-  border:none; background:#e53935; color:#fff;
-  font-size:20px; font-weight:900; cursor:pointer;
-  display:flex; align-items:center; justify-content:center;
+  width:44px; height:44px; border-radius:50%; border:none; color:#fff;
+  background:linear-gradient(180deg,#f16a63,#e53935);
+  font-size:24px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.32); transition:transform .12s ease;
 }
-.qty-btn.plus{ background:#1ea838; }
-.qty-btn:active{ transform: scale(.92); }
-.qty-label{
-  display:flex; flex-direction:column; align-items:center;
-  background: rgba(0,0,0,.25); border-radius:14px;
-  padding:6px 10px; min-width:80px;
+.qty-btn.plus{ background:linear-gradient(180deg,#3ed17a,#12a83c); }
+.qty-btn:active{ transform:scale(.88); }
+.qty-btn:disabled{ opacity:.45; }
+.qty-label{ display:flex; flex-direction:column; align-items:center; min-width:52px; }
+.qty-label .lbl{ font-size:11px; font-weight:700; color:rgba(255,255,255,.75); }
+.qty-label .val{ font-size:20px; font-weight:900; color:#ffd75e; display:inline-block; }
+.qty-label .val.bump{ animation: qBump .35s cubic-bezier(.2,1.6,.4,1); }
+@keyframes qBump{ 0%{transform:scale(1)} 45%{transform:scale(1.45)} 100%{transform:scale(1)} }
+.timer-chip{
+  position:absolute; top:-16px; left:50%; transform:translateX(-50%);
+  background:#e53935; color:#fff; font-size:13px; font-weight:900;
+  border-radius:999px; padding:3px 12px; box-shadow:0 4px 12px rgba(0,0,0,.4);
 }
-.qty-label .lbl{ font-size:10px; font-weight:800; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:.4px; }
-.qty-label .val{ font-size:16px; font-weight:900; color:#fff; }
+.timer-chip.hurry{ animation: hurry 1s ease-in-out infinite; }
+@keyframes hurry{ 0%,100%{ transform:translateX(-50%) scale(1) } 50%{ transform:translateX(-50%) scale(1.1) } }
 
-/* NÖVBƏ BAR */
-.status-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-.status-pill{
-  display:inline-flex; align-items:center; gap:8px;
-  background: rgba(0,0,0,.28);
-  padding:7px 12px; border-radius:18px;
-  font-size:12px; font-weight:700;
+/* ── OYUNÇULAR PƏNCƏRƏSİ ── */
+.sheet-back{ position:fixed; inset:0; z-index:200; background:rgba(10,2,20,.6); backdrop-filter:blur(4px); display:none; align-items:flex-end; justify-content:center; }
+.sheet-back.show{ display:flex; animation: fadein .2s ease; }
+@keyframes fadein{ from{opacity:0} to{opacity:1} }
+.sheet{
+  width:100%; max-width:430px; background:linear-gradient(180deg,#2a0848 0%,#190430 100%);
+  border:1px solid rgba(245,197,24,.25); border-bottom:none; border-radius:22px 22px 0 0;
+  padding:16px 14px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 40px rgba(0,0,0,.6); animation: sheetUp .28s cubic-bezier(.2,.9,.3,1);
+  max-height:74vh; overflow:auto;
 }
-.status-pill .dot{
-  width:8px; height:8px; border-radius:50%;
-  background:#f5c518; animation: blink 1.2s infinite;
+@keyframes sheetUp{ from{ transform:translateY(100%) } to{ transform:none } }
+.sheet-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.sheet-title{ font-size:16px; font-weight:900; display:flex; align-items:center; gap:8px; }
+.sheet-title .cnt{ font-size:12px; font-weight:800; color:#f5c518; background:rgba(245,197,24,.12); padding:3px 9px; border-radius:20px; }
+.sheet-x{ background:rgba(255,255,255,.1); border:none; color:#fff; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.plist{ display:flex; flex-direction:column; gap:8px; }
+.prow{
+  display:flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
+  border-radius:14px; padding:9px 11px;
+  animation: rowIn .32s cubic-bezier(.2,.9,.3,1) both;
 }
+.prow:nth-child(2){ animation-delay:.04s } .prow:nth-child(3){ animation-delay:.08s }
+.prow:nth-child(4){ animation-delay:.12s } .prow:nth-child(5){ animation-delay:.16s }
+.prow:nth-child(6){ animation-delay:.2s }  .prow:nth-child(7){ animation-delay:.24s }
+@keyframes rowIn{ from{opacity:0; transform:translateX(26px)} to{opacity:1; transform:none} }
+.prow.me{ border-color:rgba(245,197,24,.55); background:rgba(245,197,24,.1); }
+.prow.new{ animation: rowFlash .9s ease both; }
+@keyframes rowFlash{ 0%{ box-shadow:0 0 0 0 rgba(76,224,122,.6) } 100%{ box-shadow:0 0 0 12px rgba(76,224,122,0) } }
+.pav{
+  width:34px; height:34px; border-radius:50%; flex:0 0 34px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:13px; color:#1a0530;
+  background:linear-gradient(180deg,#ffe27a,#e0a82e);
+}
+.pav.bot{ background:linear-gradient(180deg,#b8a7ff,#7b5cf0); color:#fff; }
+.pinfo{ min-width:0; flex:1; }
+.pname{ font-size:14px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ptick{ font-size:11px; font-weight:700; color:rgba(255,255,255,.55); }
+.pstake{ font-size:15px; font-weight:900; color:#4ce07a; margin-left:auto; white-space:nowrap; transition: transform .25s ease; }
+.pstake.bump{ animation: qBump .45s cubic-bezier(.2,1.6,.4,1); }
+.sheet-foot{
+  margin-top:12px; padding-top:12px; border-top:1px dashed rgba(255,255,255,.18);
+  display:flex; align-items:center; justify-content:space-between; font-weight:900; font-size:15px;
+}
+.sheet-foot span:last-child{ color:#f5c518; }
+.sheet-empty{ text-align:center; color:rgba(255,255,255,.6); font-size:13px; font-weight:700; padding:18px 0; }
+
+.status-row{ display:flex; align-items:center; justify-content:space-between; margin:10px 2px 0; }
+.status-pill{ display:inline-flex; align-items:center; gap:8px; background:rgba(0,0,0,.28); padding:7px 12px; border-radius:18px; font-size:12px; font-weight:800; }
+.status-pill .dot{ width:8px; height:8px; border-radius:50%; background:#f5c518; animation: blink 1.2s infinite; }
 @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.35} }
 
 .toast{
-  position:fixed; left:50%; bottom:20px;
-  transform:translateX(-50%);
-  background: rgba(0,0,0,.85); color:#fff;
-  padding:10px 16px; border-radius:18px;
-  font-size:13px; font-weight:700;
-  opacity:0; transition:opacity .2s, transform .2s;
-  z-index:2000; pointer-events:none;
+  position:fixed; left:50%; bottom:calc(120px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(8px);
+  background:rgba(0,0,0,.88); color:#fff; padding:10px 16px; border-radius:18px;
+  font-size:13px; font-weight:700; opacity:0; transition:opacity .2s, transform .2s;
+  z-index:2000; pointer-events:none; max-width:88vw; text-align:center;
 }
-.toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px); }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.err{ background:rgba(180,20,20,.92); }
 
-.empty-info{ text-align:center; color:rgba(255,255,255,.7); margin-top:14px; font-size:13px; }
-
-/* Responsive medianlar */
-@media (max-width:430px){
-  .wrap{ padding:10px 8px 24px; }
-  .gamebar{ padding: 8px 10px 12px; }
-  .panel{ padding:10px; }
-  .actions-row{ gap:6px; }
-  .action-btn{ padding:8px 12px; font-size:12px; }
-  .qty-row{ gap:6px; }
+.star-fly{
+  position:fixed; z-index:1500; pointer-events:none; font-size:20px;
+  animation: starFly 1s ease-out forwards;
 }
+@keyframes starFly{ 0%{ opacity:0; transform:translate(0,0) scale(.5) } 20%{ opacity:1 } 100%{ opacity:0; transform:translate(0,-90px) scale(1.5) } }
+
 @media (max-width:370px){
-  .cell{ font-size:11px; }
-  .stat-pill{ gap:6px; padding:5px 10px; }
+  .cell{ font-size:12px; }
   .item{ font-size:11px; }
-  .buy-btn{ font-size:12px; padding:12px 14px; }
-  .qty-label{ min-width:64px; }
-  .qty-btn{ width:32px; height:32px; font-size:18px; }
+  .buy-btn{ font-size:13px; }
+  .qty-btn{ width:38px; height:38px; font-size:20px; }
 }
-@supports (padding: max(0px)) {
-  body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); }
-  .toast{ bottom: max(20px, env(safe-area-inset-bottom)); }
-}
+@media (prefers-reduced-motion: reduce){ *{ animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+@supports (padding: max(0px)){ body{ padding-top: max(72px, calc(72px + env(safe-area-inset-top))); } }
 </style>
 </head>
 <body>
@@ -212,204 +274,583 @@ body{
   <div class="gamebar">
     <div class="statbar">
       <div class="stat-pill">
-        <div class="bet">₼<%= Number(room.entryFee || 0).toFixed(2) %><span class="x4"><%= room.prizeMultiplier || 'x2' %></span></div>
-        <div class="item"><span class="material-symbols-outlined">person</span><span id="playerCount"><%= room.players.length %></span></div>
+        <div class="bet"><%= Number(room.entryFee || 0).toFixed(2) %> <%= localeMeta.symbol %><span class="x4"><%= room.prizeMultiplier || 'x2' %></span></div>
+        <div class="item tap" id="playersBtn" role="button" tabindex="0" aria-label="Oyunçular">
+          <span class="material-symbols-outlined">person</span><span id="playerCount"><%= playerCount %></span>
+        </div>
         <div class="sep"></div>
-        <div class="item"><span class="material-symbols-outlined">emoji_events</span><span id="roomPrize"><%= Number(room.prize || 0).toFixed(2) %> ₼</span></div>
+        <div class="item" id="prizeItem">
+          <span class="material-symbols-outlined">emoji_events</span>
+          <span id="roomPrize"><%= Number(totalStake || 0).toFixed(2) %></span>&nbsp;<%= localeMeta.symbol %>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="sound" type="button" title="Səs aç/bağla" onclick="toggleSound()"><span class="material-symbols-outlined" id="soundIcon">volume_up</span></button>
-        <button class="auto <%= card && card.autoDaub ? '' : 'off' %>" id="autoBtn" type="button" onclick="toggleAuto()"><span class="material-symbols-outlined">bolt</span><span id="autoText">avto</span></button>
+      <div class="actions-right">
+        <button class="sound" type="button" id="soundBtn" title="Səs" aria-label="Səs"><span class="material-symbols-outlined" id="soundIcon">volume_up</span></button>
+        <button class="auto off" id="autoBtn" type="button"><span class="material-symbols-outlined">bolt</span><span id="autoText">avto</span></button>
       </div>
     </div>
   </div>
 
-  <div class="panel">
-    <div class="actions-row">
-      <button class="action-btn" type="button" onclick="restartCard()"><span class="material-symbols-outlined">refresh</span>yenilə</button>
-      <button class="action-btn" type="button" onclick="clearCard()"><span class="material-symbols-outlined">delete</span>sil</button>
-      <button class="action-btn" type="button" onclick="randomizeCard()"><span class="material-symbols-outlined">edit</span>dəyiş</button>
-      <button class="dot-btn" type="button" onclick="showMore()" title="Əlavə"><span class="material-symbols-outlined">more_horiz</span></button>
-    </div>
+  <div id="cardsWrap"></div>
 
-    <div class="ticket">
-      <div class="grid" id="cardGrid">
-        <%
-          var grid = (card && card.numbers && card.numbers.length)
-            ? card.numbers
-            : [['','','','','','','','',''],['','','','','','','','',''],['','','','','','','','','']];
-          var marked = new Set((card && card.markedNumbers) || []);
-          grid.forEach(function(row){
-            row.forEach(function(n){ %>
-          <div class="cell <%= n ? '' : 'empty' %> <%= n && marked.has(Number(n)) ? 'marked' : '' %>" data-number="<%= n || '' %>"><%= n || '' %></div>
-        <%    });  });  %>
-      </div>
-    </div>
-
-    <% if (!card) { %>
-      <div class="empty-info">Oyuna qoşulduqda sizə avtomatik kart veriləcək.</div>
-    <% } %>
-  </div>
-
-  <div class="purchase">
-    <div class="qty-row">
-      <button class="buy-btn" type="button" id="buyBtn" onclick="buyTicket()">
-        <div>BİLET AL ₼<%= Number(room.entryFee || 0).toFixed(2) %></div>
-        <div class="qazanc" id="buyHint">Qazan ★<%= room.starPrize || Math.round((room.entryFee||1)*100) %></div>
-      </button>
-      <div class="qty">
-        <button class="qty-btn" type="button" onclick="changeQty(-1)">−</button>
-        <div class="qty-label"><span class="lbl">Biletlər</span><span class="val" id="qty">1</span></div>
-        <button class="qty-btn plus" type="button" onclick="changeQty(1)">+</button>
-      </div>
-    </div>
-
-    <div class="status-row" style="margin-top:8px;margin-bottom:0;">
-      <div class="status-pill"><span class="dot"></span><span id="statusText"><%= displayStatus === 'started' ? 'Oyun başladı' : (displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir') %></span></div>
-      <div class="time" id="timer" data-secs="<%= secsLeft %>" style="font-size:20px;font-weight:900;color:#fff;">
-        <% var ss = Number(secsLeft||0), mm = Math.floor(ss/60), se = ss%60;
-           var ft = (mm<10?'0':'')+mm+':'+(se<10?'0':'')+se; %>
-        <%= ft %>
-      </div>
+  <div class="status-row">
+    <div class="status-pill"><span class="dot"></span><span id="statusText"><%= displayStatus === 'started' ? 'Oyun başladı' : (displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir') %></span></div>
+    <div style="font-size:12px;font-weight:800;color:rgba(255,255,255,.7)">
+      <span id="ownedCount"><%= (cards || []).length %></span>/<%= maxTickets %> bilet
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="buybar">
+  <div class="buybar-inner">
+    <div class="timer-chip" id="timerChip" data-secs="<%= secsLeft %>" style="display:none">00:00</div>
+    <button class="buy-btn" type="button" id="buyBtn">
+      <span id="buyLabel">BİLET AL <%= Number(room.entryFee || 0).toFixed(2) %> <%= localeMeta.symbol %></span>
+      <span class="qazanc">Qazan <span>⭐</span><span id="buyStars"><%= starsPerTicket %></span></span>
+    </button>
+    <div class="qty">
+      <button class="qty-btn" type="button" id="qtyMinus" aria-label="Azalt">−</button>
+      <div class="qty-label"><span class="lbl">Bilet</span><span class="val" id="qty">1</span></div>
+      <button class="qty-btn plus" type="button" id="qtyPlus" aria-label="Artır">+</button>
+    </div>
+  </div>
+</div>
 
-<!-- Footer səhifənin ən axırında -->
-<%- include('partials/footer', { activePage: 'card-add' }) %>
+<!-- Oyunçular -->
+<div class="sheet-back" id="playersSheet">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div class="sheet-title">Oyunçular <span class="cnt" id="sheetCount">0</span></div>
+      <button class="sheet-x" id="sheetClose" type="button" aria-label="Bağla"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="plist" id="playersList"></div>
+    <div class="sheet-foot"><span>Ümumi mərc</span><span id="sheetTotal">0.00 <%= localeMeta.symbol %></span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<!-- Oyun ekranında alt naviqasiya göstərilmir: bilet paneli ekranın altındadır -->
 
 <script>
-const ROOM_ID = '<%= room._id %>';
-const ENTRY_FEE = parseFloat('<%= room.entryFee %>') || 0;
-let qty = 1;
-let currentAuto = <%= !!(card && card.autoDaub) %>;
-let soundOn = true;
-let currentCard = <%- JSON.stringify(card && card.numbers ? card : null) %>;
+(function(){
+  'use strict';
 
-function fmtTime(s){s=Math.max(0,parseInt(s||0,10));var m=Math.floor(s/60),ss=s%60;return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
-function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(function(){el.classList.remove('show');},2200);}
+  var ROOM_ID    = <%- JSON.stringify(String(room._id)) %>;
+  var ENTRY_FEE  = Number('<%= Number(room.entryFee || 0) %>') || 0;
+  var SYM        = <%- JSON.stringify(localeMeta.symbol) %>;
+  var MAX_TICKETS= Number('<%= maxTickets %>') || 5;
+  var STARS_PER  = Number('<%= starsPerTicket %>') || 1;
+  var ME_NAME    = <%- JSON.stringify(user.username || '') %>;
 
-function buildCell(n, markedSet){
-  var div = document.createElement('div');
-  var isMarked = markedSet.has(Number(n));
-  div.className = 'cell' + (n?'':' empty') + (n && isMarked ? ' marked' : '') + (n ? ' clickable' : '');
-  div.dataset.number = n || '';
-  div.textContent = n || '';
-  return div;
-}
-function renderCard(){
-  if (!currentCard) return;
-  var wrap = document.getElementById('cardGrid');
-  wrap.innerHTML = '';
-  var marked = new Set((currentCard.markedNumbers||[]).map(Number));
-  currentCard.numbers.forEach(function(row){
-    row.forEach(function(n){ wrap.appendChild(buildCell(n, marked)); });
-  });
-}
+  var ownedCards = <%- JSON.stringify((cards || []).map(function(c){ return { id: String(c._id), numbers: c.numbers, marked: (c.markedNumbers || []).map(Number), index: Number(c.ticketIndex || 0) }; })) %>;
+  var roster     = <%- JSON.stringify(roster || []) %>;
+  var totalStake = Number('<%= Number(totalStake || 0) %>') || 0;
+  var playerCnt  = Number('<%= playerCount %>') || 0;
 
-function postJSON(url, body){
-  return fetch(url, { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body||{}) })
-    .then(function(r){ return r.json(); })
-    .catch(function(){ return { error: 'Şəbəkə xətası' }; });
-}
+  var qty = 1;
+  var preview = null;          // alınmamış nümunə bilet
+  var busy = false;
+  var soundOn = true;
 
-// Action: yenilə — yeni random kart
-function restartCard(){
-  postJSON('/api/card/'+ROOM_ID+'/regenerate', {}).then(function(res){
-    if (res && res.ok && res.card){
-      currentCard = { numbers: res.card.numbers, markedNumbers: [], autoDaub: !!res.card.auto_daub };
-      renderCard();
-      toast('Yeni kart yaradıldı');
+  /* ───────── köməkçilər ───────── */
+  var COLS = [[1,9],[10,19],[20,29],[30,39],[40,49],[50,59],[60,69],[70,79],[80,90]];
+
+  function snd(name){
+    if (!soundOn || !window.LotoSound || typeof window.LotoSound[name] !== 'function') return;
+    try { window.LotoSound[name](); } catch(e){}
+  }
+  function fmt(n){ return (Number(n)||0).toFixed(2); }
+  function fmtTime(s){ s = Math.max(0, parseInt(s||0,10)); var m=Math.floor(s/60), ss=s%60; return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss; }
+  function toast(msg, isErr){
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.toggle('err', !!isErr);
+    el.classList.add('show');
+    clearTimeout(window.__tT);
+    window.__tT = setTimeout(function(){ el.classList.remove('show'); }, 2100);
+  }
+  function postJSON(url, body){
+    return fetch(url, { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{}) })
+      .then(function(r){ return r.json().catch(function(){ return { error:'Server cavabı oxunmadı' }; }); })
+      .catch(function(){ return { error:'Şəbəkə xətası' }; });
+  }
+  function getJSON(url){
+    return fetch(url, { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .catch(function(){ return null; });
+  }
+
+  /* Yeni təsadüfi bilet (3×9, hər sırada 5 rəqəm) */
+  function newNumbers(){
+    var grid = [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]];
+    var used = [[],[],[],[],[],[],[],[],[]];
+    for (var r=0;r<3;r++){
+      var chosen = [];
+      while (chosen.length < 5){
+        var c = Math.floor(Math.random()*9);
+        if (chosen.indexOf(c) === -1) chosen.push(c);
+      }
+      chosen.sort(function(a,b){ return a-b; });
+      for (var i=0;i<chosen.length;i++){
+        var col = chosen[i], min = COLS[col][0], max = COLS[col][1], v;
+        do { v = Math.floor(Math.random()*(max-min+1)) + min; } while (used[col].indexOf(v) !== -1);
+        used[col].push(v);
+        grid[r][col] = v;
+      }
+    }
+    return grid;
+  }
+
+  /* Mövcud düzülüşü saxlayaraq yalnız rəqəmləri dəyişir ("dəyişdir") */
+  function reshuffleNumbers(grid){
+    if (!grid) return newNumbers();
+    var out = [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]];
+    var used = [[],[],[],[],[],[],[],[],[]];
+    for (var r=0;r<3;r++){
+      for (var c=0;c<9;c++){
+        if (!Number(grid[r][c])) continue;
+        var min = COLS[c][0], max = COLS[c][1], v, guard = 0;
+        do { v = Math.floor(Math.random()*(max-min+1)) + min; guard++; }
+        while (used[c].indexOf(v) !== -1 && guard < 200);
+        used[c].push(v);
+        out[r][c] = v;
+      }
+      // düzülüş pozulubsa təhlükəsiz geri dönüş
+      if (out[r].filter(Boolean).length !== 5) return newNumbers();
+    }
+    return out;
+  }
+
+  /* ───────── kart render ───────── */
+  function gridEl(numbers, marked, animate){
+    var g = document.createElement('div');
+    g.className = 'grid';
+    var mset = {};
+    (marked||[]).forEach(function(n){ mset[Number(n)] = true; });
+    var k = 0;
+    (numbers||[]).forEach(function(row){
+      (row||[]).forEach(function(n){
+        var d = document.createElement('div');
+        var v = Number(n) || 0;
+        d.className = 'cell' + (v ? '' : ' empty') + (v && mset[v] ? ' marked' : '') + (animate && v ? ' pop' : '');
+        if (animate && v) d.style.animationDelay = (k * 12) + 'ms';
+        d.textContent = v || '';
+        g.appendChild(d);
+        k++;
+      });
+    });
+    return g;
+  }
+
+  function actionsRow(kind, id){
+    var row = document.createElement('div');
+    row.className = 'actions-row';
+    row.innerHTML =
+      '<button class="action-btn" type="button" data-act="refresh"><span class="material-symbols-outlined">refresh</span>yenilə</button>' +
+      '<button class="action-btn" type="button" data-act="delete"><span class="material-symbols-outlined">delete</span>sil</button>' +
+      '<button class="action-btn" type="button" data-act="change"><span class="material-symbols-outlined">edit</span>dəyişdir</button>' +
+      '<button class="dot-btn" type="button" data-act="more"><span class="material-symbols-outlined">more_vert</span></button>';
+    row.querySelectorAll('button').forEach(function(b){
+      b.addEventListener('click', function(){ handleAction(b.dataset.act, kind, id, b); });
+    });
+    return row;
+  }
+
+  function cardPanel(kind, data, animate){
+    var p = document.createElement('div');
+    p.className = 'card-panel' + (kind === 'preview' ? ' preview' : '') + (animate ? ' slide-in' : '');
+    p.dataset.kind = kind;
+    if (data.id) p.dataset.id = data.id;
+
+    var tag = document.createElement('div');
+    tag.className = 'card-tag';
+    tag.innerHTML = kind === 'preview'
+      ? '<span class="tg">Nümunə bilet</span><span class="tg">seç və al</span>'
+      : '<span class="tg live">Bilet #' + (data.index || 1) + '</span><span class="tg live">aktiv</span>';
+    p.appendChild(tag);
+
+    p.appendChild(actionsRow(kind, data.id || null));
+
+    var t = document.createElement('div');
+    t.className = 'ticket';
+    t.appendChild(gridEl(data.numbers, data.marked, animate || kind === 'preview'));
+    p.appendChild(t);
+    return p;
+  }
+
+  function renderAll(animateLastOwned){
+    var wrap = document.getElementById('cardsWrap');
+    wrap.innerHTML = '';
+    if (ownedCards.length < MAX_TICKETS){
+      if (!preview) preview = { numbers: newNumbers(), marked: [] };
+      wrap.appendChild(cardPanel('preview', preview, false));
+    }
+    ownedCards.forEach(function(c, i){
+      var animate = animateLastOwned && i >= ownedCards.length - animateLastOwned;
+      wrap.appendChild(cardPanel('owned', c, animate));
+    });
+    document.getElementById('ownedCount').textContent = ownedCards.length;
+    updateBuyUI();
+  }
+
+  function replacePanelGrid(panel, numbers, marked){
+    var ticket = panel.querySelector('.ticket');
+    ticket.innerHTML = '';
+    ticket.appendChild(gridEl(numbers, marked, true));
+  }
+
+  /* ───────── düymə əməliyyatları ───────── */
+  function handleAction(act, kind, id, btn){
+    if (act === 'more'){
+      snd('tick');
+      toast(kind === 'preview' ? 'Bilet alındıqdan sonra oyun ekranında oynanılır' : 'Bilet #' + (id ? '' : '') + ' aktivdir');
+      return;
+    }
+    var panel = btn.closest('.card-panel');
+    if (!panel) return;
+
+    if (kind === 'preview'){
+      if (act === 'refresh'){
+        preview.numbers = newNumbers();
+        preview.marked = [];
+        replacePanelGrid(panel, preview.numbers, []);
+        btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin');
+        snd('refresh');
+        toast('Yeni bilet yaradıldı');
+      } else if (act === 'change'){
+        preview.numbers = reshuffleNumbers(preview.numbers);
+        replacePanelGrid(panel, preview.numbers, []);
+        btn.classList.remove('wiggle'); void btn.offsetWidth; btn.classList.add('wiggle');
+        snd('change');
+        toast('Rəqəmlər dəyişdirildi');
+      } else if (act === 'delete'){
+        snd('del');
+        panel.classList.add('fade-out');
+        setTimeout(function(){
+          preview = { numbers: newNumbers(), marked: [] };
+          renderAll(0);
+          toast('Bilet silindi — yenisi hazırdır');
+        }, 320);
+      }
+      return;
+    }
+
+    // Alınmış bilet — serverlə sinxron
+    if (busy) return;
+    busy = true;
+    setPanelBusy(panel, true);
+
+    var done = function(){ busy = false; setPanelBusy(panel, false); };
+
+    if (act === 'refresh'){
+      postJSON('/api/card/' + ROOM_ID + '/regenerate', { cardId: id }).then(function(res){
+        done();
+        if (!res || !res.ok || !res.card){ snd('error'); return toast((res && res.error) || 'Yenilənmədi', true); }
+        applyServerCard(res.card, panel);
+        btn.classList.remove('spin'); void btn.offsetWidth; btn.classList.add('spin');
+        snd('refresh');
+        toast('Bilet yeniləndi');
+      });
+    } else if (act === 'change'){
+      var card = ownedCards.filter(function(c){ return c.id === id; })[0];
+      var nums = reshuffleNumbers(card ? card.numbers : null);
+      postJSON('/api/card/' + ROOM_ID + '/regenerate', { cardId: id, numbers: nums }).then(function(res){
+        done();
+        if (!res || !res.ok || !res.card){ snd('error'); return toast((res && res.error) || 'Dəyişdirilmədi', true); }
+        applyServerCard(res.card, panel);
+        btn.classList.remove('wiggle'); void btn.offsetWidth; btn.classList.add('wiggle');
+        snd('change');
+        toast('Bilet dəyişdirildi');
+      });
+    } else if (act === 'delete'){
+      postJSON('/api/card/' + ROOM_ID + '/reset-marks', { cardId: id }).then(function(res){
+        done();
+        if (!res || !res.ok || !res.card){ snd('error'); return toast((res && res.error) || 'Silinmədi', true); }
+        applyServerCard(res.card, panel);
+        snd('del');
+        toast('İşarələr silindi');
+      });
     } else {
-      toast((res && res.error) || 'Yenilənmədi');
+      done();
     }
-  });
-}
-// Action: sil — işarələri təmizlə
-function clearCard(){
-  if (!currentCard){ toast('Aktiv kart yoxdur'); return; }
-  currentCard.markedNumbers = [];
-  renderCard();
-  postJSON('/api/card/'+ROOM_ID+'/reset-marks', {}).then(function(){ toast('İşarələr silindi'); });
-}
-// Action: dəyiş — random başqa kart
-function randomizeCard(){ restartCard(); }
+  }
 
-function showMore(){ toast('Əlavə əməliyyat yoxdur'); }
+  function setPanelBusy(panel, on){
+    panel.querySelectorAll('.action-btn').forEach(function(b){ b.disabled = !!on; });
+  }
 
-function changeQty(d){
-  qty = Math.max(1, Math.min(10, qty + d));
-  document.getElementById('qty').textContent = qty;
-  updateBuyHint();
-}
-function updateBuyHint(){
-  var total = (qty * ENTRY_FEE).toFixed(2);
-  var hint = document.getElementById('buyHint');
-  hint.innerHTML = qty > 1 ? ('₼' + total + ' · Qazan ★' + qty * <%= room.starPrize || 0 %>) : ('Qazan ★' + <%= room.starPrize || 0 %>);
-}
-
-function buyTicket(){
-  var btn = document.getElementById('buyBtn');
-  btn.disabled = true;
-  postJSON('/api/card/'+ROOM_ID+'/buy', { quantity: qty }).then(function(res){
-    btn.disabled = false;
-    if (res && res.ok){
-      toast(qty > 1 ? (qty + ' bilet alındı') : 'Bilet alındı');
-      setTimeout(function(){ location.href = '/gamestart/' + ROOM_ID; }, 700);
-    } else if (res && res.redirect){
-      location.href = res.redirect;
-    } else {
-      toast((res && res.error) || 'Alınmadı');
+  function applyServerCard(sc, panel){
+    for (var i=0;i<ownedCards.length;i++){
+      if (ownedCards[i].id === sc.id){
+        ownedCards[i].numbers = sc.numbers;
+        ownedCards[i].marked = (sc.marked_numbers || []).map(Number);
+        break;
+      }
     }
-  });
-}
+    replacePanelGrid(panel, sc.numbers, (sc.marked_numbers || []).map(Number));
+  }
 
-function toggleAuto(){
-  var next = !currentAuto;
-  postJSON('/api/card/'+ROOM_ID+'/auto', { enabled: next }).then(function(res){
-    if (res && res.error) return toast(res.error);
-    currentAuto = !!next;
-    document.getElementById('autoBtn').classList.toggle('off', !currentAuto);
-    document.getElementById('autoText').textContent = currentAuto ? 'avto açıq' : 'avto';
-    if (res && res.card){ currentCard = { numbers: res.card.numbers, markedNumbers: res.card.marked_numbers||[], autoDaub: !!res.card.auto_daub }; renderCard(); }
-    toast(currentAuto ? 'Avto rejim açıq' : 'Avto rejim bağlı');
-  });
-}
+  /* ───────── say və alış ───────── */
+  function maxBuyable(){ return Math.max(0, MAX_TICKETS - ownedCards.length); }
 
-function toggleSound(){
-  soundOn = !soundOn;
-  document.getElementById('soundIcon').textContent = soundOn ? 'volume_up' : 'volume_off';
-  toast(soundOn ? 'Səs açıldı' : 'Səs bağlandı');
-}
+  function updateBuyUI(){
+    var left = maxBuyable();
+    if (qty > left) qty = Math.max(1, left);
+    document.getElementById('qty').textContent = qty;
+    document.getElementById('buyLabel').textContent = 'BİLET AL ' + fmt(qty * ENTRY_FEE) + ' ' + SYM;
+    document.getElementById('buyStars').textContent = qty * STARS_PER;
+    document.getElementById('qtyMinus').disabled = qty <= 1;
+    document.getElementById('qtyPlus').disabled = qty >= left;
+    var btn = document.getElementById('buyBtn');
+    btn.disabled = left === 0 || busy;
+    if (left === 0) document.getElementById('buyLabel').textContent = 'MAKSİMUM BİLET ALINDI';
+  }
 
-// Card cell click – manual mark / unmark
-document.getElementById('cardGrid').addEventListener('click', function(e){
-  var cell = e.target.closest('.cell.clickable');
-  if (!cell || !cell.dataset.number) return;
-  var num = Number(cell.dataset.number);
-  postJSON('/api/card/'+ROOM_ID+'/toggle', { number: num }).then(function(res){
-    if (res && res.error) return toast(res.error);
-    if (res && res.card){
-      currentCard.markedNumbers = res.card.marked_numbers || [];
-      renderCard();
+  function changeQty(d){
+    var left = maxBuyable();
+    var next = Math.min(Math.max(1, qty + d), Math.max(1, left));
+    if (next === qty){ snd('error'); return; }
+    qty = next;
+    var el = document.getElementById('qty');
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    snd('tick');
+    updateBuyUI();
+  }
+
+  function flyStars(count){
+    var btn = document.getElementById('buyBtn');
+    var r = btn.getBoundingClientRect();
+    for (var i=0;i<Math.min(6, count);i++){
+      (function(i){
+        setTimeout(function(){
+          var s = document.createElement('div');
+          s.className = 'star-fly';
+          s.textContent = '⭐';
+          s.style.left = (r.left + r.width/2 + (Math.random()*80-40)) + 'px';
+          s.style.top  = (r.top - 6) + 'px';
+          document.body.appendChild(s);
+          setTimeout(function(){ s.remove(); }, 1000);
+        }, i * 90);
+      })(i);
     }
+  }
+
+  function buyTicket(){
+    if (busy) return;
+    var left = maxBuyable();
+    if (left <= 0){ snd('error'); return toast('Maksimum ' + MAX_TICKETS + ' bilet ala bilərsiniz', true); }
+    busy = true;
+    updateBuyUI();
+
+    var tickets = [];
+    tickets.push(preview && preview.numbers ? preview.numbers : newNumbers());
+    for (var i=1;i<qty;i++) tickets.push(newNumbers());
+
+    postJSON('/api/card/' + ROOM_ID + '/buy', { quantity: qty, tickets: tickets }).then(function(res){
+      busy = false;
+      if (res && res.redirect){ location.href = res.redirect; return; }
+      if (!res || !res.ok){
+        snd('error');
+        updateBuyUI();
+        return toast((res && res.error) || 'Bilet alınmadı', true);
+      }
+      var added = (res.cards || []).map(function(c){
+        return { id: c.id, numbers: c.numbers, marked: (c.marked_numbers||[]).map(Number), index: c.ticket_index };
+      });
+      ownedCards = ownedCards.concat(added);
+      preview = { numbers: newNumbers(), marked: [] };
+      snd('buy');
+      renderAll(added.length);          // sağdan sola sürüşərək gəlir
+      flyStars(res.stars_gained || (qty * STARS_PER));
+      bumpBalance(-(res.total || qty * ENTRY_FEE), res.balance);
+      toast(added.length + ' bilet alındı · +' + (res.stars_gained || qty*STARS_PER) + ' ulduz');
+      qty = 1;
+      updateBuyUI();
+      refreshRoom();
+    });
+  }
+
+  function bumpBalance(delta, balance){
+    var box = document.querySelector('.balance-box');
+    var val = document.querySelector('.balance-box .b-value');
+    if (val && typeof balance === 'number'){
+      var t = val.querySelector('span') || val;
+      t.textContent = fmt(balance) + ' ' + SYM;
+    }
+    if (!box) return;
+    var f = document.createElement('div');
+    f.className = 'float-num ' + (delta < 0 ? 'down' : 'up');
+    f.style.left = 'auto'; f.style.right = '12px'; f.style.transform = 'none';
+    f.textContent = (delta < 0 ? '' : '+') + fmt(delta) + ' ' + SYM;
+    box.style.position = 'relative';
+    box.appendChild(f);
+    setTimeout(function(){ f.remove(); }, 1200);
+  }
+
+  /* ───────── oyunçular pəncərəsi ───────── */
+  var sheetOpen = false;
+  var prevStakes = {};
+
+  function renderRoster(){
+    var list = document.getElementById('playersList');
+    document.getElementById('sheetCount').textContent = roster.length;
+    var total = 0;
+    roster.forEach(function(p){ total += Number(p.stake || 0); });
+    document.getElementById('sheetTotal').textContent = fmt(total) + ' ' + SYM;
+
+    if (!roster.length){
+      list.innerHTML = '<div class="sheet-empty">Hələ heç kim qoşulmayıb</div>';
+      return;
+    }
+    list.innerHTML = '';
+    roster.forEach(function(p){
+      var isMe = p.name === ME_NAME;
+      var row = document.createElement('div');
+      row.className = 'prow' + (isMe ? ' me' : '');
+      var prev = prevStakes[p.name];
+      if (prev === undefined) row.classList.add('new');
+
+      var av = document.createElement('div');
+      av.className = 'pav' + (isMe ? '' : ' bot');
+      av.textContent = (p.name || '?').charAt(0).toUpperCase();
+
+      var info = document.createElement('div');
+      info.className = 'pinfo';
+      info.innerHTML = '<div class="pname">' + escapeHtml(p.name || 'Oyunçu') + (isMe ? ' (siz)' : '') + '</div>' +
+                       '<div class="ptick">' + (p.tickets || 1) + ' bilet</div>';
+
+      var st = document.createElement('div');
+      st.className = 'pstake';
+      st.textContent = fmt(p.stake) + ' ' + SYM;
+      if (prev !== undefined && Number(prev) !== Number(p.stake)) st.classList.add('bump');
+
+      row.appendChild(av); row.appendChild(info); row.appendChild(st);
+      list.appendChild(row);
+      prevStakes[p.name] = Number(p.stake || 0);
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  function openSheet(){
+    sheetOpen = true;
+    renderRoster();
+    document.getElementById('playersSheet').classList.add('show');
+    snd('tick');
+  }
+  function closeSheet(){
+    sheetOpen = false;
+    document.getElementById('playersSheet').classList.remove('show');
+  }
+
+  /* ───────── otaq vəziyyəti (poll) ───────── */
+  function animateStat(el, oldV, newV, suffix){
+    if (oldV === newV) return;
+    el.classList.remove('val-up','val-down');
+    void el.offsetWidth;
+    el.classList.add(newV > oldV ? 'val-up' : 'val-down');
+    setTimeout(function(){ el.classList.remove('val-up','val-down'); }, 700);
+    var host = el.parentElement;
+    if (host){
+      var f = document.createElement('div');
+      f.className = 'float-num ' + (newV > oldV ? 'up' : 'down');
+      f.textContent = (newV > oldV ? '+' : '') + (Math.round((newV - oldV)*100)/100) + (suffix || '');
+      host.appendChild(f);
+      setTimeout(function(){ f.remove(); }, 1200);
+    }
+  }
+
+  function refreshRoom(){
+    return getJSON('/api/room/' + ROOM_ID).then(function(d){
+      if (!d || d.error) return;
+
+      var pcEl = document.getElementById('playerCount');
+      var newPc = Number(d.player_count || 0);
+      animateStat(pcEl, playerCnt, newPc, '');
+      pcEl.textContent = newPc;
+      playerCnt = newPc;
+
+      var przEl = document.getElementById('roomPrize');
+      var newPrize = Number(d.total_stake || 0);
+      animateStat(przEl, totalStake, newPrize, ' ' + SYM);
+      przEl.textContent = fmt(newPrize);
+      totalStake = newPrize;
+
+      roster = d.players || [];
+      if (sheetOpen) renderRoster();
+
+      if (typeof d.stars_per_ticket === 'number' && d.stars_per_ticket > 0){
+        STARS_PER = d.stars_per_ticket;
+        document.getElementById('buyStars').textContent = qty * STARS_PER;
+      }
+
+      document.getElementById('statusText').textContent =
+        d.status === 'started' ? 'Oyun başladı' : (d.status === 'starting' ? 'Başlayır' : 'Gözləyir');
+
+      var chip = document.getElementById('timerChip');
+      var secs = Number(d.starts_in || d.secs_left || 0);
+      if (secs > 0 && d.status !== 'started'){
+        chip.style.display = '';
+        chip.dataset.secs = secs;
+        chip.textContent = fmtTime(secs);
+        chip.classList.toggle('hurry', secs <= 10);
+      } else {
+        chip.style.display = 'none';
+      }
+
+      if (d.status === 'started' && ownedCards.length){
+        location.href = '/gamestart/' + ROOM_ID;
+      }
+    });
+  }
+
+  /* ───────── hadisələr ───────── */
+  document.getElementById('buyBtn').addEventListener('click', buyTicket);
+  document.getElementById('qtyMinus').addEventListener('click', function(){ changeQty(-1); });
+  document.getElementById('qtyPlus').addEventListener('click', function(){ changeQty(1); });
+  document.getElementById('playersBtn').addEventListener('click', openSheet);
+  document.getElementById('playersBtn').addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') openSheet(); });
+  document.getElementById('sheetClose').addEventListener('click', closeSheet);
+  document.getElementById('playersSheet').addEventListener('click', function(e){ if (e.target === this) closeSheet(); });
+
+  document.getElementById('soundBtn').addEventListener('click', function(){
+    soundOn = window.LotoSound ? window.LotoSound.toggle() : !soundOn;
+    document.getElementById('soundIcon').textContent = soundOn ? 'volume_up' : 'volume_off';
+    toast(soundOn ? 'Səs açıldı' : 'Səs bağlandı');
   });
-});
 
-// Local timer
-setInterval(function(){
-  var t = document.getElementById('timer');
-  if (!t) return;
-  var v = parseInt(t.dataset.secs||'0', 10);
-  if (v>0) v -= 1;
-  t.dataset.secs = v;
-  t.textContent = fmtTime(v);
-}, 1000);
+  document.getElementById('autoBtn').addEventListener('click', function(){
+    snd('error');
+    toast('Avto rejim bu otaqda aktiv deyil', true);
+  });
 
-renderCard();
-updateBuyHint();
+  // saniyəlik geri sayım
+  setInterval(function(){
+    var chip = document.getElementById('timerChip');
+    if (!chip || chip.style.display === 'none') return;
+    var v = parseInt(chip.dataset.secs || '0', 10);
+    if (v > 0) v -= 1;
+    chip.dataset.secs = v;
+    chip.textContent = fmtTime(v);
+    chip.classList.toggle('hurry', v <= 10);
+  }, 1000);
+
+  setInterval(refreshRoom, 3000);
+
+  // başlanğıc
+  if (window.LotoSound){
+    soundOn = window.LotoSound.isOn();
+    document.getElementById('soundIcon').textContent = soundOn ? 'volume_up' : 'volume_off';
+  }
+  ownedCards.sort(function(a,b){ return (a.index||0) - (b.index||0); });
+  renderAll(0);
+  renderRoster();
+  refreshRoom();
+})();
 </script>
 </body>
 </html>
