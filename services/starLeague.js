@@ -3,7 +3,7 @@
 //
 // Qaydalar:
 //  1) Bütün otaqlarda oyunçu bilet aldıqda biletin qiymətinə görə ULDUZ yığır
-//     (1 ₼ = 100 ulduz, yəni starPrize hər bilet üçün).
+//     (20 qəpik = 2 ulduz, yəni 1 ₼ = 10 ulduz — starPrize hər bilet üçün).
 //  2) Liderboard ən çox PUL uduşuna görə deyil, ən çox ULDUZ yığanlara görədir.
 //  3) Hər 24 saatdan bir ilk 100 oyunçuya avtomatik ulduz uduşu köçürülür:
 //       1-ci  →  20.000.000
@@ -17,6 +17,8 @@ const User      = require('../models/User');
 const StarBot   = require('../models/StarBot');
 const StarCycle = require('../models/StarCycle');
 const { BOT_NAMES } = require('./botEngine');
+
+const STARS_PER_AZN = 10;          // 1 ₼ = 10 ulduz (0.20 ₼ = 2 ulduz)
 
 const CYCLE_MS = 24 * 60 * 60 * 1000;   // 24 saat
 const LEADERBOARD_SIZE = 100;
@@ -37,9 +39,11 @@ function prizeForRank(rank) {
 
 /** Biletin qiymətinə görə bir biletdən yığılan ulduz */
 function starsPerTicket(room) {
+  // 20 qəpik → 2 ulduz  ⇒  1 ₼ → 10 ulduz
+  const fee = Number((room && room.entryFee) || 0);
+  if (fee > 0) return Math.max(1, Math.round(fee * STARS_PER_AZN));
   const byRoom = Number(room && room.starPrize ? room.starPrize : 0);
-  if (byRoom > 0) return Math.round(byRoom);
-  return Math.max(1, Math.round(Number((room && room.entryFee) || 0) * 100));
+  return byRoom > 0 ? Math.max(1, Math.round(byRoom)) : 1;
 }
 
 /**
@@ -219,6 +223,7 @@ module.exports = {
   PRIZE_REST,
   prizeForRank,
   starsPerTicket,
+  STARS_PER_AZN,
   awardStars,
   awardBotStars,
   leaderboard,
