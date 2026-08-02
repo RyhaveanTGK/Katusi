@@ -207,6 +207,18 @@ var medalImg = ['/assets/winners/medal-gold.svg','/assets/winners/medal-silver.s
     </div>
   </div>
 
+  <!-- ── Gündəlik bonus (dilə uyğun valyuta və məbləğ) ── -->
+  <div class="cycle-box" id="dailyBonusBox" style="background:linear-gradient(135deg,#3a0f60,#5a1a2f);border:1px solid rgba(245,197,24,.35)">
+    <div class="cycle-top">
+      <div>
+        <div class="cycle-lbl"><span class="pulse-dot"></span><%= t('bonus.title') %></div>
+        <div style="font-size:22px;font-weight:900;color:#f5c518" id="dbAmount"><%= money(bonusAmount) %></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px" id="dbHint"><%= t('bonus.desc') %></div>
+      </div>
+      <button type="button" id="dbBtn" style="border:none;cursor:pointer;padding:13px 18px;border-radius:14px;font-family:inherit;font-size:14px;font-weight:900;color:#3a1c00;background:linear-gradient(180deg,#ffd060,#f59200)"><%= t('bonus.claim') %></button>
+    </div>
+  </div>
+
   <div class="cycle-box">
     <div class="cycle-top">
       <div>
@@ -327,6 +339,27 @@ function showTab(tab){
     setTimeout(paint, 1000);
   }
   paint();
+})();
+</script>
+<script>
+(function(){
+  var btn=document.getElementById('dbBtn'), hint=document.getElementById('dbHint');
+  if(!btn) return;
+  var T={claimed:<%- JSON.stringify(t('bonus.claimed')) %>,next:<%- JSON.stringify(t('bonus.next')) %>,ready:<%- JSON.stringify(t('bonus.ready')) %>,err:<%- JSON.stringify(t('common.error')) %>};
+  function fmt(s){s=Math.max(0,s|0);var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(x<10?'0':'')+x;}
+  var left=0,timer=null;
+  function lock(sec){left=sec;btn.disabled=true;btn.style.opacity=.55;
+    if(timer)clearInterval(timer);
+    timer=setInterval(function(){left--;if(left<=0){clearInterval(timer);btn.disabled=false;btn.style.opacity=1;hint.textContent=T.ready;}else{hint.textContent=T.next+' '+fmt(left);}},1000);
+    hint.textContent=T.next+' '+fmt(left);}
+  fetch('/api/daily-bonus',{credentials:'same-origin'}).then(function(r){return r.json()}).then(function(d){ if(d&&!d.ready) lock(d.seconds_left||0); });
+  btn.addEventListener('click',function(){
+    btn.disabled=true;
+    fetch('/api/daily-bonus',{method:'POST',credentials:'same-origin'}).then(function(r){return r.json()}).then(function(d){
+      if(d&&d.ok){ hint.textContent=T.claimed; if(window.animateBalance) window.animateBalance(d.balance); lock(24*3600); }
+      else { lock((d&&d.seconds_left)||3600); }
+    }).catch(function(){ btn.disabled=false; hint.textContent=T.err; });
+  });
 })();
 </script>
 </body>
