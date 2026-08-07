@@ -273,14 +273,14 @@
         <li>Hər otaqda oyunçu limiti qədər iştirakçı olur (standart <b>5 oyunçu</b>). Otaq dolduqda oyun avtomatik başlayır və eyni mərcli <b>yeni boş otaq</b> açılır. Başlamış oyuna sonradan heç kim daxil ola bilməz.</li>
         <li>Bilet <b>3 sıradan (linya)</b> ibarətdir, hər sırada <b>5 rəqəm</b>, cəmi <b>15 rəqəm</b> var. Bir oyunda maksimum <b>5 bilet</b> ala bilərsiniz.</li>
         <li>Oyun başlayanda hər bir neçə saniyədən bir <b>daş (1–90)</b> çıxır. Çıxan daş sizin biletinizdə varsa, üzərinə toxunub <b>özünüz yerləşdirməlisiniz</b>.</li>
-        <li>Hər daşı <b>növbəti daş çıxana qədər</b> biletə qoymalısınız. Gecikirsinizsə xana <b>qırmızı X</b> ilə bloklanır və həmin daş sizin üçün <b>sayılmır</b>.</li>
+        <li>Çıxan daşları biletinizdə istənilən vaxt qeyd edə bilərsiniz — daş bloklanmır.</li>
       </ul>
 
       <h4>Qazanc necə hesablanır?</h4>
       <ul>
         <li>Otaqdakı bütün oyunçuların mərcləri <b>ümumi banka</b> yığılır (yuxarıdakı kubok işarəsinin yanındakı əsas mərc).</li>
-        <li><b>1-ci linyanı</b> tam dolduran ilk oyunçu bankın <b>2.4%-ini</b> qazanır.</li>
-        <li><b>2-ci linya</b> üçün <b>4.8%</b>, <b>3-cü linya</b> üçün <b>7.2%</b> ödənilir.</li>
+        <li><b>1-ci linyanı</b> tam dolduran ilk oyunçu bankın <b>8%-ini</b> qazanır.</li>
+        <li><b>2-ci linya</b> üçün <b>16%</b>, <b>3-cü linya</b> üçün <b>24%</b> ödənilir.</li>
         <li>Hər linya uduşu dərhal həmin oyunçunun <b>balansına köçürülür</b> və eyni məbləğ ortadakı <b>bankdan çıxılır</b>.</li>
         <li>Bileti <b>tam dolduran ilk oyunçu qalibdir</b> və bankda qalan <b>bütün məbləği</b> qazanır.</li>
         <li>Vaxt bitənədək heç kim bileti tam doldurmasa, <b>ən çox linya və daş</b> yığan oyunçu qalib sayılır və qalan bankı alır.</li>
@@ -293,7 +293,7 @@
         <li>Oyun bitdikdən sonra otaq avtomatik təmizlənir və yeni raunda hazırlanır.</li>
       </ul>
 
-      <div class="info-note">Məsləhət: səsi açıq saxlayın — hər yeni daş çıxanda siqnal verilir və daşı vaxtında yerləşdirmək asanlaşır.</div>
+      <div class="info-note">Məsləhət: səsi açıq saxlayın — hər yeni daş çıxanda siqnal verilir.</div>
     </div>
   </div>
 </div>
@@ -331,7 +331,7 @@
     <div class="live-row">
       <div style="display:flex;flex-direction:column;gap:8px;min-width:0;">
         <div class="status-pill"><span class="status-dot"></span><span id="statusText"><%= displayStatus === 'started' ? 'Oyun başladı' : displayStatus === 'starting' ? 'Başlayır' : 'Gözləyir' %></span></div>
-        <div class="timer" id="timer" data-secs="<%= secsLeft %>" style="display:none">00:00</div>
+        <div class="timer" id="timer" data-secs="<%= secsLeft %>">00:00</div>
       </div>
       <div class="ball" id="currentBall"><%= room.currentNumber || '?' %></div>
     </div>
@@ -399,8 +399,15 @@ function toast(msg){
 }
 function fmtTime(s){ s = Math.max(0, parseInt(s || 0, 10)); var m = Math.floor(s/60), ss = s%60; return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss; }
 function statusLabel(s){ return s === 'started' ? 'Oyun başladı' : s === 'ended' ? 'Raund bitdi' : s === 'starting' ? 'Başlayır' : 'Gözləyir'; }
-/* Oyun başladıqdan sonra geri sayım göstərilmir */
-function renderTimer(){}
+/* Raund geri sayımı (2-ci zipdəki kimi göstərilir) */
+function renderTimer(){
+  var t = document.getElementById('timer');
+  if (!t) return;
+  var v = parseInt(t.dataset.secs || '0', 10);
+  t.textContent = fmtTime(v);
+  if (v > 0) t.dataset.secs = v - 1;
+}
+setInterval(renderTimer, 1000); renderTimer();
 
 /* Çıxan daşlar siyahısı: yalnız YENİ daşlar əlavə olunur —
    bütün siyahı hər dəfə yenidən qurulmur (donma və titrəmə olmur). */
@@ -432,18 +439,9 @@ function trackDrawn(){
   var now = Date.now();
   drawnNumbers.forEach(function(n){ if (!seenAt[n]) seenAt[n] = now; });
 }
-function isExpired(n){
-  // Yalnız SON çıxan daş qoyula bilər — yeni daş çıxan kimi əvvəlki bloklanır
-  if (!drawnNumbers.length) return false;
-  return Number(drawnNumbers[drawnNumbers.length - 1]) !== Number(n);
-}
-function isMissed(card, n){
-  if (!n) return false;
-  if ((card.marked || []).indexOf(n) >= 0) return false;
-  if (drawnNumbers.indexOf(n) < 0) return false;
-  if ((card.missed || []).indexOf(n) >= 0) return true;
-  return isExpired(n);
-}
+function isExpired(){ return false; }
+/* 2-ci zipdəki mexanizm: heç bir daş bloklanmır */
+function isMissed(){ return false; }
 /* Xanaların vəziyyətini DOM-u yenidən qurmadan yenilə (tam axıcılıq üçün) */
 function syncTicketDom(){
   var list = document.getElementById('ticketList');
@@ -680,7 +678,7 @@ function ticketNode(card, index){
     var cell = e.target.closest('.cell.clickable');
     if (!cell || !cell.dataset.number) return;
     var number = Number(cell.dataset.number);
-    if (isMissed(card, number)) { toast('Vaxt bitdi — bu daş bloklandı'); return; }
+    
     cell.classList.remove('clickable', 'drawn');
     cell.classList.add('marked');
     LotoSound.place();
