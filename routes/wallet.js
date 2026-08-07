@@ -76,16 +76,33 @@ function fmt(amountAzn, locale) {
   return i18n.money(amountAzn, locale);
 }
 
-/** Ödəniş üsulunun admin təyin etdiyi limitləri (AZN bazada) */
-function methodLimits(pm, type) {
+// Hər dil/ölkə üçün minimum məbləğlər — ÖZ VALYUTASINDA yazılıb.
+// (baza AZN-ə avtomatik çevrilir; ödəniş üsulunun limiti daha yüksəkdirsə, o üstündür)
+const LOCALE_MIN_LOCAL = {
+  ka: { deposit: 50,   withdraw: 100  },  // ₾ GEL
+  tr: { deposit: 1000, withdraw: 3500 },  // ₺ TRY
+  ru: { deposit: 1500, withdraw: 5000 }   // ₽ RUB
+};
+
+/** Dilə görə minimum həddi (AZN bazada) */
+function localeMinBase(locale, type) {
+  const conf = LOCALE_MIN_LOCAL[i18n.normalizeLocale(locale)];
+  if (!conf) return 0;
+  const rate = i18n.localeMeta(locale).rate || 1;
+  return Math.round((Number(conf[type] || 0) / rate) * 100) / 100;
+}
+
+/** Ödəniş üsulunun limitləri (AZN bazada) — dilin minimumu nəzərə alınır */
+function methodLimits(pm, type, locale) {
+  const floor = locale ? localeMinBase(locale, type === 'withdraw' ? 'withdraw' : 'deposit') : 0;
   if (type === 'withdraw') {
     return {
-      min: Number(pm.withdrawMin != null ? pm.withdrawMin : FALLBACK.withdrawMin),
+      min: Math.max(floor, Number(pm.withdrawMin != null ? pm.withdrawMin : FALLBACK.withdrawMin)),
       max: Number(pm.withdrawMax != null ? pm.withdrawMax : FALLBACK.withdrawMax)
     };
   }
   return {
-    min: Number(pm.minAmount != null ? pm.minAmount : FALLBACK.depositMin),
+    min: Math.max(floor, Number(pm.minAmount != null ? pm.minAmount : FALLBACK.depositMin)),
     max: Number(pm.maxAmount != null ? pm.maxAmount : FALLBACK.depositMax)
   };
 }
@@ -152,10 +169,10 @@ async function loadWalletContext(req) {
   const withdrawMethods = methods.filter((m) => m.forWithdraw);
 
   // Səhifədə göstərilən ümumi limitlər — aktiv üsulların ən aşağı/yuxarı həddi
-  const dMins = depositMethods.map((m) => methodLimits(m, 'deposit').min);
-  const dMaxs = depositMethods.map((m) => methodLimits(m, 'deposit').max);
-  const wMins = withdrawMethods.map((m) => methodLimits(m, 'withdraw').min);
-  const wMaxs = withdrawMethods.map((m) => methodLimits(m, 'withdraw').max);
+  const dMins = depositMethods.map((m) => methodLimits(m, 'deposit', locale).min);
+  const dMaxs = depositMethods.map((m) => methodLimits(m, 'deposit', locale).max);
+  const wMins = withdrawMethods.map((m) => methodLimits(m, 'withdraw', locale).min);
+  const wMaxs = withdrawMethods.map((m) => methodLimits(m, 'withdraw', locale).max);
 
   return {
     user,
@@ -165,9 +182,9 @@ async function loadWalletContext(req) {
     depositMethods,
     withdrawMethods,
     limits: {
-      depositMin:  dMins.length ? Math.min(...dMins) : FALLBACK.depositMin,
+      depositMin:  Math.max(localeMinBase(locale, 'deposit'), dMins.length ? Math.min(...dMins) : FALLBACK.depositMin),
       depositMax:  dMaxs.length ? Math.max(...dMaxs) : FALLBACK.depositMax,
-      withdrawMin: wMins.length ? Math.min(...wMins) : FALLBACK.withdrawMin,
+      withdrawMin: Math.max(localeMinBase(locale, 'withdraw'), wMins.length ? Math.min(...wMins) : FALLBACK.withdrawMin),
       withdrawMax: wMaxs.length ? Math.max(...wMaxs) : FALLBACK.withdrawMax
     }
   };
@@ -216,7 +233,7 @@ router.post('/deposit', requireLogin, uploadSafe('receipt'), async (req, res) =>
     const pm = await PaymentMethod.findOne({ key: method, locale, active: true, forDeposit: true });
     if (!pm) return renderWallet(req, res, { tab: 'deposit', error: 'Ödəniş üsulu tapılmadı' });
 
-    const lim = methodLimits(pm, 'deposit');
+    const lim = methodLimits(pm, 'deposit', locale);
     if (!amt || amt < lim.min || amt > lim.max) {
       return renderWallet(req, res, {
         tab: 'deposit',
@@ -275,7 +292,7 @@ router.post('/deposit/crypto', requireLogin, uploadSafe('receipt'), async (req, 
     const pm = await PaymentMethod.findOne({ key: method, locale, kind: 'crypto', active: true, forDeposit: true });
     if (!pm) return renderWallet(req, res, { tab: 'deposit', error: 'Kripto üsulu tapılmadı' });
 
-    const lim = methodLimits(pm, 'deposit');
+    const lim = methodLimits(pm, 'deposit', locale);
     if (!amt || amt < lim.min || amt > lim.max) {
       return renderWallet(req, res, {
         tab: 'deposit',
@@ -334,7 +351,7 @@ router.post('/withdraw', requireLogin, async (req, res) => {
     const pm = await PaymentMethod.findOne({ key: method, locale, active: true, forWithdraw: true });
     if (!pm) return renderWallet(req, res, { tab: 'withdraw', error: payI18n.pay('selectCardType', locale) });
 
-    const lim = methodLimits(pm, 'withdraw');
+    const lim = methodLimits(pm, 'withdraw', locale);
     if (!amt || amt < lim.min || amt > lim.max) {
       return renderWallet(req, res, {
         tab: 'withdraw',
