@@ -36,7 +36,7 @@ const START_COUNTDOWN_SEC = Number(process.env.GAME_START_COUNTDOWN_SEC || 5);
 const MARK_GRACE_SEC = Number(process.env.GAME_MARK_GRACE_SEC || 12);
 
 // Linya (sıra) uduş faizləri — ortadakı ümumi mərcdən götürülür (2.4% / 4.8% / 7.2%)
-const LINE_PERCENTS = [0.024, 0.048, 0.072];
+const LINE_PERCENTS = [0.08, 0.16, 0.24];
 
 // Otaqdan çıxanda tutulan komissiya (70%) — 30% geri qaytarılır
 const LEAVE_COMMISSION = 0.70;
@@ -109,9 +109,8 @@ function linePercent(lineNo) {
  * yalnız ortadakı canlı bank (room.prize) azalır.
  */
 function basePotOf(room) {
-  const base = Number(room.basePot || 0);
-  if (base > 0) return base;
-  return Number(Math.max(Number(room.stakeTotal || 0), Number(room.prize || 0)).toFixed(2));
+  // 2-ci zipdəki mexanizm: linya uduşu ORTADAKI CANLI bankdan hesablanır
+  return Number(Math.max(0, Number(room.prize || 0)).toFixed(2));
 }
 
 /** Sabit bankdan linya uduşu */
@@ -187,25 +186,17 @@ function drawnAtOf(room, number) {
   return t ? new Date(t).getTime() : null;
 }
 
-/** Daşı hələ biletə qoymaq olarmı? (vaxt bitibsə – yox) */
-function canMarkNumber(room, number, now = Date.now()) {
+/** Daşı biletə qoymaq olarmı? (çıxıbsa – bəli) */
+function canMarkNumber(room, number) {
+  // 2-ci zipdəki mexanizm: çıxmış istənilən daş vaxt məhdudiyyəti olmadan qoyula bilər
   const list = (room.drawnNumbers || []).map(Number);
-  const n = Number(number);
-  if (!list.includes(n)) return false;
-  // Yalnız SON çıxan daş biletə qoyula bilər — yeni daş çıxan kimi köhnəsi bloklanır
-  if (list[list.length - 1] !== n) return false;
-  const at = drawnAtOf(room, n);
-  if (!at) return true; // köhnə raundlar üçün uyğunluq
-  const grace = Number(room.markGraceSec || MARK_GRACE_SEC) * 1000;
-  return now - at <= grace;
+  return list.includes(Number(number));
 }
 
 /** Biletdə vaxtında qeyd edilmədiyi üçün bloklanan daşlar */
-function missedNumbersFor(room, card, now = Date.now()) {
-  const marks = new Set((card.markedNumbers || []).map(Number));
-  return flatCardNumbers(card)
-    .map(Number)
-    .filter((n) => !marks.has(n) && (room.drawnNumbers || []).map(Number).includes(n) && !canMarkNumber(room, n, now));
+function missedNumbersFor() {
+  // Bloklanan daş yoxdur — heç bir daş vaxta görə itmir
+  return [];
 }
 
 function getDisplayStatus(room) {
