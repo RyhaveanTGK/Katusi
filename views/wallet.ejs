@@ -397,7 +397,7 @@ document.querySelectorAll('#tab-deposit .method').forEach(function(el){
       if (d.phone) rows.push(['Telefon', d.phone]);
     }
     if (!rows.length){
-      box.innerHTML = '<div class="no-details">' + d.name + ' üçün rekvizitlər admin tərəfindən hələ əlavə edilməyib.</div>';
+      box.innerHTML = '<div class="no-details">' + d.name + ' üçün rekvizitlər hazırda əlçatan deyil, bir az sonra yenidən yoxlayın.</div>';
       return;
     }
     box.innerHTML = rows.map(function(r){
