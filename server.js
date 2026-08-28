@@ -25,6 +25,7 @@ const StarBot         = require('./models/StarBot');
 const StarCycle       = require('./models/StarCycle');
 
 const { requireLogin, requireAdmin, requireGuest } = require('./middleware/auth');
+const { LOCALES } = require('./services/i18n');
 
 const app    = express();
 const server = http.createServer(app);
@@ -320,19 +321,26 @@ r.get('/', async (req, res) => {
   res.render('lobby', { rooms: rooms.map(x => snap({...x, _id: x._id})) });
 });
 
-r.get('/login', requireGuest, (req, res) => res.render('login', { error: null }));
-r.get('/register', requireGuest, (req, res) => res.render('register', { error: null }));
+r.get('/login', requireGuest, (req, res) => {
+  const locale = req.session.locale || 'en';
+  res.render('login', { error: null, locale, locales: LOCALES });
+});
+r.get('/register', requireGuest, (req, res) => {
+  const locale = req.session.locale || 'en';
+  res.render('register', { error: null, locale, locales: LOCALES });
+});
 r.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+    const locale = req.session.locale || 'en';
     const u = await User.findOne({ $or: [{ username }, { email: username }] });
-    if (!u) return res.status(401).render('login', { error: 'İstifadəçi tapılmadı' });
-    if (u.isBlocked) return res.status(403).render('login', { error: 'Hesab bloklanıb' });
+    if (!u) return res.status(401).render('login', { error: 'İstifadəçi tapılmadı', locale, locales: LOCALES });
+    if (u.isBlocked) return res.status(403).render('login', { error: 'Hesab bloklanıb', locale, locales: LOCALES });
     const ok = await u.comparePassword(password);
-    if (!ok) return res.status(401).render('login', { error: 'Şifrə yanlışdır' });
+    if (!ok) return res.status(401).render('login', { error: 'Şifrə yanlışdır', locale, locales: LOCALES });
     req.session.userId = String(u._id); req.session.isAdmin = !!u.isAdmin;
     res.redirect('/');
-  } catch (e) { res.status(500).render('login', { error: 'Xəta' }); }
+  } catch (e) { res.status(500).render('login', { error: 'Xəta', locale: req.session.locale || 'en', locales: LOCALES }); }
 });
 r.post('/register', async (req, res) => {
   try {
