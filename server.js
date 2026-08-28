@@ -296,21 +296,81 @@ try {
 io.on('connection', (socket) => {
   socket.on('room:join', async (roomId) => {
     try {
-      socket.join(`room:${roomId}`);
       const room = await Room.findById(roomId).lean();
-      if (room) {
+      
+      if (!room) {
+        socket.emit('room:error', { message: 'Room not found' });
+        return;
+      }
+      
+      // ✓ YENİ OTAQ QOŞULMA - Yalnız son 24 saat ərzində yaradılan otaqlar
+      const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+      const roomCreatedTime = new Date(room.createdAt || room._id.getTimestamp());
+      const currentTime = new Date();
+      const roomAgeMs = currentTime - roomCreatedTime;
+      
+      if (roomAgeMs <= TWENTY_FOUR_HOURS) {
+        socket.join(`room:${roomId}`);
         socket.emit('room:state', room);
+        console.log(`✓ User joined new room: ${roomId} (Age: ${Math.floor(roomAgeMs / 1000)}s)`);
+      } else {
+        // ✗ KÖHNƏLƏRİŞDİRMƏ - Köhnə otaqlar qoşulmaz
+        socket.emit('room:error', { 
+          message: 'This room is too old and no longer accepting new connections',
+          roomAge: Math.floor(roomAgeMs / 1000),
+          maxAge: TWENTY_FOUR_HOURS / 1000
+        });
+        console.log(`✗ Blocked old room access: ${roomId} (Age: ${Math.floor(roomAgeMs / 1000)}s)`);
       }
     } catch (err) {
       console.error('Socket room:join error:', err.message);
+      socket.emit('room:error', { message: 'Error joining room' });
     }
   });
   
   socket.on('room:leave', (roomId) => {
-    socket.leave(`room:${roomId}`);
+    try {
+      socket.leave(`room:${roomId}`);
+      console.log(`✓ User left room: ${roomId}`);
+    } catch (err) {
+      console.error('Socket room:leave error:', err.message);
+    }
+  });
+  
+  // ✓ Avtomatik köhnə otaqlardan çıxarma
+  socket.on('check:old:rooms', async (userRoomIds) => {
+    try {
+      const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+      const currentTime = new Date();
+      const oldRooms = [];
+      
+      for (const roomId of userRoomIds) {
+        const room = await Room.findById(roomId).lean();
+        if (room) {
+          const roomCreatedTime = new Date(room.createdAt || room._id.getTimestamp());
+          const roomAgeMs = currentTime - roomCreatedTime;
+          
+          if (roomAgeMs > TWENTY_FOUR_HOURS) {
+            socket.leave(`room:${roomId}`);
+            oldRooms.push(roomId);
+          }
+        }
+      }
+      
+      if (oldRooms.length > 0) {
+        socket.emit('rooms:disconnected', { 
+          message: 'Disconnected from old rooms',
+          rooms: oldRooms 
+        });
+        console.log(`✓ Auto-disconnected from old rooms: ${oldRooms.join(', ')}`);
+      }
+    } catch (err) {
+      console.error('Check old rooms error:', err.message);
+    }
   });
   
   socket.on('disconnect', () => {
+    console.log(`✓ Socket disconnected: ${socket.id}`);
     // Cleanup if needed
   });
 });
