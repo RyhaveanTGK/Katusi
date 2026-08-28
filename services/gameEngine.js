@@ -48,7 +48,10 @@ let loopHandle = null;
 let ticking = false;
 
 const DEFAULT_ROOMS = [
+  // ✓ ŞƏKILDƏ GÖSTƏRILƏN OYUNLAR
   { name: 'Classic 0.20 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 0.2, maxPlayers: MAX_PLAYERS, sortOrder: 1, jackpotEnabled: true, starPrize: 20, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
+  { name: 'Classic 0.40 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 0.4, maxPlayers: MAX_PLAYERS, sortOrder: 1.5, jackpotEnabled: true, starPrize: 40, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
+  // ✓ DIGƏR VARIYASYONLAR
   { name: 'Classic 0.50 ₼', ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 0.5, maxPlayers: MAX_PLAYERS, sortOrder: 2, jackpotEnabled: true, starPrize: 50, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
   { name: 'Classic 1.00 ₼',  ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 1.0, maxPlayers: MAX_PLAYERS, sortOrder: 3, jackpotEnabled: true, starPrize: 100, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
   { name: 'Classic 5.00 ₼',  ticketLabel: 'TAM BİLET', type: 'classic', entryFee: 5.0, maxPlayers: MAX_PLAYERS, sortOrder: 4, jackpotEnabled: true, starPrize: 500, prizeMultiplier: 'x2', themeColor: '#1f9b3b' },
