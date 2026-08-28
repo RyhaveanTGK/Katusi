@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title><%= room.name %> · Birloto</title>
+<link rel="stylesheet" href="/assets/css/loto.css">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined">
+<style>
+body { padding-bottom: 130px; }
+.room-lobby { max-width: 480px; margin: 0 auto; padding: 14px 12px; }
+.top-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px 14px; }
+.back-btn { background: rgba(255,255,255,.12); border: none; color: #fff; border-radius: 10px; padding: 6px 12px; font-weight: 800; cursor: pointer; text-decoration:none; font-size:12px; }
+.room-title { font-size: 22px; font-weight: 900; }
+.detail-card { background: rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-radius:18px; padding: 14px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.info-cell { background: rgba(255,255,255,.05); padding: 10px 12px; border-radius: 12px; }
+.info-cell .lbl { font-size: 11px; color: rgba(255,255,255,.6); font-weight: 800; text-transform: uppercase; }
+.info-cell .val { font-size: 17px; font-weight: 900; color: #f5c518; margin-top: 2px; }
+.players-toggle { margin-top: 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 12px; background: rgba(255,255,255,.05); border-radius: 12px; border: 1px solid rgba(255,255,255,.08); }
+.players-toggle .count { background: #e30613; color: #fff; border-radius: 99px; padding: 4px 10px; font-weight: 900; font-size: 13px; }
+.players-toggle .label { flex: 1; font-weight: 700; font-size: 13px; }
+.players-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; padding: 22px; }
+.players-modal.open { display: flex; align-items: center; justify-content: center; }
+.players-modal .box { background: #240735; border-radius: 16px; padding: 18px; max-width: 380px; width: 100%; max-height: 80vh; overflow-y: auto; }
+.pm-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+.pm-row:last-child { border-bottom: 0; }
+.pm-row .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(180deg,#ffd54a,#c8960c); display:flex; align-items:center; justify-content:center; font-weight: 900; color:#2b1200; font-size: 11px; }
+.pm-row .av.bot { background: linear-gradient(180deg,#9eb1ff,#3f5fcf); color:#fff; }
+.pm-row .name { flex: 1; font-weight: 700; font-size: 13px; }
+.pm-row .bot-tag { font-size: 10px; background: rgba(120,160,255,.25); color: #9eb1ff; padding: 2px 7px; border-radius: 99px; font-weight: 800; }
+.pm-row .stake { font-weight: 900; color: #f5c518; font-size: 13px; }
+.close-pm { background: rgba(255,255,255,.12); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 800; margin-top: 12px; width: 100%; }
+.seat-pills { display:flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.seat-pill { background: rgba(76,224,110,.12); color: #4ce07a; padding: 4px 9px; border-radius: 99px; font-size: 11px; font-weight: 800; }
+.seat-pill.empty { background: rgba(255,255,255,.06); color: rgba(255,255,255,.5); }
+.buy-now-btn { width: 100%; padding: 13px; background: linear-gradient(180deg,#5a90ee,#3f6fd4); color: #fff; border: none; border-radius: 14px; font-family: 'Rubik'; font-weight: 900; font-size: 16px; cursor: pointer; box-shadow: 0 6px 16px rgba(63,111,212,.4); }
+.buy-now-btn[disabled] { opacity: .5; cursor: not-allowed; }
+.status-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(245,197,24,.18); color: #f5c518; padding: 5px 10px; border-radius: 99px; font-size: 12px; font-weight: 800; }
+.status-pill.live { background: rgba(76,224,110,.18); color: #4ce07a; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: blink 1.2s infinite; }
+.toast { position: fixed; left: 50%; bottom: 130px; transform: translateX(-50%); background: rgba(16,12,24,.94); color: #fff; padding: 11px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; max-width: 90vw; text-align: center; opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 9999; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="room-lobby">
+  <div class="top-row">
+    <a class="back-btn" href="/">← Geri</a>
+    <div style="text-align:right"><div class="room-title"><%= room.name %></div><div style="color:rgba(255,255,255,.6); font-size:12px"><%= room.ticketLabel %></div></div>
+  </div>
+  <div class="detail-card">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <% var _st = room.status==='started' ? 'live' : ''; var _txt = room.status==='started' ? 'CANLI' : (room.status==='ended' ? 'BİTİB' : 'GÖZLƏYİR'); %>
+      <span class="status-pill <%= _st %>" id="statusPill"><span class="status-dot"></span> <span id="statusText"><%= _txt %></span></span>
+      <span style="margin-left:auto; font-size:13px; color:rgba(255,255,255,.7);">Bank: <b style="color:#f5c518;" id="potText"><%= (room.basePot||room.stakeTotal||0).toFixed(2) %> ₼</b></span>
+    </div>
+    <div class="info-grid">
+      <div class="info-cell"><div class="lbl">Bilet qiyməti</div><div class="val"><%= room.entryFee.toFixed(2) %> ₼</div></div>
+      <div class="info-cell"><div class="lbl">Daş intervalı</div><div class="val"><%= room.drawIntervalSec||5 %> san</div></div>
+      <div class="info-cell"><div class="lbl">Oyunçu limit</div><div class="val"><%= room.maxPlayers %></div></div>
+      <div class="info-cell"><div class="lbl">Raund</div><div class="val" id="roundText">#<%= room.currentRoundId %></div></div>
+    </div>
+    <div class="players-toggle" id="playersToggle">
+      <span class="count" id="playerCount">0</span>
+      <span class="label">Otaqdakı oyunçular</span>
+      <span class="material-symbols-outlined">chevron_right</span>
+    </div>
+    <div class="seat-pills" id="seatPills">
+      <% for (let i = 0; i < room.maxPlayers; i++) {
+           const filled = i < (room.players?.length || 0) + (room.botCount || 0); %>
+        <span class="seat-pill <%= filled ? '' : 'empty' %>"><%= filled ? (i+1) : 'Boş' %></span>
+      <% } %>
+    </div>
+    <button class="buy-now-btn" id="enterRoomBtn" style="margin-top:14px">Oyuna daxil ol</button>
+    <div style="font-size:11px; color:rgba(255,255,255,.5); margin-top:6px; text-align:center;">Davam etmək üçün basın — səhifə oyun ekranına keçəcək</div>
+  </div>
+
+  <div class="players-modal" id="playersModal">
+    <div class="box">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-weight: 800; font-size: 16px;">Oyunçu siyahısı</div>
+        <div id="playerTotalLabel" style="font-size:12px; color:rgba(255,255,255,.6);"></div>
+      </div>
+      <div id="playersList" style="margin-top:10px;"></div>
+      <button class="close-pm" id="closePM">Bağla</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const ROOM_ID = "<%= room._id %>";
+const $ = (id) => document.getElementById(id);
+
+$('enterRoomBtn').addEventListener('click', async () => {
+  try {
+    $('enterRoomBtn').disabled = true;
+    const r = await fetch('/api/room/' + ROOM_ID + '/join', { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) window.location.href = '/rooms/' + ROOM_ID;
+    else { showToast(d.error || 'Xəta'); $('enterRoomBtn').disabled = false; }
+  } catch (e) { showToast('Şəbəkə xətası'); $('enterRoomBtn').disabled = false; }
+});
+
+function showToast(t, color) {
+  const el = $('toast'); el.textContent = t;
+  el.style.background = color || 'rgba(16,12,24,.94)';
+  el.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+$('playersToggle').addEventListener('click', () => { $('playersModal').classList.add('open'); refreshPlayers(); });
+$('closePM').addEventListener('click', () => $('playersModal').classList.remove('open'));
+
+async function refreshPlayers() {
+  try {
+    const r = await fetch('/api/room/' + ROOM_ID + '/players');
+    const d = await r.json();
+    const list = $('playersList');
+    list.innerHTML = '';
+    (d.players || []).forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'pm-row';
+      row.innerHTML = `
+        <div class="av ${p.isBot ? 'bot' : ''}">${p.isBot ? 'B' : (p.name||'').slice(0,2).toUpperCase()}</div>
+        <div class="name">${escapeHtml(p.name || '—')}</div>
+        ${p.isBot ? '<span class="bot-tag">BOT</span>' : ''}
+        <div class="stake">${(p.stake||0).toFixed(2)} ₼</div>`;
+      list.appendChild(row);
+    });
+    document.getElementById('playerCount').textContent = String(d.count || 0);
+    document.getElementById('playerTotalLabel').textContent = `${d.realCount||0} real · ${d.botCount||0} bot`;
+  } catch (e) {}
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+setInterval(refreshPlayers, 4000); refreshPlayers();
+
+setInterval(async () => {
+  try {
+    const r = await fetch('/api/room/' + ROOM_ID + '/state');
+    const d = await r.json();
+    const sp = $('statusPill'); const st = $('statusText');
+    if (d.status === 'started') { sp.classList.add('live'); st.textContent = 'CANLI'; }
+    else if (d.status === 'ended') st.textContent = 'BİTİB';
+    else { sp.classList.remove('live'); st.textContent = 'GÖZLƏYİR'; }
+    $('potText').textContent = (d.basePot||d.stakeTotal||0).toFixed(2) + ' ₼';
+    $('roundText').textContent = '#' + d.currentRoundId;
+    const seats = $('seatPills');
+    const filled = (d.players?.length||0) + (d.botCount||0);
+    seats.querySelectorAll('.seat-pill').forEach((el, idx) => {
+      if (idx < filled) { el.classList.remove('empty'); el.textContent = idx + 1; }
+      else { el.classList.add('empty'); el.textContent = 'Boş'; }
+    });
+  } catch (e) {}
+}, 3000);
+</script>
+</body>
+</html>

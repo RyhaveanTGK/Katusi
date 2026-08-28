@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title><%= room.name %> · Oyun · Birloto</title>
+<link rel="stylesheet" href="/assets/css/loto.css">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined">
+<style>
+.topbar { position: relative; z-index: 30; background: linear-gradient(180deg,#7b2cbf 0%,#6a25a8 60%,#5d1f90 100%); padding: 8px 10px 10px; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+.topbar-inner { max-width:480px; margin:0 auto; display: flex; align-items: center; gap: 8px; }
+.logo { font-weight:900; color:#fff; font-size: 22px; letter-spacing:-1px; flex: 1; min-width:0; }
+.logo .red { color:#e30613; }
+.bal-pill { background: rgba(0,0,0,.30); border-radius: 22px; padding: 5px 12px; display: flex; gap: 8px; align-items: center; font-weight: 800; font-size: 13px; }
+.players-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; padding: 22px; }
+.players-modal.open { display: flex; align-items: center; justify-content: center; }
+.players-modal .box { background: #240735; border-radius: 16px; padding: 18px; max-width: 380px; width: 100%; max-height: 80vh; overflow-y: auto; }
+.pm-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+.pm-row:last-child { border-bottom: 0; }
+.pm-row .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(180deg,#ffd54a,#c8960c); display:flex; align-items:center; justify-content:center; font-weight: 900; color:#2b1200; font-size: 11px; }
+.pm-row .av.bot { background: linear-gradient(180deg,#9eb1ff,#3f5fcf); color:#fff; }
+.pm-row .name { flex: 1; font-weight: 700; font-size: 13px; }
+.pm-row .bot-tag { font-size: 10px; background: rgba(120,160,255,.25); color: #9eb1ff; padding: 2px 7px; border-radius: 99px; font-weight: 800; }
+.pm-row .stake { font-weight: 900; color: #f5c518; font-size: 13px; }
+.close-pm { background: rgba(255,255,255,.12); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 800; margin-top: 12px; width: 100%; }
+.tool-row { padding: 10px 8px 0; }
+.toast { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); background: rgba(16,12,24,.94); color: #fff; padding: 11px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; max-width: 90vw; text-align: center; opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 9999; }
+.toast.show { opacity: 1; }
+.win-banner { background: linear-gradient(180deg,#16a62d,#0e7a22); color: #fff; border-radius: 16px; padding: 14px; text-align: center; font-weight: 900; margin-top: 12px; display: none; }
+.win-banner.show { display: block; }
+body { padding-top: 4px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="logo pie-left" href="/" style="text-decoration:none"><span class="red">Bir</span>loto.com</a>
+    <div class="bal-pill" id="balPill">Balans: <span id="balVal">0.00</span> ₼</div>
+  </div>
+</div>
+<div class="gamebar">
+  <div class="statbar">
+    <div class="bet"><span id="betVal"><%= room.entryFee.toFixed(2) %></span><span class="mult" id="betMult">x<%= room.prizeMultiplier||'x2' %></span></div>
+    <div class="stat-pill item" id="playersToggle" role="button" tabindex="0" style="cursor:pointer"><span class="material-symbols-outlined">group</span><span id="playersCount"><%= (room.players?.length||0)+(room.botCount||0) %></span></div>
+    <div class="stat-pill item"><span class="material-symbols-outlined">emoji_events</span><span id="cupVal">0.00</span></div>
+    <div class="sep"></div>
+    <button class="icon-btn" id="muteBtn" title="Səsi aç/bağla"><span class="material-symbols-outlined">volume_up</span></button>
+    <button class="qty-btn minus" id="discardBtn" title="Son kartı sil"><span class="material-symbols-outlined" style="font-size:22px">delete</span></button>
+  </div>
+</div>
+<div class="panel">
+  <div class="panel-title">CANLI OYUN</div>
+  <div class="live-row"><span class="status-pill"><span class="status-dot"></span><span id="statusText">GÖZLƏYİR</span></span><div class="timer" id="timerText">--:--</div></div>
+  <div class="ball" id="ballEl" style="margin: 12px auto 0;">?</div>
+  <div class="draw-list" id="drawList"></div>
+</div>
+<div class="panel players-panel">
+  <div class="panel-title">OTAUDAKI OYUNÇULAR</div>
+  <div class="players-list" id="playersListMini"></div>
+  <div class="players-total"><span>Oyunçu sayı</span><b id="playersCountMini"><%= (room.players?.length||0)+(room.botCount||0) %></b></div>
+</div>
+<div class="win-banner" id="winBanner">🎉 QALİB OLDUN! <span id="winBannerPrize"></span></div>
+<div class="tool-row" id="toolRow"></div>
+
+<div class="players-modal" id="playersModal">
+  <div class="box">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="font-weight: 800; font-size: 16px;">Oyunçu siyahısı</div>
+      <div id="playerTotalLabel" style="font-size:12px; color:rgba(255,255,255,.6);"></div>
+    </div>
+    <div id="playersListFull" style="margin-top:10px;"></div>
+    <button class="close-pm" id="closePM">Bağla</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="buybar">
+  <div class="buybar-inner">
+    <button class="buy-btn" id="buyBtn" type="button">
+      <div class="buy-main">BİLET AL <span id="buyBtnAmt">0.20</span> ₼</div>
+      <div class="buy-sub">Qazan <span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px">star</span> <span id="winPotential">40</span></div>
+    </button>
+    <div class="qty">
+      <button class="qty-btn minus" id="qtyMinus">−</button>
+      <div class="qty-box"><div class="qty-label">Biletlər</div><div class="qty-val" id="qtyVal">2</div></div>
+      <button class="qty-btn plus" id="qtyPlus">+</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ROOM = <%- JSON.stringify(room) %>;
+const USER = <%- JSON.stringify({ id: user ? user._id : null, balance: user ? user.balance : 0 }) %>;
+</script>
+<script src="/js/audio.js"></script>
+<script src="/js/game.js"></script>
+</body>
+</html>
