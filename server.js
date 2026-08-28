@@ -387,6 +387,36 @@ setInterval(async () => {
   }
 }, 1000);
 
+// ━━━━━ YENİ OYUN OTAQLARINA QOŞULMA - 24 SAAT LİMİTİ ━━━━━
+const ROOM_AGE_LIMIT_MS = 24 * 60 * 60 * 1000; // 24 saat
+
+setInterval(async () => {
+  try {
+    const allRooms = await Room.find({ isCustom: false }).select('_id createdAt name').lean();
+    const now = new Date();
+    
+    for (const room of allRooms) {
+      const roomCreatedTime = new Date(room.createdAt || room._id.getTimestamp());
+      const roomAgeMs = now - roomCreatedTime;
+      
+      if (roomAgeMs > ROOM_AGE_LIMIT_MS) {
+        // Köhnə otaq - bağla
+        await Room.updateOne(
+          { _id: room._id },
+          { $set: { status: 'closed', isOld: true } }
+        );
+        io.to(`room:${room._id}`).emit('room:closed', {
+          message: 'Otaq 24 saatdan çox olduğu üçün bağlandı',
+          roomId: room._id
+        });
+        console.log(`✗ Room closed (old): ${room.name} - Age: ${Math.floor(roomAgeMs / 1000)}s`);
+      }
+    }
+  } catch (e) {
+    console.error('Room age check error:', e.message);
+  }
+}, 60 * 1000); // Hər 1 dəqiqədə yoxla
+
 // ━━━━━ GRACEFUL SHUTDOWN ━━━━━
 process.on('SIGTERM', () => {
   console.log('\n✓ SIGTERM received, shutting down gracefully...');
